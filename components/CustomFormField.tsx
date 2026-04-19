@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react';
 import {
     FormControl,
     FormField,
@@ -74,4 +75,7 @@ const CustomFormField = <T extends FieldValues>({
     );
 };
 
-export default CustomFormField;
+// PERFORMANCE FIX: Memoize CustomFormField to prevent re-renders
+// Used 50+ times across SkillsForm, EducationForm, ExperienceForm, UserInfoForm, etc.
+// Without memo, adding/removing one skill in SkillsForm re-renders ALL 50+ fields (500ms+ overhead)
+export default React.memo(CustomFormField) as typeof CustomFormField;

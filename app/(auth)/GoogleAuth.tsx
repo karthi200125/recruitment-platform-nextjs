@@ -1,58 +1,54 @@
 'use client';
 
-import Loader from '@/components/Loader/Loader';
-import { useCustomToast } from '@/lib/CustomToast';
+import { memo, useCallback, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
-import { memo, useCallback, useRef, useState } from 'react';
-import google from '../../public/google.png';
+import { usePathname } from 'next/navigation';
+import Loader from '@/components/Loader/Loader';
 
-const GoogleAuth = ({ role }: any) => {
-    const { showErrorToast } = useCustomToast();
+
+const GoogleAuth = () => {
+    const pathname = usePathname();
     const [isLoading, setIsLoading] = useState(false);
 
-    const pathname = useRef(usePathname());
-    const router = useRouter()
-
     const onClick = useCallback(async () => {
-        if (!role) {
-            showErrorToast("Please select a role before signing in.");
-            return;
-        }
-
+        // ✅ FIX: Don't use try/finally for loading state — signIn('google')
+        // triggers a full redirect. finally runs only on thrown errors, not
+        // after a successful redirect. Set loading, then let the redirect take over.
         setIsLoading(true);
+
         try {
-            const result = await signIn("google", {
-                callbackUrl: pathname.current === '/signin' ? '/dashboard' : '/welcome',
-                redirect: false,
-            })
-            if (result?.url) {
-                router.push(pathname.current === '/signin' ? '/dashboard' : '/welcome')
-            }
+            await signIn('google', {
+                callbackUrl: pathname === '/signin' ? '/dashboard' : '/welcome',
+            });
+            // If signIn resolves without redirecting (e.g. popup mode or error),
+            // reset loading state.
+            setIsLoading(false);
         } catch (error) {
-            console.error("Error during sign-in:", error);
-        } finally {
+            console.error('Google sign-in failed:', error);
             setIsLoading(false);
         }
-    }, [role, showErrorToast]);
+    }, [pathname]);
+
+    const isSignIn = pathname === '/signin';
 
     return (
-        <div className="space-y-5 w-full">
+        <div className="w-full">
             <button
+                type="button"
                 onClick={onClick}
-                className={`w-full rounded-full flex items-center gap-4 justify-center py-2 border-[1px] border-white/10 transition hover:opacity-50 
-                    ${isLoading ? '!cursor-not-allowed opacity-50' : ''}`}
                 disabled={isLoading}
+                className={`w-full rounded-full flex items-center gap-4 justify-center py-2 border border-white/10 transition hover:opacity-80 ${isLoading ? 'cursor-not-allowed opacity-50' : ''
+                    }`}
             >
                 {isLoading ? (
                     <Loader />
                 ) : (
-                    <Image src={google} alt="Google logo" width={20} height={20} className="object-contain" />
+                    <Image src='/google.webp' alt="Google logo" width={20} height={20} className="object-contain" />
                 )}
-                <h3 className="text-white/30 text-[15px]">
-                    {isLoading ? 'Please wait ....' : pathname.current === '/signin' ? 'Sign In With Google' : 'Sign Up With Google'}
-                </h3>
+                <span className="text-white/30 text-[15px]">
+                    {isLoading ? 'Please wait...' : isSignIn ? 'Sign In with Google' : 'Sign Up with Google'}
+                </span>
             </button>
         </div>
     );

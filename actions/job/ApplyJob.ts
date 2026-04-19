@@ -1,9 +1,11 @@
-'use server'
+'use server';
 
+import { getServerSession } from 'next-auth';
+
+import { authOptions } from '@/lib/authOptions';
 import { db } from '@/lib/db';
 
 export async function applyForJob(
-  userId: number,
   jobId: number,
   candidateEmail: string,
   candidateMobile: string,
@@ -11,41 +13,65 @@ export async function applyForJob(
   questionAndAnswers: any
 ) {
   try {
-    
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return { error: 'Unauthorized' };
+    }
+
+    const currentUser = session.user;
+
+    if (currentUser.role === 'ORGANIZATION') {
+      return {
+        error: 'Organizations cannot apply for jobs',
+      };
+    }
+
+    const job = await db.job.findUnique({
+      where: { id: jobId },
+    });
+
+    if (!job) {
+      return { error: 'Job not found' };
+    }
+
+    const existingApplication =
+      await db.jobApplication.findFirst({
+        where: {
+          userId: currentUser.id,
+          jobId,
+        },
+      });
+
+    if (existingApplication) {
+      return {
+        error:
+          'You have already applied for this job',
+      };
+    }
+
     await db.jobApplication.create({
       data: {
-        userId,
+        userId: currentUser.id,
         jobId,
         candidateEmail,
         candidateMobile,
         candidateResume,
-        questionAndAnswers
+        questionAndAnswers,
       },
     });
 
-    return { success: "Job applied successfully" };
+    return {
+      success: 'Job applied successfully',
+    };
   } catch (error) {
-    console.log(error)
-    return { error: 'Error applying for job' }
+    console.error(
+      'Apply job error:',
+      error
+    );
+
+    return {
+      error: 'Error applying for job',
+    };
   }
 }
-
-
-export const getJobTitles = async (search: string) => {
-  try {
-    const jobTitles = await db.job.findMany({
-      where: {
-        jobTitle: {
-          contains: search,
-          mode: 'insensitive',
-        },
-      },
-      select: {
-        jobTitle: true,
-      },
-    });
-    return jobTitles;
-  } catch (err) {
-    return 'Failed to fetch job titles';
-  }
-};

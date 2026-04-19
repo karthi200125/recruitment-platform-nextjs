@@ -1,50 +1,87 @@
-'use server'
+"use server";
 
 import { db } from "@/lib/db";
-import { getUserById } from "./auth/getUserById";
+import { getUserById, ProfileUser } from "./auth/getUserById";
 
-type UserRole = 'CANDIDATE' | 'RECRUITER' | 'ORGANIZATION';
+type UserRole = "CANDIDATE" | "RECRUITER" | "ORGANIZATION";
 
-export const moreProUsers = async (currentUser: any, profileUserId: any) => {
-    if (!profileUserId) return { error: "no Id found" };
+interface CurrentUser {
+    id: number;
+    role?: UserRole;
+}
 
-    const user: any = await getUserById(profileUserId);
-
-    if (!user) return { error: "user not found" };
-
-    const isCurrentUser = currentUser?.id === profileUserId;
-    const userFollowers = user?.followers || [];
-
-    const roleConditions: Record<UserRole, { where: { role: any; id: { not: any; in?: any[]; } } }> = {
-        CANDIDATE: {
-            where: {
-                role: { not: 'ORGANIZATION' },
-                id: isCurrentUser ? { not: profileUserId } : { in: userFollowers, not: profileUserId }
-            }
-        },
-        RECRUITER: {
-            where: {
-                role: { not: 'ORGANIZATION' },
-                id: isCurrentUser ? { not: profileUserId } : { in: userFollowers, not: profileUserId }
-            }
-        },
-        ORGANIZATION: {
-            where: {
-                role: { equals: 'ORGANIZATION' },
-                id: isCurrentUser ? { not: profileUserId } : { not: profileUserId }
-            },            
-        }
-    };
-
-    const userRole: UserRole = user?.role;
-
-    const roleCondition = roleConditions[userRole];
-
-    if (!roleCondition) {
-        return { error: "Invalid role" };
+export const moreProUsers = async (
+    currentUser: CurrentUser | null,
+    profileUserId: number
+) => {
+    // ── Validate input ─────────────────────────────────────────────
+    if (!Number.isInteger(profileUserId)) {
+        throw new Error("Invalid profile user ID");
     }
 
-    const users: any = await db.user.findMany(roleCondition);
+    // ── Fetch viewed profile ───────────────────────────────────────
+    const res = await getUserById(profileUserId);
+
+    if (!res.success || !res.data) {
+        throw new Error(res.error || "Profile user not found");
+    }
+
+    const profileUser: ProfileUser = res.data; // ✅ unwrap once
+
+    const isCurrentUser = currentUser?.id === profileUserId;
+
+    const followers: number[] = profileUser.followers ?? [];
+
+    const userRole = profileUser.role as UserRole;
+
+    // ── Build role-based query ────────────────────────────────────
+    let whereClause: Record<string, unknown>;
+
+    switch (userRole) {
+        case "CANDIDATE":
+        case "RECRUITER":
+            whereClause = {
+                role: {
+                    not: "ORGANIZATION",
+                },
+                id: isCurrentUser
+                    ? { not: profileUserId }
+                    : {
+                        in: followers,
+                        not: profileUserId,
+                    },
+            };
+            break;
+
+        case "ORGANIZATION":
+            whereClause = {
+                role: "ORGANIZATION",
+                id: {
+                    not: profileUserId,
+                },
+            };
+            break;
+
+        default:
+            throw new Error("Unsupported user role");
+    }
+
+    // ── Query more profiles ───────────────────────────────────────
+    const users = await db.user.findMany({
+        where: whereClause,
+        take: 8,
+        select: {
+            id: true,
+            username: true,
+            userImage: true,
+            profession: true,
+            role: true,
+            isPro: true,
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
 
     return users;
 };

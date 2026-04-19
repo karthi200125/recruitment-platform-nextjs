@@ -1,30 +1,51 @@
 "use client";
 
-import BottomDrawer from "@/components/BottomDrawer";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { IoSearchOutline } from "react-icons/io5";
+
+import BottomDrawer from "@/components/BottomDrawer";
 import ChatList from "./ChatList";
 import MessageBox from "./MessageBox";
 import EmployeesSkeleton from "@/Skeletons/EmployeesSkeleton";
-import { useCallback, useEffect, useState } from "react";
+
+
+export interface ChatUser {
+  id: number;
+  username: string;
+  userImage?: string | null;
+  profession?: string | null;
+  lastMessage?: string | null;
+}
 
 interface ChatUsersProps {
-  chatUsers: any[];
+  chatUsers: ChatUser[];
   isPending?: boolean;
   onSelectedChatUserId?: (id: number) => void;
   defaultChatUserId?: number | null;
-  onSearch?: any;
+  onSearch?: (query: string) => void;
 }
 
-const ChatLists = ({ chatUsers, isPending, onSelectedChatUserId, defaultChatUserId, onSearch }: ChatUsersProps) => {
-  const [selectedChatUserId, setSelectedChatUserId] = useState<number | null>(defaultChatUserId || null);
-  const [q, setQ] = useState('')
 
+const ChatLists = ({
+  chatUsers,
+  isPending = false,
+  onSelectedChatUserId,
+  defaultChatUserId,
+  onSearch,
+}: ChatUsersProps) => {
+  const [selectedChatUserId, setSelectedChatUserId] = useState<number | null>(
+    defaultChatUserId ?? null
+  );
+  const [q, setQ] = useState("");
+
+  
   useEffect(() => {
-    if (defaultChatUserId) {
+    if (defaultChatUserId !== undefined && defaultChatUserId !== null) {
       setSelectedChatUserId(defaultChatUserId);
     }
   }, [defaultChatUserId]);
 
+  
   const handleSelectChatUserId = useCallback(
     (chatUserId: number) => {
       setSelectedChatUserId(chatUserId);
@@ -33,45 +54,93 @@ const ChatLists = ({ chatUsers, isPending, onSelectedChatUserId, defaultChatUser
     [onSelectedChatUserId]
   );
 
-  const renderChats = (isMobile: boolean) => {
-    if (isPending) return <EmployeesSkeleton count={5} />;
-    if (!chatUsers || chatUsers.length === 0) return <h4 className="p-3">No Chat Users Yet!</h4>;
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setQ(value);
+      onSearch?.(value); // ✅ correct (no stale value bug)
+    },
+    [onSearch]
+  );
 
-    return chatUsers.map((chatUser) => (
-      <div key={chatUser.id} onClick={() => handleSelectChatUserId(chatUser?.id)}>
-        {isMobile ? (
-          <BottomDrawer body={<MessageBox receiverId={chatUser?.id} chatUser={chatUser} isLoading={isPending} isChatuser={true} />}>
-            <ChatList chatUser={chatUser} selectedChatUserId={selectedChatUserId} />
-          </BottomDrawer>
-        ) : (
-          <ChatList chatUser={chatUser} selectedChatUserId={selectedChatUserId} />
-        )}
-      </div>
-    ));
-  };
+  
+  const chatItems = useMemo(() => {
+    if (isPending) {
+      return <EmployeesSkeleton count={6} />;
+    }
 
-  const HandleChange = (e: any) => {
-    setQ(e.target.value)
-    onSearch(q)
-  }
+    if (!chatUsers || chatUsers.length === 0) {
+      return (
+        <div className="p-4 text-sm text-gray-400 text-center">
+          No conversations yet
+        </div>
+      );
+    }
 
+    return chatUsers.map((chatUser) => {
+      const isSelected = selectedChatUserId === chatUser.id;
+
+      const content = (
+        <ChatList
+          chatUser={chatUser}
+          selectedChatUserId={selectedChatUserId}
+        />
+      );
+
+      return (
+        <div
+          key={chatUser.id}
+          onClick={() => handleSelectChatUserId(chatUser.id)}
+          className={`cursor-pointer transition-colors ${isSelected ? "bg-gray-100" : "hover:bg-gray-50"
+            }`}
+        >
+          {/* Mobile → Drawer */}
+          <div className="md:hidden">
+            <BottomDrawer
+              body={
+                <MessageBox
+                  receiverId={chatUser.id}
+                  chatUser={chatUser}
+                  isLoading={isPending}
+                  isChatuser
+                />
+              }
+            >
+              {content}
+            </BottomDrawer>
+          </div>
+
+          {/* Desktop */}
+          <div className="hidden md:block">{content}</div>
+        </div>
+      );
+    });
+  }, [chatUsers, isPending, selectedChatUserId, handleSelectChatUserId]);
+
+  
   return (
-    <div className="w-full md:flex-[2] messageh md:border-r border-neutral-200 pt-3 md:pr-3">
-      <div className="space-y-5 py-3">
-        <h3 className="font-bold">Messaging</h3>
-        <div className="bg-neutral-100 rounded-md flex items-center gap-3 pl-3 overflow-hidden">
-          <IoSearchOutline />
+    <div className="w-full md:flex-[2] h-full flex flex-col border-neutral-200">
+
+      {/* Header */}
+      <div className="p-4 border-b space-y-3">
+        <h3 className="font-semibold text-sm">Messages</h3>
+
+        {/* Search */}
+        <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
+          <IoSearchOutline className="text-gray-500" />
           <input
             type="text"
-            className="p-2 w-full bg-neutral-100"
-            placeholder="Search users ..."
-            onChange={HandleChange}
+            value={q}
+            onChange={handleSearchChange}
+            placeholder="Search conversations..."
+            className="w-full bg-transparent text-sm outline-none"
           />
         </div>
       </div>
-      <div className="flex flex-col overflow-y-auto">
-        <div className="md:hidden">{renderChats(true)}</div>
-        <div className="hidden md:block">{renderChats(false)}</div>
+
+      {/* Chat List */}
+      <div className="flex-1 overflow-y-auto">
+        {chatItems}
       </div>
     </div>
   );

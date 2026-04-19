@@ -1,71 +1,132 @@
-'use client'
+"use client";
 
-import { getUserById } from "@/actions/auth/getUserById"
-import { updateProfileViews } from "@/actions/user/profileViews"
-import Title from "@/lib/MetaTitle"
-import { useQuery } from '@tanstack/react-query'
-import { useParams } from "next/navigation"
-import { useEffect, useMemo } from 'react'
-import { useSelector } from "react-redux"
-import AboutMe from "../AboutMe"
-import CompanySlides from "../CompanySlides/CompanySlides"
-import Education from "../Educations"
-import Experiences from "../Experiences"
-import MoreProfiles from "../MoreProfiles"
-import Projects from "../Projects"
-import UserInfo from "../UserInfo"
+import { useEffect, useRef } from "react";
+import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
+
+import { getUserById, ProfileUser } from "@/actions/auth/getUserById";
+import { updateProfileViews } from "@/actions/user/profileViews";
+
+import AboutMe from "../AboutMe";
+import CompanySlides from "../CompanySlides/CompanySlides";
+import Education from "../Educations";
+import Experiences from "../Experiences";
+import MoreProfiles from "../MoreProfiles";
+import Projects from "../Projects";
+import UserInfo from "../UserInfo";
+
+interface AuthUser {
+  id: number;
+  role?: string;
+}
+
+interface RootState {
+  user: { user: AuthUser | null };
+}
 
 const UserProfile = () => {
-  const user = useSelector((state: any) => state.user.user)
-  const params = useParams()
+  const loggedInUser = useSelector((state: RootState) => state.user.user);
 
-  const userId = useMemo(() => Number(params?.userId), [params?.userId])
+  const params = useParams();
+  const rawUserId = params?.userId;
 
-  const { data, isPending } = useQuery({
-    queryKey: ['getuser', userId],
-    queryFn: () => getUserById(userId),
-    enabled: !!userId,  
+  const userId =
+    typeof rawUserId === "string" && /^\d+$/.test(rawUserId)
+      ? Number(rawUserId)
+      : null;
+
+  const hasTrackedView = useRef(false);
+
+  const {
+    data: profileData,
+    isPending,
+    isError,
+    refetch,
+  } = useQuery<ProfileUser>({
+    queryKey: ["getuser", userId],
+    queryFn: async () => {
+      const res = await getUserById(userId!);
+
+      if (!res.success || !res.data) {
+        throw new Error(res.error || "Failed to fetch user");
+      }
+
+      return res.data; 
+    },
+    enabled: userId !== null,
+    staleTime: 1000 * 60 * 2,
+    retry: 1,
   });
 
-  const company = useMemo(() => data?.company?.[0], [data?.company])
-  const isOrg = useMemo(() => data?.role === "ORGANIZATION", [data?.role])
+  
+  const company = profileData?.company?.[0] ?? null;
+  const isOrg = profileData?.role === "ORGANIZATION";
 
   useEffect(() => {
-    if (user?.id && userId && user?.id !== userId) {
-      updateProfileViews(user.id, userId).catch((err) =>
-        console.error("Failed to update profile views:", err)
-      );
-    }
-  }, [user?.id, userId]);
+    if (!loggedInUser?.id || userId === null) return;
+    if (loggedInUser.id === userId) return;
+    if (hasTrackedView.current) return;
+
+    hasTrackedView.current = true;
+
+    updateProfileViews(loggedInUser.id, userId).catch((err) => {
+      console.error("[UserProfile] Failed to update profile views:", err);
+    });
+  }, [loggedInUser?.id, userId]);
+
+  if (userId === null) {
+    return <div>Invalid Profile ID</div>;
+  }
+
+  if (isError) {
+    return (
+      <div>
+        Failed to load profile.
+        <button onClick={() => refetch()}>Retry</button>
+      </div>
+    );
+  }
+
+  if (!isPending && !profileData) {
+    return <div>Profile not found.</div>;
+  }
 
   return (
-    <div className="min-h-screen w-full flex flex-row items-start gap-5 py-5">
-      <Title
-        title={`${data?.username || "User Profile"} | JOBIFY`}
-        description="View user profiles, explore professional details, and connect with job seekers and recruiters on JOBIFY."
-        keywords="user profile, job seeker profile, recruiter profile, jobify network"
-      />
+    <main className="min-h-screen w-full flex gap-5 py-5">
+      <div className="w-full md:w-[70%] space-y-5">
+        <UserInfo
+          profileUser={profileData}
+          isLoading={isPending}
+          company={company}
+          isOrg={isOrg}
+        />
 
-      <div className="w-full md:w-[70%] h-full space-y-5">
-        <UserInfo profileUser={data} isLoading={isPending} company={company} isOrg={isOrg} />
-        <AboutMe profileUser={data} isLoading={isPending} company={company} isOrg={isOrg} />
+        <AboutMe
+          profileUser={profileData}
+          isLoading={isPending}
+          company={company}
+          isOrg={isOrg}
+        />
 
-        {!isOrg && (
+        {!isOrg && profileData && (
           <>
-            <Education userId={userId} profileUser={data} />
-            <Projects userId={userId} profileUser={data} />
-            <Experiences userId={userId} profileUser={data} />
+            <Education userId={userId} profileUser={profileData} />
+            <Projects userId={userId} profileUser={profileData} />
+            <Experiences userId={userId} profileUser={profileData} />
           </>
         )}
 
-        {isOrg && <CompanySlides company={company} profileUser={data} />}
+        {isOrg && profileData && (
+          <CompanySlides company={company} profileUser={profileData} />
+        )}
       </div>
 
-      <div className="hidden md:block md:w-[30%] h-full">
-        <MoreProfiles userId={userId} />
-      </div>
-    </div>
-  )
-}
+      <aside className="hidden md:block md:w-[30%]">
+        {!isPending && <MoreProfiles userId={userId} />}
+      </aside>
+    </main>
+  );
+};
 
-export default UserProfile
+export default UserProfile;

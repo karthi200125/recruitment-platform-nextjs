@@ -1,11 +1,11 @@
 'use client';
 
-import { getJobTitles } from "@/actions/job/ApplyJob";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChangeEvent, KeyboardEvent, useEffect, useState } from 'react';
 import { IoSearchOutline } from "react-icons/io5";
 import { Skeleton } from "../ui/skeleton";
+import { getJobTitles } from "@/actions/job/getJobTitles";
 
 const Search = () => {
 

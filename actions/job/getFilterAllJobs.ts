@@ -1,125 +1,178 @@
-'use server';
-
 import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
+import { cache } from "react";
 
-export const getFilterAllJobs = async (userId: string, searchParams: any) => {
+interface GetFilteredJobsParams {
+    userId?: number;
+    page?: number;
+    q?: string;
+    easyApply?: string;
+    dateposted?: string;
+    experiencelevel?: string;
+    type?: string;
+    location?: string;
+    company?: string;
+}
 
-    const { easyApply, dateposted, experiencelevel, type, location, q, company, page = 1 } = searchParams;
-
-    const ITEM_PER_PAGE = 10;
-    const currentPage = Number(page) || 1;
-
-    try {
-        const filters: any = {};
-
-        if (q) {
-            filters.jobTitle = {
-                contains: q,
-                mode: 'insensitive',
+export type JobWithCompany = Prisma.JobGetPayload<{
+    include: {
+        company: {
+            select: {
+                id: true;
+                companyName: true;
+                companyImage: true;
             };
-        }
-
-        if (easyApply) {
-            filters.isEasyApply = true;
-        }
-
-        if (company) {
-            filters.company = {
-                companyName: {
-                    contains: company,
-                    mode: 'insensitive',
-                }
+        };
+        _count: {
+            select: {
+                jobApplications: true;
             };
-        }
+        };
+    };
+}>;
 
-        if (dateposted) {
-            const now = new Date();
-            switch (dateposted) {
-                case 'Past 24 hours':
-                    filters.createdAt = { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) };
-                    break;
-                case 'Past 3 days':
-                    filters.createdAt = { gte: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000) };
-                    break;
-                case 'Past Week':
-                    filters.createdAt = { gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
-                    break;
-                case 'Past Month':
-                    filters.createdAt = { gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
-                    break;
-                default:
-                    break;
+const ITEM_PER_PAGE = 10;
+
+export const getFilteredJobs = cache(
+    async (
+        params: GetFilteredJobsParams
+    ): Promise<{
+        jobs: JobWithCompany[];
+        count: number;
+    }> => {
+        const {
+            userId,
+            page = 1,
+            q,
+            easyApply,
+            dateposted,
+            experiencelevel,
+            type,
+            location,
+            company,
+        } = params;
+
+
+        const currentPage = Math.max(1, page);
+
+        try {
+
+            const where: Prisma.JobWhereInput = {};
+
+
+            if (q) {
+                where.jobTitle = {
+                    contains: q,
+                    mode: "insensitive",
+                };
             }
-        }
 
-        if (type) {
-            filters.mode = type;
-        }
 
-        if (experiencelevel) {
-            filters.experience = experiencelevel;
-        }
+            if (easyApply === "true") {
+                where.isEasyApply = true;
+            }
 
-        if (location) {
-            filters.state = location;
-        }
 
-        const totalCount = await db.job.count({
-            where: {
-                AND: [
-                    { ...filters },
-                    {
-                        NOT: [
-                            { userId },  
-                            {
-                                company: {
-                                    userId,  
-                                },
-                            },
-                            {
-                                jobApplications: {
-                                    some: { userId }, 
-                                },
-                            },
-                        ],
+            if (company) {
+                where.company = {
+                    companyName: {
+                        contains: company,
+                        mode: "insensitive",
                     },
-                ],
-            },
-        });
-        
-        const allJobs:any = await db.job.findMany({
-            where: {
-                AND: [
-                    { ...filters },
-                    {
-                        NOT: [
-                            { userId },  
-                            {
-                                company: {
-                                    userId,  
-                                },
-                            },
-                            {
-                                jobApplications: {
-                                    some: { userId }, 
-                                },
-                            },
-                        ],
-                    },
-                ],
-            },
-            include: {
-                company: true, 
-                jobApplications: true,
-            },
-            orderBy: { createdAt: 'desc' },
-            take: ITEM_PER_PAGE,
-            skip: (currentPage - 1) * ITEM_PER_PAGE,
-        });
+                };
+            }
 
-        return { jobs: allJobs, count: totalCount };
-    } catch (err) {
-        console.log(err)        
-        return { error: "Failed to fetch jobs" };
+
+            if (dateposted) {
+                const now = new Date();
+
+                const dateMap: Record<string, number> = {
+                    "Past 24 hours": 1,
+                    "Past 3 days": 3,
+                    "Past Week": 7,
+                    "Past Month": 30,
+                };
+
+                const days = dateMap[dateposted];
+
+                if (days) {
+                    where.createdAt = {
+                        gte: new Date(now.getTime() - days * 86400000),
+                    };
+                }
+            }
+
+
+
+            if (type) {
+                where.mode = type;
+            }
+
+
+            if (experiencelevel) {
+                where.experience = experiencelevel;
+            }
+
+            if (location) {
+                where.OR = [
+                    { city: { contains: location, mode: "insensitive" } },
+                    { state: { contains: location, mode: "insensitive" } },
+                    { country: { contains: location, mode: "insensitive" } },
+                ];
+            }
+
+
+            if (userId !== undefined) {
+                where.NOT = [
+                    { userId },
+                    {
+                        company: {
+                            userId,
+                        },
+                    },
+                    {
+                        jobApplications: {
+                            some: { userId },
+                        },
+                    },
+                ];
+            }
+
+
+            const totalCount = await db.job.count({ where });
+
+
+            const jobs = await db.job.findMany({
+                where,
+                orderBy: {
+                    createdAt: "desc",
+                },
+                take: ITEM_PER_PAGE,
+                skip: (currentPage - 1) * ITEM_PER_PAGE,
+
+                include: {
+                    company: {
+                        select: {
+                            id: true,
+                            companyName: true,
+                            companyImage: true,
+                        },
+                    },
+                    _count: {
+                        select: {
+                            jobApplications: true,
+                        },
+                    },
+                },
+            });
+
+            return {
+                jobs,
+                count: totalCount,
+            };
+        } catch (error) {
+            console.error("❌ getFilteredJobs error:", error);
+            throw new Error("Failed to fetch jobs");
+        }
     }
-};
+);

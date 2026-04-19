@@ -1,69 +1,107 @@
-'use client';
+import { Role } from "@prisma/client";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+/* ================= TYPES ================= */
+
+export interface AuthUser {
+    id: number;
+    username?: string;
+    email?: string;
+    role?: Role;
+    isPro?: boolean;
+
+    savedJobs: number[];
+    followings: number[];
+}
 
 interface AuthState {
-    user: any | null;
+    user: AuthUser | null;
 }
 
-let userData: any | null = null;
+/* ================= STORAGE ================= */
 
-if (typeof window !== 'undefined') {
-    const storedUser = localStorage.getItem('user');
-    userData = storedUser ? JSON.parse(storedUser) : null;
-}
+const STORAGE_KEY = "auth_user";
 
-const initialState: AuthState = {
-    user: userData || null,
+const loadUserFromStorage = (): AuthUser | null => {
+    if (typeof window === "undefined") return null;
+
+    try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (!data) return null;
+
+        const parsed: AuthUser = JSON.parse(data);
+
+        // Ensure arrays always exist (important!)
+        return {
+            ...parsed,
+            savedJobs: parsed.savedJobs ?? [],
+            followings: parsed.followings ?? [],
+        };
+    } catch (err) {
+        console.error("[AuthSlice] Storage parse error:", err);
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+    }
 };
 
-const AuthSlice = createSlice({
-    name: 'user',
+const saveUserToStorage = (user: AuthUser | null) => {
+    if (typeof window === "undefined") return;
+
+    if (!user) {
+        localStorage.removeItem(STORAGE_KEY);
+        return;
+    }
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+};
+
+/* ================= HELPERS ================= */
+
+// reusable toggle helper (clean & testable)
+const toggleId = (list: number[], id: number): number[] => {
+    return list.includes(id)
+        ? list.filter((item) => item !== id)
+        : [...list, id];
+};
+
+/* ================= INITIAL STATE ================= */
+
+const initialState: AuthState = {
+    user: loadUserFromStorage(),
+};
+
+/* ================= SLICE ================= */
+
+const authSlice = createSlice({
+    name: "auth",
     initialState,
     reducers: {
-        loginRedux(state, action: PayloadAction<any>) {
-            state.user = action.payload;
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('user', JSON.stringify(action.payload));
-            }
-        },
-        logoutRedux(state) {
-            state.user = null;
-            if (typeof window !== 'undefined') {
-                localStorage.removeItem('user');
-            }
-        },
-        userSavedJobs(state, action: PayloadAction<number>) {
-            if (state.user) {
-                const isSaved = state.user.savedJobs.includes(action.payload);
-                if (isSaved) {
-                    state.user.savedJobs = state.user.savedJobs.filter((id: number) => id !== action.payload);
-                } else {
-                    state.user.savedJobs = [...state.user.savedJobs, action.payload];
-                }
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem('user', JSON.stringify(state.user));
-                }
-            }
-        },
-        userFollow(state, action: PayloadAction<number>) {
-            if (state.user) {
-                const isFollowing = state.user.followings.includes(action.payload);
+        toggleSavedJob(state, action: PayloadAction<number>) {
+            if (!state.user) return;
 
-                if (isFollowing) {
-                    state.user.followings = state.user.followings.filter((id: number) => id !== action.payload);
-                } else {
-                    state.user.followings = [...state.user.followings, action.payload];
-                }
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem('user', JSON.stringify(state.user));
-                }
-            }
-        }
+            state.user.savedJobs = toggleId(
+                state.user.savedJobs || [],
+                action.payload
+            );
 
+            saveUserToStorage(state.user);
+        },
+
+        toggleFollowUser(state, action: PayloadAction<number>) {
+            if (!state.user) return;
+
+            state.user.followings = toggleId(
+                state.user.followings || [],
+                action.payload
+            );
+
+            saveUserToStorage(state.user);
+        },
     },
 });
 
-export const { loginRedux, logoutRedux, userSavedJobs, userFollow } = AuthSlice.actions;
+/* ================= EXPORTS ================= */
 
-export default AuthSlice.reducer;
+export const { toggleSavedJob, toggleFollowUser } = authSlice.actions;
+
+export default authSlice.reducer;

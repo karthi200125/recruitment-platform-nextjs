@@ -15,7 +15,7 @@ interface JobDescProps {
     safeSearchParams?: any;
 }
 
-const JobDesc = ({ job, safeSearchParams }: JobDescProps) => {
+const JobDetails = ({ job, safeSearchParams }: JobDescProps) => {
     const user = useSelector((state: any) => state.user.user);
     const cId = job?.companyId;
 
@@ -56,4 +56,4 @@ const JobDesc = ({ job, safeSearchParams }: JobDescProps) => {
     );
 };
 
-export default JobDesc;
+export default JobDetails;

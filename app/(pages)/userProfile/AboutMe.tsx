@@ -1,58 +1,114 @@
-'use client'
 
-import UserAboutMeSkeleton from '@/Skeletons/UserAboutMeSkeleton';
-import Skills from './Skills';
-import { useEffect, useState } from 'react';
-import DOMPurify from 'dompurify';
+"use client";
 
-interface AboutMeProps {
-    profileUser?: any;
-    isLoading?: boolean;
-    isOrg?: boolean;
-    company?: any;
+import { useMemo, useState } from "react";
+import DOMPurify from "dompurify";
+
+import UserAboutMeSkeleton from "@/Skeletons/UserAboutMeSkeleton";
+import Skills from "./Skills";
+
+/* ────────────────────────────────────────────────
+   Types
+──────────────────────────────────────────────── */
+interface Company {
+    companyAbout?: string | null;
 }
 
-const AboutMe = ({ profileUser, isLoading, company, isOrg }: AboutMeProps) => {
-    const [sanitizedUserAbout, setSanitizedUserAbout] = useState('');
+interface ProfileUser {
+    id: number;
+    userAbout?: string | null;
+    skills?: string[];
+}
+
+interface AboutMeProps {
+    profileUser?: ProfileUser | null;
+    isLoading?: boolean;
+    isOrg?: boolean;
+    company?: Company | null;
+}
+
+/* ────────────────────────────────────────────────
+   Component
+──────────────────────────────────────────────── */
+const AboutMe = ({
+    profileUser,
+    isLoading = false,
+    company,
+    isOrg = false,
+}: AboutMeProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    useEffect(() => {
-        if (profileUser?.userAbout) {
-            setSanitizedUserAbout(DOMPurify.sanitize(profileUser.userAbout));
-        }
-    }, [profileUser]);
+    /* ────────────────────────────────────────────────
+       Sanitize HTML Only When Input Changes
+    ──────────────────────────────────────────────── */
+    const sanitizedUserAbout = useMemo(() => {
+        if (!profileUser?.userAbout) return "";
+
+        return DOMPurify.sanitize(profileUser.userAbout);
+    }, [profileUser?.userAbout]);
+
+    /* ────────────────────────────────────────────────
+       Loading State
+    ──────────────────────────────────────────────── */
+    if (isLoading) {
+        return (
+            <section className="w-full min-h-[100px] rounded-[20px] border overflow-hidden p-5">
+                <h3 className="font-bold mb-5">About Me</h3>
+                <UserAboutMeSkeleton />
+            </section>
+        );
+    }
 
     return (
-        <div className='relative w-full min-h-[100px] rounded-[20px] border overflow-hidden p-5'>
-            <h3 className='font-bold mb-5'>About Me</h3>
-            {isLoading ? (
-                <UserAboutMeSkeleton />
+        <section className="w-full min-h-[100px] rounded-[20px] border overflow-hidden p-5">
+            <h3 className="font-bold mb-5">
+                {isOrg ? "About Company" : "About Me"}
+            </h3>
+
+            {isOrg ? (
+                <p className="text-sm text-[var(--lighttext)] leading-relaxed">
+                    {company?.companyAbout || "No company description provided."}
+                </p>
             ) : (
                 <>
-                    {isOrg ? (
-                        <p className='text-sm text-[var(--lighttext)] mt-5'>
-                            {company?.companyAbout}
-                        </p>
-                    ) : (
-                        <div className="relative">
-                            <div
-                                className={`prose max-w-none text-xs md:text-sm transition-all duration-300 overflow-hidden ${isExpanded ? 'max-h-full' : 'line-clamp-3'}`}
-                                dangerouslySetInnerHTML={{ __html: sanitizedUserAbout }}
-                            />
+                    <div className="relative">
+                        <div
+                            className={`
+                prose max-w-none text-xs md:text-sm
+                transition-all duration-300 overflow-hidden
+                ${isExpanded ? "max-h-full" : "line-clamp-3"}
+              `}
+                            dangerouslySetInnerHTML={{
+                                __html:
+                                    sanitizedUserAbout ||
+                                    "<p>No bio provided yet.</p>",
+                            }}
+                        />
+
+                        {sanitizedUserAbout && (
                             <button
-                                onClick={() => setIsExpanded(!isExpanded)}
-                                className="mt-2 text-blue-600 text-xs font-semibold focus:outline-none flex justify-end w-full"
+                                type="button"
+                                onClick={() =>
+                                    setIsExpanded((prev) => !prev)
+                                }
+                                className="
+                  mt-3 text-blue-600 text-xs font-semibold
+                  hover:underline
+                  focus:outline-none
+                  flex justify-end w-full
+                "
                             >
                                 {isExpanded ? "Show Less" : "Show More"}
                             </button>
-                        </div>
-                    )}
+                        )}
+                    </div>
 
-                    {!isOrg && <Skills profileUser={profileUser} isLoading={isLoading} />}
+                    <Skills SkillsprofileUser={profileUser} />
                 </>
             )}
-        </div>
+        </section>
     );
 };
 
 export default AboutMe;
+

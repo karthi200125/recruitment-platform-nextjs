@@ -1,148 +1,107 @@
-'use client'
+'use client';
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-
-import { login } from "@/actions/auth/login";
-import Button from '@/components/Button';
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import FormError from '@/components/ui/FormError';
-import FormSuccess from '@/components/ui/FormSuccess';
-import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from "@/components/ui/select";
-import { useCustomToast } from "@/lib/CustomToast";
-import { LoginSchema } from "@/lib/SchemaTypes";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from 'react';
-import { FaLock, FaLockOpen } from "react-icons/fa6";
-import { useDispatch } from "react-redux";
-import { loginRedux } from "../Redux/AuthSlice";
+import { signIn } from "next-auth/react";
 
-const LoginForm = ({ onRole }: { onRole: (role: string) => void }) => {
-    const { showErrorToast } = useCustomToast();
-    const [showPass, setShowPass] = useState(false);
-    const [err, setErr] = useState("");
-    const [success, setSuccess] = useState("");
+import { LoginSchema } from "@/lib/SchemaTypes";
+import Button from "@/components/Button";
+import FormError from "@/components/ui/FormError";
+import { Input } from "@/components/ui/input";
+import {
+    Form, FormControl, FormField, FormItem, FormMessage,
+} from "@/components/ui/form";
+import { FaLock, FaLockOpen } from "react-icons/fa";
+
+const LoginForm = () => {
     const router = useRouter();
-    const [role, setRole] = useState<string>("");
+    const [showPass, setShowPass] = useState(false);
+    const [error, setError] = useState("");
+    const [isPending, startTransition] = useTransition();
 
-    const dispatch = useDispatch();
-
-    const options = [
-        "CANDIDATE",
-        "ORGANIZATION",
-        "RECRUITER",
-    ];
-
-    const [isLoading, startTransition] = useTransition();
     const form = useForm<z.infer<typeof LoginSchema>>({
         resolver: zodResolver(LoginSchema),
-        defaultValues: {
-            email: "",
-            password: "",
-        },
+        defaultValues: { email: "", password: "" },
     });
 
     const onSubmit = (values: z.infer<typeof LoginSchema>) => {
-        startTransition(() => {
-            if (!role) {
-                showErrorToast("Please select a role before signing in.");
+        setError("");
+
+        startTransition(async () => {
+            const result = await signIn("credentials", {
+                email: values.email,
+                password: values.password,
+                redirect: false, // 🔥 IMPORTANT
+            });
+
+            if (result?.error) {
+                setError("Invalid email or password.");
                 return;
             }
-            login(values, role)
-                .then((data) => {
-                    if (data?.success) {
-                        setSuccess(data?.success);
-                        dispatch(loginRedux(data?.data));
-                        setErr("");
-                        router.push(`/userProfile/${data?.data?.id}`);
-                    }
-                    if (data?.error) {
-                        console.log(data?.error);
-                        setErr(data?.error);
-                    }
-                });
+
+            // ✅ Get session to check role
+            const sessionRes = await fetch("/api/auth/session");
+            const session = await sessionRes.json();
+
+            const role = session?.user?.role;
+
+            
+            if (!role) {
+                router.push("/selectrole");
+            } else if (role === "CANDIDATE") {
+                router.push("/jobs");
+            } else {
+                router.push("/dashboard");
+            }
+
+            router.refresh(); 
         });
-    };
-
-    useEffect(() => {
-        if (role) {
-            localStorage.setItem('role', JSON.stringify(role));
-        }
-    }, [role]);
-
-    const handleRoleChange = (value: string) => {
-        setRole(value);
-        onRole(value);
     };
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 w-full">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
 
-                <Select onValueChange={handleRoleChange} value={role}>
-                    <SelectTrigger className="w-full bg-white/[0.02] border-[1px] border-white/10">
-                        <SelectValue placeholder="Select Role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup>
-                            {options.map((option) => (
-                                <SelectItem key={option} value={option}>{option}</SelectItem>
-                            ))}
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
+                <FormField control={form.control} name="email" render={({ field }) => (
+                    <FormItem>
+                        <FormControl>
+                            <Input {...field} type="email" placeholder="Email"
+                                disabled={isPending}
+                                className="bg-white/[0.02] border border-white/10" />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
 
-                <div className='w-full space-y-3'>
-                    <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <Input {...field} className="bg-white/[0.02] border-[1px] border-solid border-white/10 placeholder:text-white/30" placeholder="Enter Email Address" type="email" />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <div className="relative space-y-2">
-                                        <Input {...field} className="bg-white/[0.02] border-[1px] border-solid border-white/10 placeholder:text-white/30" placeholder="Enter Password" type={showPass ? "text" : "password"} />
-                                        <div className="absolute top-1 right-3 text-white/40 hover:text-white transition flex-center h-full cursor-pointer" onClick={() => setShowPass(!showPass)}>
-                                            {showPass ? <FaLockOpen /> : <FaLock />}
-                                        </div>
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
+                <FormField control={form.control} name="password" render={({ field }) => (
+                    <FormItem>
+                        <FormControl>
+                            <div className="relative">
+                                <Input {...field} type={showPass ? "text" : "password"}
+                                    placeholder="Password" disabled={isPending}
+                                    className="bg-white/[0.02] border border-white/10" />
+                                <button type="button"
+                                    onClick={() => setShowPass((p) => !p)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50">
+                                    {showPass ? <FaLockOpen /> : <FaLock />}
+                                </button>
+                            </div>
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
 
-                <div className="flex justify-end w-full">
-                    <h5 className="text-white/50 text-xs hover:text-white trans cursor-pointer">Forget Password?</h5>
-                </div>
+                <FormError message={error} />
 
-                <FormError message={err} />
-                <FormSuccess message={success} />
-                <Button isLoading={isLoading} className="w-full !bg-white !text-black">Login</Button>
+                <Button type="submit" isLoading={isPending} className="w-full">
+                    Login
+                </Button>
             </form>
         </Form>
     );
-}
+};
 
 export default LoginForm;

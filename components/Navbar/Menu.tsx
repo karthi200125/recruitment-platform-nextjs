@@ -1,133 +1,135 @@
-"use client";
+'use client';
 
-import { logoutRedux } from "@/app/Redux/AuthSlice";
 import {
     Sheet,
     SheetContent,
-    SheetTrigger
-} from "@/components/ui/sheet";
-import { signOut } from "next-auth/react";
-import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
-import { BsFillBuildingsFill } from "react-icons/bs";
-import { FaCrown } from "react-icons/fa";
-import { RiMenu3Line } from "react-icons/ri";
-import { useDispatch, useSelector } from "react-redux";
+    SheetTrigger,
+} from '@/components/ui/sheet';
+
+import { signOut } from 'next-auth/react';
+import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
+import { useCallback, useMemo, useState } from 'react';
+
+import { BsFillBuildingsFill } from 'react-icons/bs';
+import { FaCrown } from 'react-icons/fa';
+import { RiMenu3Line } from 'react-icons/ri';
+
 import noAvatar from '../../public/noProfile.webp';
-import Icon from "../Icon";
-import { useProfileCardItems } from "./UserProfileCard";
+
+import Icon from '../Icon';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useProfileCardItems } from './UserProfileCard';
 
 const Menu = () => {
-    const user = useSelector((state: any) => state.user?.user);
+    const { user, isLoading } = useCurrentUser();
+
     const router = useRouter();
-    const dispatch = useDispatch();
     const pathname = usePathname();
+
     const [open, setOpen] = useState(false);
 
-    const ExtraItems = [
+    const extraItems = [
         {
-            id: 9,
-            title: "Companies",
+            id: 999,
+            title: 'Companies',
+            href: '/companies',
+            visible: true,
             icon: <BsFillBuildingsFill size={20} />,
-            href: "/companies",
-            isCard: true
         },
     ];
 
-    const profileCardItems = useProfileCardItems(user) || [];
-    const menuItems = [...ExtraItems, ...profileCardItems].filter(Boolean);
+    const profileItems = useProfileCardItems(user);
 
-    const basePath = useMemo(() =>
-        pathname.startsWith('/userProfile')
+    const menuItems = [...extraItems, ...profileItems];
+
+    const basePath = useMemo(() => {
+        return pathname.startsWith('/userProfile')
             ? pathname.split('/').slice(0, 3).join('/')
-            : pathname.split('/').slice(0, 2).join('/'),
-        [pathname]);
+            : pathname.split('/').slice(0, 2).join('/');
+    }, [pathname]);
 
-    const handleClick = useCallback((item: any) => {
-        setOpen(false);
-        if (item?.title === "Sign Out") {
-            dispatch(logoutRedux());
-            localStorage.removeItem('role');
-            signOut();
+    const handleClick = useCallback(
+        async (item: (typeof menuItems)[number]) => {
+            setOpen(false);
+
+            if (item.title === 'Sign Out') {
+                await signOut({
+                    callbackUrl: '/signin',
+                });
+                return;
+            }
+
             router.push(item.href);
-        } else {
-            router.push(item.href);
-        }
-    }, [dispatch, router]);
+        },
+        [router, menuItems]
+    );
 
-    const renderedItems = useMemo(() => {
-        return menuItems.map((item) => (
-            item.isCard && (
-                <div
-                    key={item.id}
-                    className={`
-                            ${basePath === item.href ? 'bg-neutral-100' : ''}
-                            flex flex-row items-center gap-5 w-full p-3 rounded-md hover:bg-neutral-100 cursor-pointer transition
-                        `}
-                    onClick={() => handleClick(item)}
-                >
-                    {item.icon}
-                    <h4>{item.title}</h4>
-                </div>
-            )
-        ));
-    }, [handleClick, basePath, profileCardItems]);
-
+    if (isLoading || !user) return null;
 
     return (
-        <div className='md:hidden w-[40px] h-[40px] rounded-md bg-white/10 flexcenter text-white'>
+        <div className="md:hidden w-[40px] h-[40px] rounded-md bg-white/10 flexcenter text-white">
             <Sheet open={open} onOpenChange={setOpen}>
-                <SheetTrigger onClick={() => setOpen(true)}>
-                    <RiMenu3Line size={25} />
+                <SheetTrigger asChild>
+                    <button>
+                        <RiMenu3Line size={25} />
+                    </button>
                 </SheetTrigger>
-                <SheetContent className="w-[90%] h-screen space-y-5">
 
-                    {/* Profile Details */}
-                    <div className="flex flex-row items-start gap-3">
-                        <div className="relative w-[50px] h-[50px] overflow-hidden rounded-full">
+                <SheetContent className="w-[90%] h-screen space-y-5">
+                    <div className="flex gap-3">
+                        <div className="relative w-[50px] h-[50px] rounded-full overflow-hidden">
                             <Image
-                                src={user?.userImage || noAvatar.src}
+                                src={user.profileImage || noAvatar}
                                 alt="User Profile"
                                 fill
-                                className="rounded-full bg-neutral-200 w-full h-full object-cover absolute top-0 left-0"
+                                className="object-cover"
                             />
                         </div>
-                        <div className="space-y-1">
-                            <h4 className="capitalize font-bold">{user?.username}</h4>
-                            <h4 className="text-xs text-neutral-400">{user?.email}</h4>
+
+                        <div>
+                            <h4 className="font-bold">{user.username}</h4>
+                            <p className="text-xs text-neutral-400">{user.email}</p>
                         </div>
                     </div>
 
-                    {/* Premium Upgrade Section */}
-                    {user?.isPro ? (
-                        <div
+                    {user.isPro ? (
+                        <button
                             onClick={() => {
                                 setOpen(false);
                                 router.push('/subscription');
                             }}
-                            className="underline protext text-sm cursor-pointer trans hover:opacity-50"
+                            className="underline text-sm"
                         >
-                            Premium features
-                        </div>
+                            Premium Features
+                        </button>
                     ) : (
-                        <div
-                            className='text-black pro w-full px-5 rounded-md h-[50px] flex flex-row items-center gap-3 cursor-pointer'
+                        <button
                             onClick={() => {
                                 setOpen(false);
                                 router.push('/subscription');
                             }}
+                            className="w-full px-5 rounded-md h-[50px] flex items-center gap-3"
                         >
                             <Icon icon={<FaCrown size={20} />} title="Upgrade Premium" />
-                            <h5 className='font-bold'>Premium</h5>
-                        </div>
+                        </button>
                     )}
 
-                    {/* Navigation Routes */}
                     <div className="space-y-1">
-                        {renderedItems}
+                        {menuItems
+                            .filter((item) => item.visible)
+                            .map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => handleClick(item)}
+                                    className={`w-full flex items-center gap-4 p-3 rounded-md text-left hover:bg-neutral-100 ${basePath === item.href ? 'bg-neutral-100' : ''
+                                        }`}
+                                >
+                                    {item.icon}
+                                    <span>{item.title}</span>
+                                </button>
+                            ))}
                     </div>
-
                 </SheetContent>
             </Sheet>
         </div>

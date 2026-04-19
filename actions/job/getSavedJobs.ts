@@ -1,25 +1,78 @@
 'use server';
 
-import { db } from "@/lib/db";
-import { Job } from "@prisma/client";
-import { getUserById } from "../auth/getUserById";
+import { db } from '@/lib/db';
+import { Prisma } from '@prisma/client';
 
-export const getSavedJobs = async (userId: number): Promise<Job[] | { error: string }> => {
+interface ActionResponse<T> {
+    success: boolean;
+    data?: T;
+    error?: string;
+}
+
+type SavedJob = Prisma.JobGetPayload<{
+    include: {
+        company: true;
+    };
+}>;
+
+export const getSavedJobs = async (
+    userId: number
+): Promise<ActionResponse<SavedJob[]>> => {
     try {
 
-        const user = await getUserById(userId)
+        if (!userId || typeof userId !== 'number') {
+            return {
+                success: false,
+                error: 'Invalid userId',
+            };
+        }
 
-        const allJobs = await db.job.findMany({
+
+        const user = await db.user.findUnique({
+            where: { id: userId },
+            select: { savedJobs: true },
+        });
+
+        if (!user) {
+            return {
+                success: false,
+                error: 'User not found',
+            };
+        }
+
+
+        if (!user.savedJobs || user.savedJobs.length === 0) {
+            return {
+                success: true,
+                data: [],
+            };
+        }
+
+
+        const jobs = await db.job.findMany({
             where: {
                 id: {
-                    in: user?.savedJobs,
+                    in: user.savedJobs,
                 },
+            },
+            include: {
+                company: true,
+            },
+            orderBy: {
+                createdAt: 'desc',
             },
         });
 
-        return allJobs;
+        return {
+            success: true,
+            data: jobs,
+        };
     } catch (error) {
-        console.error("Error fetching saved jobs:", error);
-        return { error: "Failed to retrieve saved jobs" };
+        console.error('[GET_SAVED_JOBS_ERROR]', error);
+
+        return {
+            success: false,
+            error: 'Failed to retrieve saved jobs',
+        };
     }
 };

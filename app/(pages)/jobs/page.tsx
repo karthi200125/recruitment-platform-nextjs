@@ -1,60 +1,114 @@
-'use client';
+import { Metadata } from "next";
+import JobsClient from "./JobsClient";
+import { getFilteredJobs } from "@/actions/job/getFilterAllJobs";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 
-import { getFilterAllJobs } from '@/actions/job/getFilterAllJobs';
-import Title from '@/lib/MetaTitle';
-import { useQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import Jobb from './Jobb';
-
-const Jobs = ({ searchParams }: { searchParams: any }) => {
-
-    const safeSearchParams = searchParams ?? new URLSearchParams();
-    const currentPage = Number(safeSearchParams.page) || 1;
-
-    const [selectedJob, setSelectedJob] = useState<string | null>(null);
-    const [job, setJob] = useState<any>(null);
-
-    const user = useSelector((state: any) => state.user.user);
-
-    const { data, isPending } = useQuery({
-        queryKey: ['getFiltredJobs', user?.id, safeSearchParams],
-        queryFn: () => getFilterAllJobs(user?.id, safeSearchParams),
-        enabled: !!user?.id,
-    });
-    
-    const jobs = data?.jobs ?? []
-    const count = data?.count ?? 0
+interface JobsPageProps {
+  searchParams: Record<string, string | undefined>;
+}
 
 
-    useEffect(() => {
-        const job = selectedJob ? jobs.find((job: any) => job?.id === selectedJob) : jobs[0];
-        setJob(job)
-    }, [selectedJob, jobs]);
-    
-    const handleSelectedJob = useCallback((jobId: any) => {
-        setSelectedJob(jobId);
-    }, []);
+interface JobFilters {
+  userId?: number;
+  q?: string;
+  location?: string;
+  type?: string;
+  experiencelevel?: string;
+  dateposted?: string;
+  easyApply?: string;
+  company?: string;
+  page: number;
+}
 
-    return (
-        <div className="w-full relative">
-            <Title
-                title={`${job?.jobTitle || "Explore Job Listings"} | JOBIFY`}
-                description="Browse thousands of job listings from top companies. Find remote, full-time, and part-time job opportunities."
-                keywords="jobs, job listings, hiring, careers, remote jobs, find jobs"
-            />
+export async function generateMetadata({
+  searchParams,
+}: JobsPageProps): Promise<Metadata> {
+  const query = searchParams.q || "Jobs";
+  const location = searchParams.location;
 
-            <Jobb
-                count={count}
-                safeSearchParams={safeSearchParams}
-                currentPage={currentPage}
-                jobs={jobs}
-                job={job}
-                isPending={isPending}
-                onSelectedJob={handleSelectedJob}
-            />
-        </div>
-    );
-};
+  const title = location
+    ? `${query} jobs in ${location} | Find your next opportunity`
+    : `${query} jobs | Find your next opportunity`;
 
-export default Jobs;
+  const description = location
+    ? `Browse ${query} jobs in ${location}. Apply to top companies hiring now.`
+    : `Browse ${query} jobs from top companies. Apply and grow your career.`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/jobs`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: "/jobs",
+      siteName: "YourJobPlatform",
+      type: "website",
+    },
+  };
+}
+
+
+export default async function JobsPage({ searchParams }: JobsPageProps) {
+
+  const session = await getServerSession(authOptions);
+
+  const userId: number | undefined = session?.user?.id
+    ? Number(session.user.id)
+    : undefined;
+
+  const currentPage = Math.max(1, Number(searchParams.page) || 1);
+
+  const filters: JobFilters = {
+    userId,
+    q: searchParams.q?.trim() || undefined,
+    location: searchParams.location || undefined,
+    type: searchParams.type || undefined,
+    experiencelevel: searchParams.experiencelevel || undefined,
+    dateposted: searchParams.dateposted || undefined,
+    easyApply: searchParams.easyApply || undefined,
+    company: searchParams.company || undefined,
+    page: currentPage,
+  };
+
+  const { jobs, count } = await getFilteredJobs(filters);
+
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: jobs.map((job, index) => ({
+      "@type": "JobPosting",
+      position: index + 1,
+      title: job.jobTitle,
+      hiringOrganization: {
+        "@type": "Organization",
+        name: job.company.companyName,
+      },
+      datePosted: job.createdAt,
+    })),
+  };
+
+  return (
+    <>
+      {/* ✅ JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData),
+        }}
+      />
+
+      {/* ✅ Client Component */}
+      <JobsClient
+        initialJobs={jobs}
+        initialCount={count}
+        searchParams={filters}
+        currentPage={currentPage}
+      />
+    </>
+  );
+}

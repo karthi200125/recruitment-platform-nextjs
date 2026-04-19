@@ -1,38 +1,91 @@
-'use server'
+
+"use server";
 
 import { db } from "@/lib/db";
 
-export const updateProfileViews = async (userId?: any, profileUserId?: any) => {
-    if (!userId || !profileUserId || userId === profileUserId) {
-        return;
-    }
+interface UpdateProfileViewsResult {
+    success?: string;
+    message?: string;
+    error?: string;
+}
 
+export const updateProfileViews = async (
+    viewerUserId: number,
+    profileUserId: number
+): Promise<UpdateProfileViewsResult> => {
     try {
-        const userProfile = await db.user.findUnique({
-            where: { id: profileUserId },
-            select: { ProfileViews: true },
+        /* ────────────────────────────────────────────────
+           Validate Input
+        ──────────────────────────────────────────────── */
+        if (
+            !Number.isInteger(viewerUserId) ||
+            !Number.isInteger(profileUserId)
+        ) {
+            return {
+                error: "Invalid user IDs provided.",
+            };
+        }
+
+        /* Prevent Self Profile View Tracking */
+        if (viewerUserId === profileUserId) {
+            return {
+                message: "Cannot track self profile view.",
+            };
+        }
+
+        /* ────────────────────────────────────────────────
+           Fetch Existing Profile Views
+        ──────────────────────────────────────────────── */
+        const profileUser = await db.user.findUnique({
+            where: {
+                id: profileUserId,
+            },
+            select: {
+                ProfileViews: true,
+            },
         });
 
-        if (!userProfile) {
-            throw new Error("User profile not found");
+        if (!profileUser) {
+            return {
+                error: "Profile user not found.",
+            };
         }
 
-        if (userProfile.ProfileViews?.includes(userId)) {
-            return { message: "User ID already exists in ProfileViews" };
+        const existingViews = profileUser.ProfileViews ?? [];
+
+        /* Prevent Duplicate Views */
+        if (existingViews.includes(viewerUserId)) {
+            return {
+                message: "Profile already viewed by this user.",
+            };
         }
 
+        /* ────────────────────────────────────────────────
+           Update Profile Views
+        ──────────────────────────────────────────────── */
         await db.user.update({
-            where: { id: profileUserId },
+            where: {
+                id: profileUserId,
+            },
             data: {
                 ProfileViews: {
-                    push: userId,
+                    push: viewerUserId,
                 },
             },
         });
 
-        return { success: "Profile view updated" };
+        return {
+            success: "Profile view recorded successfully.",
+        };
     } catch (error) {
-        console.error("Error updating profile views:", error);
-        throw new Error("Failed to update profile views");
+        console.error(
+            "[updateProfileViews] Failed to update profile views:",
+            error
+        );
+
+        return {
+            error: "Failed to update profile views.",
+        };
     }
 };
+

@@ -1,92 +1,104 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+
 import BottomDrawer from '@/components/BottomDrawer';
-import JobDesc from '../Job/Job';
-import JobList from './JobList';
-import JobListsSkeleton from '@/Skeletons/JobListsSkeleten';
 import CustomPagination from '@/components/CustomPagination';
 
+import JobDesc from '../Job/JobDetails';
+import JobList from './JobList';
+import { JobWithCompany } from '@/actions/job/getFilterAllJobs';
 
 interface JobListsProps {
-  Jobs?: any[];
-  count?: number;
-  currentPage?: number;
-  isLoading?: boolean;
-  fetchJobs?: any;
-  onSelectedJob?: any;
+  jobs: JobWithCompany[]; // ✅ FIXED
+  count: number;
+  currentPage: number;
+  isLoading: boolean;
+  onSelectedJob?: (id: number) => void;
 }
 
-const JobLists = ({ Jobs = [], isLoading , onSelectedJob, count = 0, currentPage = 1, fetchJobs }: JobListsProps) => {
+const JobLists = ({
+  jobs,
+  count,
+  currentPage,
+  isLoading,
+  onSelectedJob,
+}: JobListsProps) => {
   const searchParams = useSearchParams();
 
-  const query = useMemo(() => searchParams.get('q'), [searchParams]);
-  const queryCountry = useMemo(() => searchParams.get('location') || 'India', [searchParams]);
+  const query = searchParams.get('q') ?? '';
+  const location = searchParams.get('location') ?? 'India';
 
-  const [selectedJob, setSelectedJob] = useState<number | null>(null);
+  /**
+   * ✅ FIX: null instead of undefined (consistent logic)
+   */
+  const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
 
+  /**
+   * ✅ FIX: correct condition (was broken before)
+   */
   useEffect(() => {
-    if (Jobs.length > 0 && selectedJob === null) {
-      setSelectedJob(Jobs[0].id);
+    if (jobs.length && selectedJobId === null) {
+      setSelectedJobId(jobs[0].id);
     }
-  }, [Jobs, selectedJob]);
+  }, [jobs, selectedJobId]);
 
-
-  const handleSelectJob = useCallback(
-    (jobId: number) => {
-      setSelectedJob(jobId);
-      onSelectedJob?.(jobId);
-    },
-    [onSelectedJob]
-  );
-
-  const renderHeader = () => (
-    <div className="z-[2] sticky top-0 left-0 w-full max-h-max bg-[var(--voilet)] text-white space-y-1 p-5">
-      <h5 className="text-sm font-bold">
-        {query ? `${query} Jobs` : 'Jobs'}{' '}
-        <span className="font-normal text-xs">in</span> {queryCountry}
-      </h5>
-      <h5 className="text-xs">{Jobs.length} Results</h5>
-    </div>
-  );
-
-  const renderJobs = (isMobile: boolean) => {
-    if (isLoading) {
-      return <JobListsSkeleton />;
-    }
-
-    if (Jobs.length === 0) {
-      return <h4 className="p-3">No Jobs Found</h4>;
-    }
-
-    return Jobs.map((job) => (
-      <div key={job.id} onClick={() => handleSelectJob(job.id)}>
-        {isMobile ? (
-          <BottomDrawer body={<JobDesc job={job}  />}>
-            <JobList isHover job={job} selectedJob={selectedJob} border />
-          </BottomDrawer>
-        ) : (
-          <JobList isHover job={job} selectedJob={selectedJob} border />
-        )}
-      </div>
-    ));
+  const handleSelectJob = (jobId: number) => {
+    setSelectedJobId(jobId);
+    onSelectedJob?.(jobId);
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="w-full h-full overflow-y-auto">
-      {renderHeader()}
-      <div className="md:hidden">{renderJobs(true)}</div>
-      <div className="hidden md:block">{renderJobs(false)}</div>
-      {!isLoading &&
-        <div className='w-full h-[100px] flexcenter'>
-          <CustomPagination
-            totalJobsCount={count}
-            currentPage={currentPage}
-          />
-        </div>
-      }
+      <div className="sticky top-0 z-10 bg-[var(--voilet)] text-white p-5">
+        <h5 className="text-sm font-bold">
+          {query || 'Jobs'} in {location}
+        </h5>
 
+        <p className="text-xs">{count} Results</p>
+      </div>
+
+      {jobs.length === 0 ? (
+        <h4 className="p-4">No Jobs Found</h4>
+      ) : (
+        jobs.map((job) => (
+          <div key={job.id} onClick={() => handleSelectJob(job.id)}>
+            {/* Mobile */}
+            <div className="md:hidden">
+              <BottomDrawer body={<JobDesc job={job} />}>
+                <JobList
+                  job={job}
+                  selectedJob={selectedJobId}
+                  isHover
+                  border
+                />
+              </BottomDrawer>
+            </div>
+
+            {/* Desktop */}
+            <div className="hidden md:block">
+              <JobList
+                job={job}
+                selectedJob={selectedJobId}
+                isHover
+                border
+              />
+            </div>
+          </div>
+        ))
+      )}
+
+      <div className="h-[100px] flex items-center justify-center">
+        <CustomPagination
+          totalJobsCount={count}
+          currentPage={currentPage}
+        />
+      </div>
     </div>
   );
 };

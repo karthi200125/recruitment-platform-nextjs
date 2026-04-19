@@ -14,7 +14,7 @@ export const UserInfoSchema = z.object({
         message: "User Bio is required",
     }).max(100, {
         message: "Maximum 100 characters",
-    }),    
+    }),
     website: z.string().url({
         message: "Invalid website URL",
     }).optional(),
@@ -27,7 +27,7 @@ export const UserInfoSchema = z.object({
     }),
     address: z.string().min(1, {
         message: "Address is required",
-    }),    
+    }),
     city: z.string().min(1, {
         message: "City is required",
     }),
@@ -68,7 +68,7 @@ export const UserEducationSchema = z.object({
     }),
     percentage: z.string().min(1, {
         message: "Percentage Date is required",
-    }),    
+    }),
 })
 
 export const UserExperienceSchema = z.object({
@@ -98,13 +98,13 @@ export const UserProjectSchema = z.object({
     }),
     proDesc: z.string().min(1, {
         message: "Project description id Rquired",
-    }),    
+    }),
 })
 
 export const CreateJobSchema = z.object({
     jobTitle: z.string().min(1, {
         message: "Job Title is required",
-    }),    
+    }),
     experience: z.string().min(1, {
         message: "Job Experince required",
     }),
@@ -137,7 +137,7 @@ export const CreateJobSchema = z.object({
     }).optional(),
     vacancies: z.string().min(1, {
         message: "Give How many Vacnacies Your are Hiring",
-    }),    
+    }),
 })
 
 export const RegisterSchema = z.object({
@@ -149,7 +149,7 @@ export const RegisterSchema = z.object({
     }),
     password: z.string().min(6, {
         message: "Password is required, with a minimum of 6 characters",
-    }),    
+    }),
 })
 
 export const LoginSchema = z.object({
@@ -158,13 +158,31 @@ export const LoginSchema = z.object({
     }),
     password: z.string().min(6, {
         message: "Password is required, with a minimum of 6 characters",
-    }),    
+    }),
 })
+
+
+export const filterSchema = z.object({
+    easyApply: z.string().optional(),
+    dateposted: z.string().optional(),
+    experiencelevel: z.string().optional(),
+    type: z.string().optional(),
+    location: z.string().optional(),
+    q: z.string().optional(),
+    company: z.string().optional(),
+    page: z.union([z.string(), z.number()]).optional(),
+});
+
+export const RoleSchema = z.enum([
+    "CANDIDATE",
+    "RECRUITER",
+    "ORGANIZATION",
+]);
 
 export const CompanySchema = z.object({
     companyName: z.string().min(1, {
         message: "Company Name is required",
-    }),    
+    }),
     companyAddress: z.string().min(1, {
         message: "Company Address is required",
     }),

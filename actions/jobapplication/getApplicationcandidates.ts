@@ -1,80 +1,111 @@
 'use server';
 
-import { db } from "@/lib/db";
+import { db } from '@/lib/db';
+import { Prisma } from '@prisma/client';
 
-export const getApplicationCandidates = async (jobId: number, type: 'Top Applicants' | 'Early Applicants' = 'Early Applicants') => {
+interface ActionResponse<T> {
+    success: boolean;
+    data?: T;
+    error?: string;
+}
+
+type CandidateApplication = Prisma.JobApplicationGetPayload<{
+    include: {
+        user: true;
+        job: true;
+    };
+}>;
+
+type CandidateType = 'TopApplicants' | 'EarlyApplicants';
+
+export const getApplicationCandidates = async (
+    jobId: number,
+    type: CandidateType = 'EarlyApplicants'
+): Promise<ActionResponse<CandidateApplication[]>> => {
     try {
-        let jobApplicationCandidates: any;
-
-        if (type === 'Top Applicants') {
-            const job = await db.job.findUnique({
-                where: { id: jobId },
-                select: {
-                    skills: true,
-                    experience: true,
-                    state: true
-                }
-            });
-
-            if (!job) {
-                return { error: "Job not found." };
-            }
-
-            jobApplicationCandidates = await db.jobApplication.findMany({
-                where: { jobId, isNotIntrested: false },
-                include: {
-                    user: true,
-                    job: true,
-                },
-            });
-
-            // Sorting logic for top applicants
-            jobApplicationCandidates.sort((a: any, b: any) => {
-                const userA = a.user;
-                const userB = b.user;
-
-                // 1. Experience Match (Closer experience to job requirement is better)
-                const experienceDifferenceA = Math.abs(parseInt(userA.experience || "0") - parseInt(job.experience || "0"));
-                const experienceDifferenceB = Math.abs(parseInt(userB.experience || "0") - parseInt(job.experience || "0"));
-                if (experienceDifferenceA !== experienceDifferenceB) return experienceDifferenceA - experienceDifferenceB;
-
-                // 2. Skills Match (More matching skills are better)
-                const skillsMatchA = userA?.skills?.filter((skill: any) => job.skills.includes(skill)).length;
-                const skillsMatchB = userB?.skills?.filter((skill: any) => job.skills.includes(skill)).length;
-                if (skillsMatchA !== skillsMatchB) return skillsMatchB - skillsMatchA;
-
-                // 3. Location Match (Same state is better)
-                if (userA.state === job.state && userB.state !== job.state) return -1;
-                if (userB.state === job.state && userA.state !== job.state) return 1;
-
-                // 4. Profile Views (Higher is better)
-                const profileViewsA = userA.ProfileViews?.length || 0;
-                const profileViewsB = userB.ProfileViews?.length || 0;
-                if (profileViewsA !== profileViewsB) return profileViewsB - profileViewsA;
-
-                // 5. Pro User Priority
-                if (userA.isPro !== userB.isPro) return userB.isPro ? 1 : -1;
-
-                return 0;
-            });
-
-        } else {
-            // Get Early Applicants (Oldest applications first)
-            jobApplicationCandidates = await db.jobApplication.findMany({
-                where: { jobId, isNotIntrested: false },
-                include: {
-                    user: true,
-                    job: true,
-                },
-                orderBy: {
-                    createdAt: 'asc'
-                }
-            });
+        // 🔒 validation
+        if (!jobId || typeof jobId !== 'number') {
+            return { success: false, error: 'Invalid jobId' };
         }
 
-        return jobApplicationCandidates;
+        // ================= FETCH APPLICATIONS =================
+        const applications = await db.jobApplication.findMany({
+            where: {
+                jobId,
+                isNotIntrested: false,
+            },
+            include: {
+                user: true,
+                job: true,
+            },
+        });
+
+        if (applications.length === 0) {
+            return { success: true, data: [] };
+        }
+
+        // ================= EARLY APPLICANTS =================
+        if (type === 'EarlyApplicants') {
+            const sorted = applications.sort(
+                (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+            );
+
+            return { success: true, data: sorted };
+        }
+
+        // ================= TOP APPLICANTS =================
+
+        const job = await db.job.findUnique({
+            where: { id: jobId },
+            select: {
+                skills: true,
+                state: true,
+            },
+        });
+
+        if (!job) {
+            return { success: false, error: 'Job not found' };
+        }
+
+        const ranked = [...applications].sort((a, b) => {
+            const userA = a.user;
+            const userB = b.user;
+
+            // 1️⃣ Skills match (MOST IMPORTANT)
+            const skillsA =
+                userA.skills?.filter((s) => job.skills.includes(s)).length || 0;
+            const skillsB =
+                userB.skills?.filter((s) => job.skills.includes(s)).length || 0;
+            if (skillsA !== skillsB) return skillsB - skillsA;
+
+            // 2️⃣ Location match
+            const locA = userA.state === job.state ? 1 : 0;
+            const locB = userB.state === job.state ? 1 : 0;
+            if (locA !== locB) return locB - locA;
+
+            // 3️⃣ Profile views (popularity)
+            const viewsA = userA.ProfileViews?.length || 0;
+            const viewsB = userB.ProfileViews?.length || 0;
+            if (viewsA !== viewsB) return viewsB - viewsA;
+
+            // 4️⃣ Pro users priority
+            if (userA.isPro !== userB.isPro) {
+                return userB.isPro ? 1 : -1;
+            }
+
+            return 0;
+        });
+
+        return {
+            success: true,
+            data: ranked,
+        };
     } catch (error) {
-        console.error("Error fetching job application candidates:", error);
-        return { error: "Failed to retrieve applied job candidates." };
+        console.error('[GET_APPLICATION_CANDIDATES_ERROR]', error);
+
+        return {
+            success: false,
+            error: 'Failed to retrieve candidates',
+        };
     }
 };

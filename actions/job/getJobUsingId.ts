@@ -1,19 +1,52 @@
 'use server';
 
-import { db } from "@/lib/db";
+import { db } from '@/lib/db';
+import { Prisma } from '@prisma/client';
 
-export const getJobUsingId = async (jobId: any) => {
+// ✅ response type
+interface ActionResponse<T> {
+    success: boolean;
+    data?: T;
+    error?: string;
+}
+
+// ✅ job type
+type JobWithApplications = Prisma.JobGetPayload<{
+    include: {
+        jobApplications: true;
+    };
+}>;
+
+export const getJobUsingId = async (
+    jobId: number
+): Promise<ActionResponse<JobWithApplications>> => {
     try {
-        const job: any = await db.job.findUnique({
+        // 🔒 validation
+        if (!jobId || typeof jobId !== 'number') {
+            return { success: false, error: 'Invalid jobId' };
+        }
+
+        const job = await db.job.findUnique({
             where: { id: jobId },
             include: {
-                jobApplications: true
-            }
+                jobApplications: true,
+            },
         });
 
-        return job;
+        if (!job) {
+            return { success: false, error: 'Job not found' };
+        }
+
+        return {
+            success: true,
+            data: job,
+        };
     } catch (error) {
-        console.error("Error fetching job:", error);
-        return { error: "Failed to retrieve job" };
+        console.error('[GET_JOB_BY_ID_ERROR]', error);
+
+        return {
+            success: false,
+            error: 'Failed to retrieve job',
+        };
     }
 };

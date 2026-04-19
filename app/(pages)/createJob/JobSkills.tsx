@@ -1,9 +1,9 @@
 'use client'
 
 import { getSkills } from '@/actions/getSkills';
+import { debounce } from '@/lib/debounce';
 import { Input } from '@/components/ui/input';
 import { useQuery } from '@tanstack/react-query';
-import { debounce } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 import { IoClose } from "react-icons/io5";
 

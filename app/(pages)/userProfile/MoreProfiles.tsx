@@ -1,31 +1,46 @@
-'use client';
 
-import { moreProUsers } from '@/actions/moreProfileUsers';
-import { UserFollowAction } from '@/actions/user/UserFollowAction';
-import { userFollow } from '@/app/Redux/AuthSlice';
-import { openModal } from '@/app/Redux/ModalSlice';
-import Batch from '@/components/Batch';
-import Button from '@/components/Button';
-import Model from '@/components/Model/Model';
-import { useCustomToast } from '@/lib/CustomToast';
-import MoreProfileSkeleton from '@/Skeletons/MoreProfileSkeleton';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import Image from 'next/image';
-import Link from 'next/link';
-import { memo, useTransition } from 'react';
-import { GoPlus } from 'react-icons/go';
-import { IoMdSend } from 'react-icons/io';
-import { useDispatch, useSelector } from 'react-redux';
-import noAvatar from '../../../public/noProfile.webp';
-import MessageBox from '../messages/MessageBox';
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useTransition } from "react";
+import { GoPlus } from "react-icons/go";
+import { IoMdSend } from "react-icons/io";
+import { useDispatch, useSelector } from "react-redux";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+import { moreProUsers } from "@/actions/moreProfileUsers";
+import { UserFollowAction } from "@/actions/user/UserFollowAction";
+import { userFollow } from "@/app/Redux/AuthSlice";
+import { openModal } from "@/app/Redux/ModalSlice";
+
+import Batch from "@/components/Batch";
+import Button from "@/components/Button";
+import Model from "@/components/Model/Model";
+import MessageBox from "../messages/MessageBox";
+
+import { useCustomToast } from "@/lib/CustomToast";
+import MoreProfileSkeleton from "@/Skeletons/MoreProfileSkeleton";
+
+import noAvatar from "@/public/noProfile.webp";
 
 interface User {
     id: number;
-    userImage?: string;
+    userImage?: string | null;
     username?: string;
     isPro?: boolean;
     role?: string;
     profession?: string;
+}
+
+interface RootState {
+    user: {
+        user: {
+            id: number;
+            isPro?: boolean;
+            followings?: number[];
+        } | null;
+    };
 }
 
 interface ProfileUserProps {
@@ -33,104 +48,133 @@ interface ProfileUserProps {
 }
 
 const MoreProfiles = ({ userId }: ProfileUserProps) => {
-    const user = useSelector((state: any) => state.user?.user);
+    const user = useSelector((state: RootState) => state.user.user);
 
-    const { data = [], isLoading } = useQuery({
-        queryKey: ['getMoreProfiles', user?.id, userId],
-        queryFn: async () => moreProUsers(user, userId),
+    const {
+        data: profiles = [],
+        isPending,
+    } = useQuery<User[]>({
+        queryKey: ["moreProfiles", user?.id, userId],
+        queryFn: () => moreProUsers(user, userId!),
+        enabled: !!user?.id && typeof userId === "number",
+        staleTime: 1000 * 60 * 5,
     });
 
     return (
-        <div className="w-full min-h-[200px] overflow-hidden rounded-[20px] border space-y-3 p-5">
-            <h3 className="font-bold">
-                {user?.id === userId ? 'More Profiles' : 'Profile Followers'}
+        <aside className="w-full min-h-[200px] rounded-2xl border p-5 space-y-4 overflow-hidden">
+            <h3 className="font-bold text-base">
+                {user?.id === userId ? "More Profiles" : "Profile Followers"}
             </h3>
-            {isLoading ? (
+
+            {isPending ? (
                 <MoreProfileSkeleton />
-            ) : data.length > 0 ? (
-                data.map((moreUser: User) => (
-                    <MoreUserProfile key={moreUser.id} moreuser={moreUser} />
+            ) : profiles.length > 0 ? (
+                profiles.map((profile) => (
+                    <MoreUserProfile key={profile.id} moreUser={profile} />
                 ))
             ) : (
-                <h4 className="text-[var(--lighttext)]">No Profiles</h4>
+                <p className="text-sm text-neutral-400">No profiles found.</p>
             )}
-        </div>
+        </aside>
     );
 };
 
-export default memo(MoreProfiles);
+export default MoreProfiles;
 
 interface MoreUserProfileProps {
-    moreuser: User;
+    moreUser: User;
 }
 
-export const MoreUserProfile = ({ moreuser }: MoreUserProfileProps) => {
-    const user = useSelector((state: any) => state.user?.user);
+const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
+    const user = useSelector((state: RootState) => state.user.user);
+
     const dispatch = useDispatch();
     const queryClient = useQueryClient();
+
     const { showSuccessToast, showErrorToast } = useCustomToast();
+
     const [isPending, startTransition] = useTransition();
-    const isCurrentUser = user?.id === moreuser?.id;
-    const isFollowing = user?.followings?.includes(moreuser?.id);
+
+    const isCurrentUser = user?.id === moreUser.id;
+    const isFollowing = user?.followings?.includes(moreUser.id);
 
     const handleFollow = () => {
-        startTransition(() => {
-            UserFollowAction(user?.id, moreuser?.id).then((data: any) => {
-                if (data?.success) {
-                    showSuccessToast(data.success);
-                    dispatch(userFollow(moreuser?.id));
-                    queryClient.invalidateQueries({ queryKey: ['getuser', user?.id] });
-                } else if (data?.error) {
-                    showErrorToast(data.error);
+        if (!user?.id) return;
+
+        startTransition(async () => {
+            try {
+                const result = await UserFollowAction(user.id, moreUser.id);
+
+                if (result?.success) {
+                    showSuccessToast(result.success);
+
+                    dispatch(userFollow(moreUser.id));
+
+                    queryClient.invalidateQueries({
+                        queryKey: ["getUser", user.id],
+                    });
+                } else if (result?.error) {
+                    showErrorToast(result.error);
                 }
-            });
+            } catch {
+                showErrorToast("Something went wrong.");
+            }
         });
     };
 
     return (
-        <div className="flex flex-row items-start gap-5 border-b py-5">
-            {/* User Avatar */}
-            <div className="relative w-[40px] h-[40px] overflow-hidden rounded-full">
+        <div className="flex items-start gap-4 border-b py-4 last:border-b-0">
+            <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0">
                 <Image
-                    src={moreuser?.userImage || noAvatar.src}
-                    alt={moreuser?.username || 'No Avatar'}
+                    src={moreUser.userImage || noAvatar}
+                    alt={moreUser.username || "User avatar"}
                     fill
-                    className="rounded-full object-cover absolute top-0 left-0 w-full h-full"
+                    className="object-cover"
+                    sizes="40px"
                 />
             </div>
 
-            <div className="space-y-2">
-                {/* Username & Role */}
-                <div className="flex flex-row items-center gap-3">
-                    <Link href={`/userProfile/${moreuser?.id}`} className="font-bold cursor-pointer trans capitalize">
-                        {moreuser?.username}
+            <div className="flex-1 space-y-2 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                    <Link
+                        href={`/userProfile/${moreUser.id}`}
+                        className="font-semibold capitalize hover:underline truncate"
+                    >
+                        {moreUser.username}
                     </Link>
-                    {moreuser?.role === 'ORGANIZATION' ? <Batch type="ORGANIZATION" /> : moreuser?.isPro && <Batch type="premium" />}
+
+                    {moreUser.role === "ORGANIZATION" ? (
+                        <Batch type="ORGANIZATION" />
+                    ) : moreUser.isPro ? (
+                        <Batch type="premium" />
+                    ) : null}
                 </div>
 
-                {/* Profession */}
-                <h5>{moreuser?.profession}</h5>
+                {moreUser.profession && (
+                    <p className="text-sm text-neutral-500">{moreUser.profession}</p>
+                )}
 
-                {/* Actions */}
                 {!isCurrentUser && (
-                    <div className="flex flex-row items-center gap-3">
+                    <div className="flex items-center gap-2 flex-wrap">
                         <Button
                             variant="border"
                             isLoading={isPending}
-                            className={`${isFollowing ? '!bg-[var(--voilet)] text-white' : ''} !h-[30px]`}
                             onClick={handleFollow}
-                            icon={!isFollowing && <GoPlus size={20} />}
+                            icon={!isFollowing ? <GoPlus size={18} /> : undefined}
+                            className={`!h-[32px] ${isFollowing ? "!bg-[var(--voilet)] text-white" : ""
+                                }`}
                         >
-                            {!isFollowing ? 'Follow' : 'Unfollow'}
+                            {isFollowing ? "Unfollow" : "Follow"}
                         </Button>
 
-                        {/* Message Button */}
                         <Button
-                            onClick={() => dispatch(openModal(`messageModel-${moreuser?.id}`))}
-                            disabled={!user?.isPro}
                             variant="border"
-                            icon={<IoMdSend size={20} />}
-                            className="!h-[30px]"
+                            disabled={!user?.isPro}
+                            onClick={() =>
+                                dispatch(openModal(`messageModel-${moreUser.id}`))
+                            }
+                            icon={<IoMdSend size={18} />}
+                            className="!h-[32px]"
                         >
                             Message
                         </Button>
@@ -138,15 +182,17 @@ export const MoreUserProfile = ({ moreuser }: MoreUserProfileProps) => {
                 )}
             </div>
 
-            {/* Message Modal */}
             <Model
-                bodyContent={<MessageBox receiverId={moreuser?.id} chatUser={moreuser} />}
-                title={`Message ${moreuser?.username || 'User'}`}
+                modalId={`messageModel-${moreUser.id}`}
+                title={`Message ${moreUser.username || "User"}`}
                 className="min-w-[300px] lg:w-[800px]"
-                modalId={`messageModel-${moreuser?.id}`}
+                bodyContent={
+                    <MessageBox receiverId={moreUser.id} chatUser={moreUser} />
+                }
             >
-                <div></div>
+                <div />
             </Model>
         </div>
     );
 };
+

@@ -1,80 +1,142 @@
-'use client'
+'use client';
 
-import { getWhoViewedYourProfile } from "@/actions/premiumFeatures/getWhoviwedYouProfile";
-import EmployeesSkeleton from "@/Skeletons/EmployeesSkeleton";
-import JobListsSkeleton from "@/Skeletons/JobListsSkeleten";
-import { useQuery } from "@tanstack/react-query";
-import { useSelector } from "react-redux";
-import JobList from "../jobs/JobLists/JobList";
-import NetworkUser from "../network/NetworkUser";
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Prisma } from '@prisma/client';
+
+import { getWhoViewedYourProfile } from '@/actions/premiumFeatures/getWhoviwedYouProfile';
+
+import EmployeesSkeleton from '@/Skeletons/EmployeesSkeleton';
+import JobListsSkeleton from '@/Skeletons/JobListsSkeleten';
+
+import JobList from '../jobs/JobLists/JobList';
+import NetworkUser from '../network/NetworkUser';
+
+// ================= TYPES =================
+
+// Job with company
+type JobWithCompany = Prisma.JobGetPayload<{
+    include: { company: true };
+}>;
+
+// User with relations
+type UserWithRelations = Prisma.UserGetPayload<{
+    include: {
+        postedJobs: {
+            include: {
+                company: true;
+            };
+        };
+    };
+}>;
+
+type DashboardType =
+    | 'appliedJobs'
+    | 'postedJobs'
+    | 'actionTaken'
+    | 'savedJobs'
+    | 'profileViews';
 
 interface ShowAllProps {
-    type?: string,
-    postedJobs?: any,
-    appliedJobs?: any,
-    actionTaken?: any,
-    savedJobs?: any,
-    isLoading?: boolean,
+    user: UserWithRelations;
+    type?: DashboardType;
+    postedJobs?: JobWithCompany[];
+    appliedJobs?: JobWithCompany[];
+    actionTaken?: JobWithCompany[];
+    savedJobs?: JobWithCompany[];
+    isLoading?: boolean;
 }
 
-const ShowAll = ({ type, postedJobs, appliedJobs, actionTaken, isLoading, savedJobs }: ShowAllProps) => {
+// ================= COMPONENT =================
 
-    const user = useSelector((state: any) => state.user.user);
+const ShowAll = ({
+    user,
+    type,
+    postedJobs = [],
+    appliedJobs = [],
+    actionTaken = [],
+    savedJobs = [],
+    isLoading,
+}: ShowAllProps) => {
+    // ✅ Select jobs cleanly
+    const jobs = useMemo(() => {
+        switch (type) {
+            case 'appliedJobs':
+                return appliedJobs;
+            case 'postedJobs':
+                return postedJobs;
+            case 'actionTaken':
+                return actionTaken;
+            case 'savedJobs':
+                return savedJobs;
+            default:
+                return [];
+        }
+    }, [type, appliedJobs, postedJobs, actionTaken, savedJobs]);
 
-    let jobs;
-
-    if (type === "appliedJobs") jobs = appliedJobs
-    if (type === "postedJobs") jobs = postedJobs
-    if (type === "actionTaken") jobs = actionTaken
-    if (type === "savedJobs") jobs = savedJobs
-
-    const { data: profileViewUsers, isPending } = useQuery({
-        queryKey: ["getWhoViewedYourProfile", user?.ProfileViews],
-        queryFn: async () => await getWhoViewedYourProfile(user?.ProfileViews),
-        enabled: user?.ProfileViews.length > 0,
+    // ✅ Profile viewers query
+    const { data: profileViewUsers = [], isPending } = useQuery({
+        queryKey: ['profileViews', user.ProfileViews],
+        queryFn: () =>
+            getWhoViewedYourProfile(user.ProfileViews ?? []),
+        enabled: type === 'profileViews' && user.ProfileViews?.length > 0,
     });
 
-    return (
-        <div className="w-full max-h-max">
-            {type === 'profileViews' ?
-                <div className="max-h-max space-y-3">
-                    {isPending ? (
-                        <EmployeesSkeleton />
-                    ) : profileViewUsers?.length === 0 ? (
-                        <div>No Profile View users found</div>
-                    ) : (
-                        profileViewUsers?.map((user: any) => <NetworkUser key={user.id} networkUser={user} />)
-                    )}
-                </div>
-                :
-                <div>
-                    {isLoading ?
-                        <JobListsSkeleton isDash />
-                        :
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                            {jobs?.length > 0 ?
-                                jobs?.slice(0, 4).map((job: any) => (
-                                    <div
-                                        key={job?.id}
-                                        className="border rounded-[20px] p-2 md:p-5 min-h-[100px]"
-                                        onClick={() => { '' }}
-                                    >
-                                        <JobList
-                                            job={job}
-                                            appliedJob={'hh'}
-                                            app_or_pos={type === 'appliedJobs' || 'actionTaken' ? "applied" : 'posted'}
-                                        />
-                                    </div>
-                                ))
-                                :
-                                <h4>No Jobs yet</h4>
-                            }
-                        </div>
-                    }
-                </div>
-            }
-        </div>
-    )
-}
+    // ================= PROFILE VIEWS =================
+    if (type === 'profileViews') {
+        return (
+            <div className="space-y-4">
+                {isPending ? (
+                    <EmployeesSkeleton />
+                ) : profileViewUsers.length === 0 ? (
+                    <EmptyState text="No one has viewed your profile yet" />
+                ) : (
+                    profileViewUsers.map((u: any) => (
+                        <NetworkUser key={u.id} networkUser={u} />
+                    ))
+                )}
+            </div>
+        );
+    }
 
-export default ShowAll
+    // ================= JOB LIST =================
+    return (
+        <div className="space-y-4">
+            {isLoading ? (
+                <JobListsSkeleton isDash />
+            ) : jobs.length === 0 ? (
+                <EmptyState text="No jobs found" />
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {jobs.map((job) => (
+                        <div
+                            key={job.id}
+                            className="group border rounded-2xl p-4 bg-white/70 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300"
+                        >
+                            <JobList
+                                job={job}
+                                appliedJob="dashboard"
+                                app_or_pos={
+                                    type === 'postedJobs' ? 'posted' : 'applied'
+                                }
+                            />
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default ShowAll;
+
+// ================= EMPTY STATE =================
+
+const EmptyState = ({ text }: { text: string }) => {
+    return (
+        <div className="flex flex-col items-center justify-center py-16 text-center text-neutral-500">
+            <div className="text-4xl mb-3">📭</div>
+            <p className="text-sm">{text}</p>
+        </div>
+    );
+};

@@ -1,170 +1,183 @@
 'use client';
 
-import { logoutRedux } from "@/app/Redux/AuthSlice";
 import {
     HoverCard,
     HoverCardContent,
     HoverCardTrigger,
-} from "@/components/ui/hover-card";
-import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
+} from '@/components/ui/hover-card';
+
+import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
+import { useCallback, useMemo } from 'react';
+
 import noProfile from '../../public/noProfile.webp';
-import { memo, useCallback, useMemo } from "react";
-import { IoPersonOutline } from "react-icons/io5";
-import { FaSuitcase, FaUsers } from "react-icons/fa";
-import { MdDashboard } from "react-icons/md";
-import { PiSignOutBold } from "react-icons/pi";
-import { signOut } from "next-auth/react";
-import { GoPlus } from "react-icons/go";
-import { GrStatusCriticalSmall } from "react-icons/gr";
-import { RiMessage3Fill } from "react-icons/ri";
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+
+import { IoPersonOutline } from 'react-icons/io5';
+import { FaSuitcase, FaUsers } from 'react-icons/fa';
+import { MdDashboard } from 'react-icons/md';
+import { PiSignOutBold } from 'react-icons/pi';
+import { GoPlus } from 'react-icons/go';
+import { GrStatusCriticalSmall } from 'react-icons/gr';
+import { RiMessage3Fill } from 'react-icons/ri';
 
 export const useProfileCardItems = (user: any) => {
     return useMemo(() => {
-        const isOrg = user?.role === 'ORGANIZATION';
-        const isRec = user?.role === 'RECRUITER';
-        const isCan = user?.role === 'CANDIDATE';
+        if (!user) return [];
+
+        const isOrg = user.role === 'ORGANIZATION';
+        const isRec = user.role === 'RECRUITER';
+        const isCan = user.role === 'CANDIDATE';
 
         return [
             {
                 id: 1,
-                title: "Profile",
+                title: 'Profile',
                 icon: <IoPersonOutline size={20} />,
-                href: `/userProfile/${user?.id}`,
-                isCard: true
+                href: `/userProfile/${user.id}`,
+                visible: true,
             },
             {
                 id: 2,
-                title: "Jobs",
+                title: 'Jobs',
                 icon: <FaSuitcase size={20} />,
-                href: "/jobs",
-                isCard: isRec || isCan
+                href: '/jobs',
+                visible: isRec || isCan,
             },
             {
                 id: 3,
-                title: "Dashboard",
+                title: 'Dashboard',
                 icon: <MdDashboard size={20} />,
-                href: "/dashboard",
-                isCard: true
+                href: '/dashboard',
+                visible: true,
             },
             {
                 id: 4,
-                title: "Messages",
+                title: 'Messages',
                 icon: <RiMessage3Fill size={20} />,
-                href: "/messages",
-                isCard: true
+                href: '/messages',
+                visible: true,
             },
             {
                 id: 5,
-                title: "Create Job",
+                title: 'Create Job',
                 icon: <GoPlus size={20} />,
-                href: "/createJob",
-                isCard: isRec || isOrg
+                href: '/createJob',
+                visible: isRec || isOrg,
             },
             {
                 id: 6,
-                title: "Job Status",
+                title: 'Job Status',
                 icon: <GrStatusCriticalSmall size={20} />,
-                href: "/dashboard/jobStatus",
-                isCard: isRec || isCan
+                href: '/dashboard/jobStatus',
+                visible: isRec || isCan,
             },
             {
                 id: 7,
-                title: "Employees",
+                title: 'Employees',
                 icon: <FaUsers size={20} />,
-                href: "/dashboard/employees",
-                isCard: isOrg
+                href: '/dashboard/employees',
+                visible: isOrg,
             },
             {
                 id: 8,
-                title: "Sign Out",
+                title: 'Subscriptions',
+                icon: <FaUsers size={20} />,
+                href: '/dashboard/subscriptions',
+                visible: isRec || isCan || isOrg,
+            },
+            {
+                id: 9,
+                title: 'Sign Out',
                 icon: <PiSignOutBold size={20} />,
-                href: "/",
-                isCard: true
+                href: '/signin',
+                visible: true,
             },
         ];
     }, [user]);
 };
 
 const UserProfileCard = () => {
-    const user = useSelector((state: any) => state.user.user);
+    const { user, isLoading } = useCurrentUser();
     const router = useRouter();
-    const dispatch = useDispatch();
     const pathname = usePathname();
-
-    const basePath = useMemo(() =>
-        pathname.startsWith('/userProfile')
-            ? pathname.split('/').slice(0, 3).join('/')
-            : pathname.split('/').slice(0, 2).join('/'),
-        [pathname]);
 
     const profileCardItems = useProfileCardItems(user);
 
-    const handleClick = useCallback(async (item: any) => {
-        if (item?.title === "Sign Out") {
-            dispatch(logoutRedux());
-            localStorage.removeItem('role');
-            await signOut({ redirect: false });
-            router.replace(item.href);
-        } else {
-            router.push(item.href);
-        }
-    }, [dispatch, router]);
+    const basePath = useMemo(() => {
+        return pathname.startsWith('/userProfile')
+            ? pathname.split('/').slice(0, 3).join('/')
+            : pathname.split('/').slice(0, 2).join('/');
+    }, [pathname]);
 
-    const renderedItems = useMemo(() => {
-        return profileCardItems.map((item) => (
-            item.isCard && (
-                <div
-                    key={item.id}
-                    className={`
-                        ${basePath === item.href ? 'bg-neutral-100' : ''}
-                        flex flex-row items-center gap-5 w-full p-3 rounded-md hover:bg-neutral-100 cursor-pointer transition
-                    `}
-                    onClick={() => handleClick(item)}
-                >
-                    {item.icon}
-                    <h4>{item.title}</h4>
-                </div>
-            )
-        ));
-    }, [handleClick, basePath, profileCardItems]);
+    const handleClick = useCallback(
+        async (item: (typeof profileCardItems)[number]) => {
+            if (item.title === 'Sign Out') {
+                await signOut({
+                    callbackUrl: '/signin',
+                });
+                return;
+            }
+
+            router.push(item.href);
+        },
+        [router, profileCardItems]
+    );
+
+    if (isLoading || !user) return null;
 
     return (
         <HoverCard>
             <HoverCardTrigger asChild>
-                <button onClick={() => router.push(`/userprofile/${user?.id}`)}>
+                <button onClick={() => router.push(`/userProfile/${user.id}`)}>
                     <div className="w-[35px] h-[35px] relative overflow-hidden rounded-full">
                         <Image
-                            src={user?.userImage || noProfile.src}
+                            src={user.profileImage || noProfile}
                             alt="User profile"
-                            className="w-full h-full bg-neutral-100 cursor-pointer object-cover absolute top-0 left-0 trans"
                             fill
+                            className="object-cover rounded-full"
                         />
                     </div>
                 </button>
             </HoverCardTrigger>
-            <HoverCardContent className="space-y-3 min-w-[250px] overflow-hidden">
-                <div className="flex flex-row items-start gap-5 border-b pb-3">
+
+            <HoverCardContent className="space-y-3 min-w-[250px]">
+                <div className="flex gap-4 border-b pb-3">
                     <Image
-                        src={user?.userImage || noProfile.src}
+                        src={user.profileImage || noProfile}
                         alt="User profile"
-                        className="w-[60px] h-[60px] rounded-full bg-white/10 cursor-pointer object-cover"
                         width={60}
                         height={60}
+                        className="rounded-full object-cover"
                     />
-                    <div className="w-[170px]">
-                        <h4 className="capitalize font-bold line-clamp-1">{user?.username}</h4>
-                        <h4 className="text-xs text-neutral-400 line-clamp-1">{user?.email}</h4>
-                        <h4 className="text-xs">{user?.profession}</h4>
+
+                    <div className="min-w-0">
+                        <h4 className="font-bold line-clamp-1">{user.username}</h4>
+                        <p className="text-xs text-neutral-400 line-clamp-1">
+                            {user.email}
+                        </p>
                     </div>
                 </div>
-                <div>
-                    {renderedItems}
+
+                <div className="space-y-1">
+                    {profileCardItems
+                        .filter((item) => item.visible)
+                        .map((item) => (
+                            <button
+                                key={item.id}
+                                onClick={() => handleClick(item)}
+                                className={`w-full flex items-center gap-4 p-3 rounded-md text-left transition hover:bg-neutral-100 ${basePath === item.href ? 'bg-neutral-100' : ''
+                                    }`}
+                            >
+                                {item.icon}
+                                <span>{item.title}</span>
+                            </button>
+                        ))}
                 </div>
             </HoverCardContent>
         </HoverCard>
     );
 };
 
-export default memo(UserProfileCard);
+export default UserProfileCard;

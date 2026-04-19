@@ -1,59 +1,128 @@
-"use server";
+'use server';
 
-import { db } from "@/lib/db";
-import { getUserById } from "../auth/getUserById";
+import { db } from '@/lib/db';
 
-export const employeeAccept = async (empId: number, userId: number) => {
+// ✅ Standard response type
+interface ActionResponse<T> {
+    success: boolean;
+    data?: T;
+    error?: string;
+    message?: string; 
+}
+
+// ================= ACCEPT =================
+
+export const employeeAccept = async (
+    empId: number,
+    userId: number
+): Promise<ActionResponse<null>> => {
     try {
-        // Fetch user data
-        const user = await getUserById(userId);
-
-        if (!user || !Array.isArray(user.verifyEmps)) {
-            throw new Error("User not found or verifyEmps is not an array");
+        // 🔒 Validate input
+        if (!empId || !userId) {
+            return { success: false, error: 'Invalid IDs' };
         }
 
-        // Remove empId from verifyEmps array and push it to employees array
-        const updatedUser = await db.user.update({
-            where: { id: userId },
-            data: {
-                verifyEmps: {
-                    set: user.verifyEmps.filter((id: number) => id !== empId),
+        // ⚡ Use transaction (safe update)
+        await db.$transaction(async (tx) => {
+            const user = await tx.user.findUnique({
+                where: { id: userId },
+                select: {
+                    verifyEmps: true,
+                    employees: true,
                 },
-                employees: {
-                    push: empId,
+            });
+
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            // Remove from verify list
+            const updatedVerify = user.verifyEmps.filter(
+                (id) => id !== empId
+            );
+
+            // Prevent duplicate employees
+            const updatedEmployees = user.employees.includes(empId)
+                ? user.employees
+                : [...user.employees, empId];
+
+            await tx.user.update({
+                where: { id: userId },
+                data: {
+                    verifyEmps: {
+                        set: updatedVerify,
+                    },
+                    employees: {
+                        set: updatedEmployees,
+                    },
                 },
-            },
+            });
         });
 
-        return { success: "Employee Verified Successfully", data: updatedUser };
+        return {
+            success: true,
+            data: null,
+            message: "Employee verified successfully",
+        };
     } catch (error) {
-        console.error("Error in employeeAccept:", error);
-        return { error: "Employee verification failed" };
+        console.error('[EMPLOYEE_ACCEPT_ERROR]', error);
+
+        return {
+            success: false,
+            error: 'Employee verification failed',
+        };
     }
 };
 
-export const employeeReject = async (empId: number, userId: number) => {
-    try {
-        // Fetch user data
-        const user = await getUserById(userId);
+// ================= REJECT =================
 
-        if (!user || !Array.isArray(user.verifyEmps)) {
-            throw new Error("User not found or verifyEmps is not an array");
+export const employeeReject = async (
+    empId: number,
+    userId: number
+): Promise<ActionResponse<null>> => {
+    try {
+        // 🔒 Validate input
+        if (!empId || !userId) {
+            return { success: false, error: 'Invalid IDs' };
         }
 
-        // Remove empId from verifyEmps array
-        const updatedUser = await db.user.update({
-            where: { id: userId },
-            data: {
-                verifyEmps: {
-                    set: user.verifyEmps.filter((id: number) => id !== empId),
+        await db.$transaction(async (tx) => {
+            const user = await tx.user.findUnique({
+                where: { id: userId },
+                select: {
+                    verifyEmps: true,
                 },
-            },
+            });
+
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            const updatedVerify = user.verifyEmps.filter(
+                (id) => id !== empId
+            );
+
+            await tx.user.update({
+                where: { id: userId },
+                data: {
+                    verifyEmps: {
+                        set: updatedVerify,
+                    },
+                },
+            });
         });
 
-        return { success: "Employee verification rejected", data: updatedUser };
+        return {
+            success: true,
+            data: null,
+            message: "Employee rejected successfully",
+        };
     } catch (error) {
-        console.error("Error in employeeReject:", error);
-        return { error: "Employee rejection failed" };
+        console.error('[EMPLOYEE_REJECT_ERROR]', error);
+
+        return {
+            success: false,
+            error: 'Employee rejection failed',
+        };
     }
 };

@@ -1,28 +1,58 @@
 interface SkillsCheckResult {
-    per: number;
-    Msg: string;
+    percentage: number;
+    message: string;
 }
 
-export const checkSkills = (user?: { skills: string[] }, job?: { skills: string[] }): SkillsCheckResult => {
-    const userSkills = user?.skills || [];
-    const jobSkills = job?.skills || [];
+interface SkillOwner {
+    skills?: string[];
+}
+
+export const checkSkills = (
+    user?: SkillOwner,
+    job?: SkillOwner
+): SkillsCheckResult => {
+    const userSkills = new Set(
+        (user?.skills ?? [])
+            .map((skill) => skill.trim().toLowerCase())
+            .filter(Boolean)
+    );
+
+    const jobSkills = Array.from(
+        new Set(
+            (job?.skills ?? [])
+                .map((skill) => skill.trim().toLowerCase())
+                .filter(Boolean)
+        )
+    );
 
     if (jobSkills.length === 0) {
-        return { per: 0, Msg: "No job skills provided to compare." };
+        return {
+            percentage: 0,
+            message: 'No job skills available for comparison.',
+        };
     }
 
-    // const matchedSkills = jobSkills.filter((skill) => userSkills.toLowerCase().includes(skill.toLowerCase()));
-    const matchedSkills = jobSkills.filter((skill) =>
-        userSkills.some(userSkill => userSkill.toLowerCase() === skill.toLowerCase())
+    const matchedCount = jobSkills.filter((skill) =>
+        userSkills.has(skill)
+    ).length;
+
+    const percentage = Math.round(
+        (matchedCount / jobSkills.length) * 100
     );
-    const matchPercentage = (matchedSkills.length / jobSkills.length) * 100;
 
-    let fitMsg = "Poor skill match, you need to improve your skills.";
-    if (matchPercentage >= 70) {
-        fitMsg = "Good skill match, you may be a great fit!";
-    } else if (matchPercentage >= 31) {
-        fitMsg = "Medium skill match, you have some relevant skills.";
+    let message =
+        'Poor skill match — consider improving relevant skills.';
+
+    if (percentage >= 70) {
+        message =
+            'Strong skill match — you may be a great fit!';
+    } else if (percentage >= 31) {
+        message =
+            'Moderate skill match — you have some relevant skills.';
     }
 
-    return { per: matchPercentage, Msg: fitMsg };
+    return {
+        percentage,
+        message,
+    };
 };

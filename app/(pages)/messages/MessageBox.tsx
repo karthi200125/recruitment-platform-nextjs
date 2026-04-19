@@ -1,68 +1,155 @@
+
 "use client";
 
-import { getConversation } from "@/actions/message/getConversation";
-import MessageBoxSkeleton from "@/Skeletons/MessageBoxSkeleton";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useSelector } from "react-redux";
+
+import { getConversation } from "@/actions/message/getConversation";
+
+import MessageBoxSkeleton from "@/Skeletons/MessageBoxSkeleton";
+
+import { markMessagesAsSeen } from "@/actions/message/markMessagesAsSeen ";
 import ChatButton from "./ChatButton";
 import Chats from "./Chats";
 import ChatUser from "./ChatUser";
-import { useEffect } from "react";
-import { markMessagesAsSeen } from "@/actions/message/markMessagesAsSeen ";
+
+
+interface AuthUser {
+  id: number;
+  username?: string;
+  userImage?: string | null;
+}
+
+interface RootState {
+  user: {
+    user: AuthUser | null;
+  };
+}
+
+interface ChatUserType {
+  id: number;
+  username?: string;
+  userImage?: string | null;
+  isPro?: boolean;
+  role?: string;
+}
+
+interface Message {
+  id: number;
+  senderId: number;
+  text?: string | null;
+  image?: string | null;
+  isSeen: boolean;
+  createdAt: string;
+}
+
+interface Conversation {
+  id: number;
+  messages: Message[];
+}
 
 interface MessageBoxProps {
   receiverId?: number;
-  chatUser?: any;
+  chatUser?: ChatUserType;
   isLoading?: boolean;
   isChatuser?: boolean;
 }
 
-const MessageBox = ({ receiverId, chatUser, isLoading, isChatuser }: MessageBoxProps) => {
-  const user = useSelector((state: any) => state.user?.user);
+
+const MessageBox = ({
+  receiverId,
+  chatUser,
+  isLoading = false,
+  isChatuser = false,
+}: MessageBoxProps) => {
+  const user = useSelector((state: RootState) => state.user.user);
+
   const queryClient = useQueryClient();
 
-  const { data, isPending } = useQuery({
-    queryKey: ["getConversation", user?.id, receiverId],
+  const {
+    data: conversation,
+    isPending,
+  } = useQuery<Conversation | null>({
+    queryKey: ["conversation", user?.id, receiverId],
     queryFn: async () => {
-      if (!user?.id || !receiverId) return [];
+      if (!user?.id || !receiverId) return null;
+
       return await getConversation(user.id, receiverId);
     },
     enabled: Boolean(user?.id && receiverId),
+    staleTime: 1000 * 30,
   });
 
+  
   useEffect(() => {
-    const markMessagesAsSeenAsync = async () => {
-      if (data?.id && user?.id) {
-        try {
-          const response = await markMessagesAsSeen(data.id, user.id);
-          if (response.success) {
-            queryClient.invalidateQueries({ queryKey: ["getUnreadMessagesCount", user?.id] });
-          }
-        } catch (error) {
-          console.error("Error marking messages as seen:", error);
+    const handleMarkSeen = async () => {
+      if (!conversation?.id || !user?.id) return;
+
+      try {
+        const result = await markMessagesAsSeen(
+          conversation.id,
+          user.id
+        );
+
+        if (result?.success) {
+          queryClient.invalidateQueries({
+            queryKey: ["getUnreadMessagesCount", user.id],
+          });
         }
+      } catch (error) {
+        console.error(
+          "[MessageBox] Failed to mark messages as seen:",
+          error
+        );
       }
     };
 
-    markMessagesAsSeenAsync();
-  }, [data?.id, user?.id, queryClient]);
+    handleMarkSeen();
+  }, [conversation?.id, user?.id, queryClient]);
 
-  return (
-    <div className="h-full relative">
-      {(isPending || isLoading) ? (
+  
+  if (isPending || isLoading) {
+    return (
+      <div className="h-full relative">
         <MessageBoxSkeleton />
-      ) : (
-        receiverId ?
-          <>
-            <ChatUser chatUser={chatUser} isChatuser={isChatuser} />
-            <Chats messages={data?.messages} currentUserId={user?.id} user={user} isChatuser={isChatuser} />
-            <ChatButton userId={user?.id} receiverId={receiverId!} />
-          </>
-          :
-          <div>No User yet!</div>
+      </div>
+    );
+  }
+
+  
+  if (!receiverId) {
+    return (
+      <div className="h-full flex items-center justify-center text-sm text-neutral-400">
+        No user selected yet.
+      </div>
+    );
+  }
+
+  
+  return (
+    <div className="h-full relative flex flex-col">
+      <ChatUser
+        chatUser={chatUser}
+        isChatuser={isChatuser}
+      />
+
+      <Chats
+        messages={conversation?.messages ?? []}
+        currentUserId={user?.id}
+        user={user}
+        isChatuser={isChatuser}
+      />
+
+      {user?.id && (
+        <ChatButton
+          userId={user.id}
+          receiverId={receiverId}
+        />
       )}
     </div>
   );
 };
 
 export default MessageBox;
+

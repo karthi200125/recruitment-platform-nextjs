@@ -1,79 +1,150 @@
 "use client";
 
-import { getNetworkusers } from "@/actions/user/getNetworkusers";
-import Title from "@/lib/MetaTitle";
-import EmployeesSkeleton from "@/Skeletons/EmployeesSkeleton";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useSelector } from "react-redux";
-import { useState } from "react";
+
+import { getNetworkusers } from "@/actions/user/getNetworkusers";
+import EmployeesSkeleton from "@/Skeletons/EmployeesSkeleton";
 import NetworkUser from "../NetworkUser";
 
-interface User {
+/* ────────────────────────────────────────────────
+   Types
+──────────────────────────────────────────────── */
+interface AuthUser {
     id: number;
-    username: string;
-    userImage?: string;
-    profession?: string;
 }
 
-const NetWork = () => {
-    const params = useParams()
-    const userId = Number(params?.userId)
-    
-    const user = useSelector((state: any) => state.user.user);
-    const [network, setNetwork] = useState<"followers" | "followings">("followers");
+interface RootState {
+    user: { user: AuthUser | null };
+}
 
-    const { data: users, isPending } = useQuery({
-        queryKey: ["getNetworkUsers", userId, network],
-        queryFn: async () => await getNetworkusers(userId, network),
+interface NetworkUserType {
+    id: number;
+    username: string;
+    userImage?: string | null;
+    profession?: string | null;
+}
+
+/* ────────────────────────────────────────────────
+   Component
+──────────────────────────────────────────────── */
+const Network = () => {
+    const params = useParams();
+    const userId = Number(params?.userId);
+
+    const currentUser = useSelector((state: RootState) => state.user.user);
+
+    const [network, setNetwork] =
+        useState<"followers" | "followings">("followers");
+
+    const isCurrentUser = currentUser?.id === userId;
+
+
+    const {
+        data: users = [],
+        isPending,
+        isError,
+        refetch,
+    } = useQuery<NetworkUserType[]>({
+        queryKey: ["networkUsers", userId, network],
+        queryFn: async () => {
+            const res = await getNetworkusers(userId, network);
+
+            if (!res.success || !res.data) {
+                throw new Error(res.error || "Failed to fetch network");
+            }
+
+            return res.data; // ✅ IMPORTANT FIX
+        },
         enabled: !!userId,
+        staleTime: 1000 * 60 * 2,
     });
 
-    const isCurrentUser = user?.id === userId;
+
+    const handleTabChange = useCallback(
+        (type: "followers" | "followings") => {
+            setNetwork(type);
+        },
+        []
+    );
+
+
+    const description = isCurrentUser
+        ? network === "followers"
+            ? `${users.length} people are following you`
+            : `You are following ${users.length} people`
+        : network === "followers"
+            ? `${users.length} people follow this user`
+            : `This user follows ${users.length} people`;
+
+
+    if (!userId) {
+        return <div className="p-5 text-sm text-red-500">Invalid user ID</div>;
+    }
+
+    if (isError) {
+        return (
+            <div className="flex flex-col items-center justify-center gap-3 p-10">
+                <p className="text-red-500 text-sm">Failed to load network</p>
+                <button
+                    onClick={() => refetch()}
+                    className="px-4 py-2 bg-black text-white text-xs rounded-md"
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
+
 
     return (
-        <div className="w-full max-h-max pt-5">
-            <Title
-                title={`${!isCurrentUser ? "User Professional Network" : "Your Professional Network"} | JOBIFY`}
-                description="Connect with professionals, follow recruiters, and build your career network on JOBIFY."
-                keywords="network, job connections, follow recruiters, career networking, professional network"
-            />
+        <div className="w-full px-4 py-6">
+            <div className="rounded-2xl border bg-white shadow-sm overflow-hidden">
 
-            <div className="rounded-[20px] border">
                 {/* Tabs */}
-                <div className="flex items-center gap-5 px-5 border-b border-neutral-200">
-                    {["followers", "followings"].map((type) => (
-                        <h3
-                            key={type}
-                            onClick={() => setNetwork(type as "followers" | "followings")}
-                            className={`capitalize max-w-max cursor-pointer transition hover:opacity-50 py-5 border-b-[3px] border-solid 
-                                ${network === type ? "border-[var(--voilet)] text-[var(--voilet)]" : "border-transparent text-black"}`}
-                        >
-                            {type}
-                        </h3>
-                    ))}
+                <div className="flex border-b text-sm font-medium">
+                    {(["followers", "followings"] as const).map((type) => {
+                        const active = network === type;
+
+                        return (
+                            <button
+                                key={type}
+                                onClick={() => handleTabChange(type)}
+                                className={`flex-1 py-4 capitalize transition ${active
+                                        ? "border-b-2 border-blue-600 text-blue-600"
+                                        : "text-gray-500 hover:text-black"
+                                    }`}
+                            >
+                                {type}
+                            </button>
+                        );
+                    })}
                 </div>
 
-                <h4 className="text-neutral-500 p-3">
-                    {network !== "followers"
-                        ? isCurrentUser
-                            ? `You are following ${users?.length || 0} people out of your network`
-                            : `That user followed ${users?.length || 0} people from their network`
-                        : isCurrentUser
-                            ? `${users?.length || 0} people are following you`
-                            : `${users?.length || 0} people are following that user`}
-                </h4>
+                {/* Description */}
+                <div className="px-5 py-3 text-xs text-gray-500 border-b">
+                    {description}
+                </div>
 
-                {/* Users */}
-                <div className="max-h-max p-5 space-y-3">
+                {/* List */}
+                <div className="p-4 space-y-3 min-h-[200px]">
                     {isPending ? (
-                        <EmployeesSkeleton />
-                    ) : users?.length === 0 ? (
-                        <div>No users found</div>
+                        <EmployeesSkeleton count={6} />
+                    ) : users.length === 0 ? (
+                        <div className="text-center text-sm text-gray-400 py-10">
+                            No {network} found
+                        </div>
                     ) : (
-                        users?.map((networkUser: User) => (
-                            <NetworkUser key={networkUser.id} networkUser={networkUser} />
-                        ))
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {users.map((networkUser: NetworkUserType) => (
+                                <NetworkUser
+                                    key={networkUser.id}
+                                    networkUser={networkUser}
+                                />
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>
@@ -81,4 +152,4 @@ const NetWork = () => {
     );
 };
 
-export default NetWork;
+export default Network;

@@ -1,14 +1,14 @@
 'use server';
 
-import { CreateJobSchema } from '@/lib/SchemaTypes';
-import { db } from '@/lib/db';
 import * as z from 'zod';
-import { getUserById } from '../auth/getUserById';
-import { getCompanies } from '../company/getCompanies';
+import { getServerSession } from 'next-auth';
+
+import { db } from '@/lib/db';
+import { authOptions } from '@/lib/authOptions';
+import { CreateJobSchema } from '@/lib/SchemaTypes';
 
 interface CreateJobProps {
     values: z.infer<typeof CreateJobSchema>;
-    userId: string;
     skills?: string[];
     questions?: string[];
     jobDesc?: string;
@@ -18,7 +18,6 @@ interface CreateJobProps {
 
 export const createJobAction = async ({
     values,
-    userId,
     skills = [],
     questions = [],
     jobDesc = '',
@@ -26,57 +25,111 @@ export const createJobAction = async ({
     jobId,
 }: CreateJobProps) => {
     try {
-        if (!userId) {
-            return { error: "User ID is required" };
+        const session = await getServerSession(authOptions);
+
+        if (!session?.user) {
+            return { error: 'Unauthorized' };
         }
 
-        const user = await getUserById(userId);
+        const currentUser = session.user;
 
-        if (!user || (user.role !== "ORGANIZATION" && user.role !== "RECRUITER")) {
-            return { error: "You are not authorized to create a job" };
+        if (
+            currentUser.role !== 'ORGANIZATION' &&
+            currentUser.role !== 'RECRUITER'
+        ) {
+            return {
+                error: 'Forbidden: You cannot create jobs',
+            };
         }
 
-        const validatedFields = CreateJobSchema.safeParse(values);
+        const validatedFields =
+            CreateJobSchema.safeParse(values);
 
         if (!validatedFields.success) {
-            return { error: "Invalid fields", issues: validatedFields.error.format() };
+            return {
+                error: 'Invalid fields',
+                issues: validatedFields.error.format(),
+            };
         }
 
-        const { company, ...jobData } = validatedFields.data;
-        const companies = await getCompanies();
-        const uniqueCompany = companies?.find((c: any) => c.companyName === company);
+        const { company, ...jobData } =
+            validatedFields.data;
 
-        if (!uniqueCompany) {
-            return { error: "Company not found" };
+        const ownedCompany = await db.company.findFirst({
+            where: {
+                companyName: company,
+                userId: currentUser.id,
+            },
+        });
+
+        if (!ownedCompany) {
+            return {
+                error:
+                    'Forbidden: You do not own this company',
+            };
         }
 
-        let job;
-        if (isEdit && jobId) {
-            job = await db.job.update({
+        if (isEdit) {
+            if (!jobId) {
+                return { error: 'Job ID required for edit' };
+            }
+
+            const existingJob = await db.job.findUnique({
+                where: { id: jobId },
+            });
+
+            if (!existingJob) {
+                return { error: 'Job not found' };
+            }
+
+            if (existingJob.userId !== currentUser.id) {
+                return {
+                    error:
+                        'Forbidden: You do not own this job',
+                };
+            }
+
+            const updatedJob = await db.job.update({
                 where: { id: jobId },
                 data: {
                     ...jobData,
+                    companyId: ownedCompany.id,
                     skills,
                     questions,
                     jobDesc,
                 },
             });
-        } else {
-            job = await db.job.create({
-                data: {
-                    ...jobData,
-                    userId: user.id,
-                    companyId: uniqueCompany.id,
-                    skills,
-                    questions,
-                    jobDesc,
-                },
-            });
+
+            return {
+                success: 'Job updated successfully',
+                data: updatedJob,
+            };
         }
 
-        return { success: isEdit ? 'Job has been Edited successfully' : 'Job has been successfully created', data: job };
+        const newJob = await db.job.create({
+            data: {
+                ...jobData,
+                userId: currentUser.id,
+                companyId: ownedCompany.id,
+                skills,
+                questions,
+                jobDesc,
+            },
+        });
+
+        return {
+            success: 'Job created successfully',
+            data: newJob,
+        };
     } catch (error) {
-        console.error("Job creation error:", error);
-        return { error: 'Job creation failed. Please try again later.' };
+        console.error(
+            'Create Job Action Error:',
+            error
+        );
+
+        return {
+            error:
+                'Job creation failed. Please try again later.',
+        };
     }
 };

@@ -1,30 +1,54 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import React, { useState } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useState,
+} from 'react';
+
 import 'react-quill/dist/quill.snow.css';
 
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+const ReactQuill = dynamic(
+    () => import('react-quill'),
+    {
+        ssr: false,
+    }
+);
 
 interface JobDescProps {
-    onJobDesc: (content: string) => void;
-    jobDesc?: any;
+    onJobDesc: (
+        content: string
+    ) => void;
+    jobDesc?: string;
 }
 
-const JobDesc = ({ onJobDesc, jobDesc }: JobDescProps) => {
-    const [value, setValue] = useState<string>(jobDesc || '');
+const JobDesc = ({
+    onJobDesc,
+    jobDesc = '',
+}: JobDescProps) => {
+    const [value, setValue] =
+        useState(jobDesc);
 
-    const handleChange = (content: string) => {
-        setValue(content);
-        onJobDesc(content);
-    };
+    useEffect(() => {
+        setValue(jobDesc);
+    }, [jobDesc]);
+
+    const handleChange = useCallback(
+        (content: string) => {
+            setValue(content);
+            onJobDesc(content);
+        },
+        [onJobDesc]
+    );
 
     return (
         <ReactQuill
+            theme="snow"
             value={value}
             onChange={handleChange}
-            theme="snow"
             placeholder="Write the job description here..."
+            className="min-h-[250px]"
         />
     );
 };

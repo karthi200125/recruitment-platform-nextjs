@@ -1,55 +1,122 @@
-'use client'
+import Image from "next/image";
+import Link from "next/link";
+import { FaSuitcase } from "react-icons/fa";
+import { MapPin } from "lucide-react";
 
-import { getCompanies } from '@/actions/company/getCompanies'
-import ComapniesSkeleton from '@/Skeletons/ComapniesSkeleton'
-import { useQuery } from '@tanstack/react-query'
-import Image from 'next/image'
-import Link from 'next/link'
-import { FaSuitcase } from 'react-icons/fa'
-import noImage from '../../../public/noImage.webp'
-import Title from '@/lib/MetaTitle'
-import Batch from '@/components/Batch'
+import Batch from "@/components/Batch";
+import noImage from "../../../public/noImage.webp";
+import { getCompanies } from "@/actions/company/getCompanies";
 
-const Companies = () => {
 
-    const { data, isPending } = useQuery({
-        queryKey: ['getCompanies'],
-        queryFn: async () => await getCompanies(),
-    });
+export const metadata = {
+    title: "Top Companies Hiring | Explore Verified Companies",
+    description:
+        "Browse verified companies hiring right now. Discover job opportunities, company profiles, and open roles.",
+};
+
+{/* <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{
+        __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            itemListElement: companies.map((company, index) => ({
+                "@type": "Organization",
+                position: index + 1,
+                name: company.companyName,
+                url: `/userProfile/${company.id}`,
+            })),
+        }),
+    }}
+/> */}
+
+export default async function CompaniesPage() {
+    const companies = await getCompanies();
 
     return (
-        <div className='w-full min-h-screen py-5 space-y-5 px-2'>
-            <Title
-                title="Top Hiring Companies | JOBIFY"
-                description="Discover companies that are hiring. Learn about company cultures, job openings, and career opportunities."
-                keywords="companies, hiring companies, job openings, work culture, recruiters"
-            />
+        <main className="px-4 py-10">
+            {/* HEADER */}
+            <div className="flex flex-col gap-2 mb-8">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                    Explore Companies
+                </h1>
+                <p className="text-muted-foreground text-sm md:text-base">
+                    Discover verified companies and explore open opportunities
+                </p>
+            </div>
 
-            <h2 className='font-bold'>All Companies</h2>
-            {isPending ?
-                <ComapniesSkeleton />
-                :
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-5'>
-                    {data?.map((company: any) => (
-                        <div key={company?.id} className='rounded-[10px] w-full max-h-max md:h-[120px] border-[1px] border-solid border-neutral-200 p-5 flex flex-row items-start gap-5 overflow-hidden hover:shadow-lg trans cursor-pointer'>
-                            <div className='relative w-[40px] md:w-[80px] h-[40px] md:h-[80px] rounded-md overflow-hidden'>
-                                <Image alt='' src={company?.companyImage || noImage.src} fill className='w-full h-full absolute top-0 left-0' />
+            {/* GRID */}
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {companies.map((company) => (
+                    <article
+                        key={company.id}
+                        className="group relative rounded-2xl border bg-white/60 backdrop-blur-md p-5 shadow-sm hover:shadow-xl transition-all duration-300"
+                    >
+                        {/* TOP */}
+                        <div className="flex items-start gap-4">
+                            {/* LOGO */}
+                            <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-xl overflow-hidden border bg-white">
+                                <Image
+                                    src={company.companyImage || noImage}
+                                    alt={`${company.companyName} logo`}
+                                    fill
+                                    sizes="64px"
+                                    className="object-cover"
+                                    priority={false}
+                                />
                             </div>
 
-                            <div className='flex flex-col justify-between h-full space-y-1'>
-                                <Link href={`/userProfile/${company?.id}`} className='font-bold hover:opacity-50 trans flex flex-row items-center gap-2'>{company?.companyName} <Batch type='ORGANIZATION' /></Link>
-                                <h5 className='text-neutral-500 line-clamp-1'>{company?.companyCity} , {company?.companyState} , {company?.companyCountry}</h5>
-                                <Link href={`/jobs?company=${company?.companyName}`} className='flex flex-row items-center gap-3 hover:opacity-50 trans' >
-                                    <FaSuitcase size={20} />
-                                    <h4>Jobs ({company?.jobs?.length || 0})</h4>
+                            {/* INFO */}
+                            <div className="flex flex-col gap-1 flex-1">
+                                <div className="flex flex-row items-center gap-5">
+                                <Link
+                                    href={`/userProfile/${company.id}`}
+                                    className="font-semibold text-base md:text-lg leading-tight group-hover:text-primary transition"
+                                >
+                                    {company.companyName}
                                 </Link>
+
+                                <div className="flex items-center gap-2">
+                                    <Batch type="ORGANIZATION" />
+                                </div>
+                                </div>
+
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                    <MapPin size={14} />
+                                    <span className="line-clamp-1">
+                                        {company.companyCity},{" "}
+                                        {company.companyState}
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                    ))}
-                </div>
-            }
-        </div>
-    )
-}
 
-export default Companies
+                        {/* DIVIDER */}
+                        <div className="my-4 h-[1px] bg-neutral-200" />
+
+                        {/* FOOTER */}
+                        <div className="flex items-center justify-between">
+                            <Link
+                                href={`/jobs?company=${company.companyName}`}
+                                className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                            >
+                                <FaSuitcase />
+                                {company.jobs.length} Open Jobs
+                            </Link>
+
+                            <Link
+                                href={`/userProfile/${company.id}`}
+                                className="text-xs font-medium px-3 py-1.5 rounded-full border hover:bg-black hover:text-white transition"
+                            >
+                                View
+                            </Link>
+                        </div>
+
+                        {/* HOVER EFFECT */}
+                        <div className="absolute inset-0 rounded-2xl ring-1 ring-transparent group-hover:ring-black/10 transition pointer-events-none" />
+                    </article>
+                ))}
+            </section>
+        </main>
+    );
+}

@@ -1,14 +1,27 @@
 'use client'
 
-import CompanyForm from "@/app/Forms/CompanyForm"
+import dynamic from "next/dynamic"
 import { UserInfoForm } from "@/app/Forms/UserInfoForm"
-import Title from "@/lib/MetaTitle"
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { useSelector } from "react-redux"
 import WelcomeUserEducation from "./WelcomeUserEducation"
 import WelcomeUserExperince from "./WelcomeUserExperince"
 import { useQuery } from "@tanstack/react-query"
 import { getCompanyByUserId } from "@/actions/company/getCompanyById"
+
+const CompanyForm = dynamic(() => import("@/app/Forms/CompanyForm"), {
+    loading: () => (
+        <div className="w-full space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="h-10 bg-white/10 rounded-lg animate-pulse" />
+                <div className="h-10 bg-white/10 rounded-lg animate-pulse" />
+                <div className="h-10 bg-white/10 rounded-lg animate-pulse" />
+                <div className="h-10 bg-white/10 rounded-lg animate-pulse" />
+            </div>
+        </div>
+    ),
+    ssr: true
+});
 
 const Welcome = () => {
     const user = useSelector((state: any) => state.user.user)
@@ -37,17 +50,22 @@ const Welcome = () => {
 
     return (
         <div className="w-full max-h-max flex items-center justify-start flex-col gap-10 my-5 p-5 border rounded-[20px]">
-            <Title
-                title="Welcome to JOBIFY!"
-                description="Start your job search journey with JOBIFY. Explore jobs, connect with recruiters, and land your dream job."
-                keywords="welcome, job seeker, job portal, new user, career start"
-            />
-
             <div className="w-full h-full">
                 {isOrg ?
                     <div className={`${user?.role !== 'ORGANIZATION' && "hidden"} w-full h-full space-y-5`}>
                         <h3 className="font-bold">{company ? "Edit Company" : "Create Company"}</h3>
-                        <CompanyForm company={company} isPending={isPending} />
+                        <Suspense fallback={
+                            <div className="w-full space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="h-10 bg-white/10 rounded-lg animate-pulse" />
+                                    <div className="h-10 bg-white/10 rounded-lg animate-pulse" />
+                                    <div className="h-10 bg-white/10 rounded-lg animate-pulse" />
+                                    <div className="h-10 bg-white/10 rounded-lg animate-pulse" />
+                                </div>
+                            </div>
+                        }>
+                            <CompanyForm company={company} isPending={isPending} />
+                        </Suspense>
                     </div>
                     :
                     renderStepContent()}

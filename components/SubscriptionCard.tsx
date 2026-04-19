@@ -1,113 +1,56 @@
-"use client";
+'use client';
 
-import { getSubscription } from "@/actions/getSubscription";
-import { StripeCustomerPortal } from "@/actions/stripeCustomerPortal";
-import Button from "@/components/Button";
-import { subscriptionPlans } from "@/data";
-import { useQuery } from "@tanstack/react-query";
-import moment from "moment";
+import { createCheckoutSession } from "@/actions/stripe";
+import { PLANS } from "@/lib/data/subscription-plans";
 import { useTransition } from "react";
-import { FaCheck } from "react-icons/fa";
-import { useSelector } from "react-redux";
 
-type UserRole = "CANDIDATE" | "RECRUITER" | "ORGANIZATION";
-
-interface Subscription {
-    stripeCustomerId?: string;
-    planName?: string;
-    subscriptionStatus: string;
-    stripeCurrentPeriodEnd?: string;
-    amount?: string;
-    billingInterval?: string;
-    createdAt?: string;
+interface Props {
+    role: "CANDIDATE" | "RECRUITER" | "ORGANIZATION";
+    userId: number;
 }
 
-const SubscriptionCard = () => {
-    const user = useSelector((state: any) => state.user.user);
-    const [isLoading, startTransition] = useTransition()
+export default function SubscriptionPlans({ role, userId }: Props) {
+    const plans = PLANS[role];
+    const [isPending, startTransition] = useTransition();
 
-    const { data, isPending, error } = useQuery<Subscription>({
-        queryKey: ["getSubscription", user?.id],
-        queryFn: async () => await getSubscription(user?.id),
-        enabled: !!user?.id,
-    });
-
-    if (isPending) {
-        return <h5 className="messageh w-full flexcenter">Loading...</h5>;
-    }
-
-    if (error || !data) {
-        return <div className="text-red-500 font-semibold">Failed to load subscription details</div>;
-    }
-
-    const userRole = user?.role as UserRole;
-    const getSubscriptionPlan = subscriptionPlans[userRole]?.find(
-        (sp) => sp.name === data?.planName
-    );
-
-    const HandleManageSubscription = () => {
-        startTransition(() => {
-            StripeCustomerPortal(data.stripeCustomerId!)
-                .then((data) => {
-                    if (data?.sessionUrl) {
-                        window.location.href = data.sessionUrl;
-                    }
-                })
-        })
-    }
+    const handleSubscribe = (priceId: string) => {
+        startTransition(async () => {
+            const res = await createCheckoutSession({ userId, priceId });
+            if (res?.url) window.location.href = res.url;
+        });
+    };
 
     return (
-        <div className="w-full md:max-w-max mx-auto p-5 md:p-10 shadow-lg border rounded-lg space-y-5 md:space-y-10">
+        <div className="grid md:grid-cols-2 gap-6">
+            {plans.map((plan) => (
+                <div
+                    key={plan.priceId}
+                    className="rounded-2xl border p-6 shadow-sm hover:shadow-md transition"
+                >
+                    <h2 className="text-xl font-bold">{plan.name}</h2>
 
-            <div className="space-y-2">
-                <h3 className="font-bold">Subscription Plan</h3>
-                <h5 className="text-neutral-500">You are currently on the {data?.planName} plan</h5>
-                <Button onClick={HandleManageSubscription} isLoading={isLoading} className="!rounded-md">Manage Subscription</Button>
-            </div>
+                    <p className="text-3xl font-semibold mt-2">
+                        ₹{plan.price}
+                        <span className="text-sm text-gray-500">/{plan.interval}</span>
+                    </p>
 
-            <span className="h-[1px] w-full bg-neutral-200"></span>
-
-            <div className="flex flex-col md:flex-row items-start gap-10 justify-between">
-                <div className="space-y-2">
-                    <h3 className="text-sm flex gap-5 items-center">Plan:
-                        <span className="p-2 rounded-md text-sm font-semibold pro">{data.planName || "N/A"}</span>
-                    </h3>
-                    <h3 className="text-sm flex gap-5 items-center">Status:
-                        <span className={`p-2  rounded-md text-white text-sm ${data.subscriptionStatus === "active" ? "bg-green-500" : "bg-red-500"}`}>
-                            {data.subscriptionStatus || "N/A"}
-                        </span>
-                    </h3>
-                    <h3 className="text-sm flex gap-5 items-center">Plan Price:
-                        <span className="text-sm font-semibold ">₹ {data.amount || "N/A"}</span>
-                    </h3>
-                    <h3 className="text-sm flex gap-5 items-center">Plan Type:
-                        <span className="text-sm font-semibold">{data.billingInterval || "N/A"}</span>
-                    </h3>
-                    <h3 className="text-sm flex gap-5 items-center">Subscription Date:
-                        <span className="text-sm font-semibold">{data.createdAt ? moment(data.createdAt).format("MMMM D, YYYY") : "N/A"}</span>
-                    </h3>
-                    <h3 className="text-sm flex gap-5 items-center">Expired Date:
-                        <span className="text-sm font-semibold">{data.stripeCurrentPeriodEnd ? moment(data.stripeCurrentPeriodEnd).format("MMMM D, YYYY") : "N/A"}</span>
-                    </h3>
-                </div>
-
-                <span className="w-full h-[1px] md:h-[100px] md:w-[1px] bg-neutral-200"></span>
-
-                <div className="flex flex-col gap-2 items-start justify-start">
-                    <h3 className="font-bold text-sm">Plan Features</h3>
-                    <div className="space-y-3">
-                        {getSubscriptionPlan?.features?.map((feature: any, index: number) => (
-                            <div key={index} className="flex flex-row items-center gap-5">
-                                <FaCheck size={20} className="text-green-600" />
-                                <h5 className="text-neutral-500">{feature}</h5>
-                            </div>
+                    <ul className="mt-4 space-y-2">
+                        {plan.features.map((f, i) => (
+                            <li key={i} className="text-sm text-gray-600">
+                                ✓ {f}
+                            </li>
                         ))}
-                    </div>
-                </div>
-            </div>
+                    </ul>
 
+                    <button
+                        onClick={() => handleSubscribe(plan.priceId)}
+                        disabled={isPending}
+                        className="mt-6 w-full bg-black text-white py-2 rounded-lg hover:bg-neutral-800"
+                    >
+                        {isPending ? "Processing..." : "Subscribe"}
+                    </button>
+                </div>
+            ))}
         </div>
     );
-};
-
-export default SubscriptionCard;
+}

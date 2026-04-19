@@ -1,66 +1,121 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
+import { useTransition, useMemo, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
+import { GoPlus } from "react-icons/go";
+
 import { UserFollowAction } from "@/actions/user/UserFollowAction";
 import { userFollow } from "@/app/Redux/AuthSlice";
 import Button from "@/components/Button";
-import noProfile from '@/public/noProfile.webp';
-import { useQueryClient } from "@tanstack/react-query";
-import Image from "next/image";
-import Link from "next/link";
-import { useTransition } from "react";
-import { GoPlus } from "react-icons/go";
-import { useDispatch, useSelector } from "react-redux";
+import noProfile from "@/public/noProfile.webp";
+
+
+interface NetworkUserType {
+    id: number;
+    username: string;
+    userImage?: string | null;
+    profession?: string | null;
+}
+
+interface AuthUser {
+    id: number;
+    followings?: number[];
+}
+
+interface RootState {
+    user: { user: AuthUser | null };
+}
 
 interface NetworkUserProps {
-    networkUser: any;
+    networkUser: NetworkUserType;
 }
 
 
 const NetworkUser = ({ networkUser }: NetworkUserProps) => {
-    const user = useSelector((state: any) => state.user?.user);
+    const user = useSelector((state: RootState) => state.user.user);
     const dispatch = useDispatch();
     const queryClient = useQueryClient();
+
     const [isPending, startTransition] = useTransition();
 
-    const isFollowings = user?.followings?.includes(networkUser?.id);
 
-    const handleFollow = async () => {
+    const isFollowing = useMemo(() => {
+        return user?.followings?.includes(networkUser.id) ?? false;
+    }, [user?.followings, networkUser.id]);
+
+
+    const handleFollow = useCallback(() => {
         if (!user?.id || !networkUser.id) return;
 
+        // ✅ Optimistic update
+        dispatch(userFollow(networkUser.id));
+
         startTransition(() => {
-            UserFollowAction(user.id, networkUser.id).then((data: any) => {
-                if (data?.success) {
-                    dispatch(userFollow(networkUser?.id));
-                    queryClient.invalidateQueries({ queryKey: ["getNetworkUsers", user?.id] });
-                } else if (data?.error) {
-                    console.error(data.error);
+            UserFollowAction(user.id, networkUser.id).then((res) => {
+                if (!res?.success) {
+                    console.error(res?.error);
+
+                    // ❗ rollback if failed
+                    dispatch(userFollow(networkUser.id));
+                } else {
+                    // ✅ refresh network data
+                    queryClient.invalidateQueries({
+                        queryKey: ["networkUsers"],
+                    });
                 }
             });
         });
-    };
+    }, [user?.id, networkUser.id, dispatch, queryClient]);
+
 
     return (
-        <div className="py-2 md:p-2 border-b flex items-center justify-between">
-            <div className="md:max-w-max flex items-center gap-3">
-                <div className="relative w-[40px] md:w-[60px] h-[40px] md:h-[60px] overflow-hidden rounded-full">
-                    <Image src={networkUser?.userImage || noProfile.src} fill alt={networkUser.username} className="object-cover w-full h-full absolute top-0 left-0" />
+        <div className="flex items-center justify-between p-3 rounded-xl border bg-white hover:shadow-sm transition">
+
+            {/* LEFT: Profile */}
+            <div className="flex items-center gap-3 min-w-0">
+
+                {/* Avatar */}
+                <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden shrink-0">
+                    <Image
+                        src={networkUser.userImage || noProfile}
+                        alt={networkUser.username}
+                        fill
+                        sizes="56px"
+                        className="object-cover"
+                    />
                 </div>
-                <div>
-                    <Link href={`/userProfile/${networkUser?.id}`} className="font-semibold text-sm md:text-lg cursor-pointer trans hover:opacity-50">{networkUser?.username}</Link>
-                    <h4 className="hidden md:block text-neutral-600 line-clamp-1">{networkUser?.profession}</h4>
+
+                {/* Info */}
+                <div className="min-w-0">
+                    <Link
+                        href={`/userProfile/${networkUser.id}`}
+                        className="font-semibold text-sm md:text-base truncate hover:underline"
+                    >
+                        {networkUser.username}
+                    </Link>
+
+                    {networkUser.profession && (
+                        <p className="text-xs md:text-sm text-gray-500 truncate">
+                            {networkUser.profession}
+                        </p>
+                    )}
                 </div>
             </div>
+
+            {/* RIGHT: Follow Button */}
             <Button
-                variant="border"
+                variant={isFollowing ? "default" : "border"}
                 isLoading={isPending}
-                className={isFollowings ? "!bg-[var(--voilet)] text-white" : "!text-black"}
                 onClick={handleFollow}
-                icon={isFollowings && <GoPlus size={20} />}
+                className={`text-xs md:text-sm px-3 py-1.5 rounded-md ${isFollowing ? "bg-[var(--voilet)] text-white" : ""}`}
             >
-                {isFollowings ? "Following" : "Follow"}
+                {isFollowing ? "Following" : "Follow"}
             </Button>
         </div>
     );
 };
 
-export default NetworkUser
+export default NetworkUser;

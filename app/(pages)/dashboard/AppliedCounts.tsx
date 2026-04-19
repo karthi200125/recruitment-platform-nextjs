@@ -1,124 +1,148 @@
-import Link from "next/link";
-import { LiaListSolid } from "react-icons/lia";
-import { LuUsers } from "react-icons/lu";
-import { MdOutlinePendingActions } from "react-icons/md";
-import { FaRegBookmark } from "react-icons/fa"; 
+'use client';
 
-interface User {
-    role?: "CANDIDATE" | "RECRUITER" | "ORGANIZATION";
-    ProfileViews?: any[];
-    postedJobs?: any[];
-    savedJobs?: any[];
-}
+import Link from 'next/link';
+import { LiaListSolid } from 'react-icons/lia';
+import { LuUsers } from 'react-icons/lu';
+import { MdOutlinePendingActions } from 'react-icons/md';
+import { FaRegBookmark } from 'react-icons/fa';
+import { Prisma } from '@prisma/client';
+
+type JobWithCompany = Prisma.JobGetPayload<{
+  include: { company: true };
+}>;
+
+type UserWithRelations = Prisma.UserGetPayload<{
+  include: {
+    postedJobs: true;
+  };
+}>;
+
+type UserRole = 'CANDIDATE' | 'RECRUITER' | 'ORGANIZATION';
 
 interface AppliedCountsProps {
-    appliedJobs?: any[];
-    user?: User;
+  appliedJobs: JobWithCompany[];
+  user: UserWithRelations;
 }
 
 const AppliedCounts = ({ appliedJobs, user }: AppliedCountsProps) => {
-    const roleConfig = {
-        CANDIDATE: {
-            jobTitle2: "Applied Jobs",
-            jobSubtitle2: "See the jobs you applied to",
-            jobCount2: appliedJobs?.length || 0,
-            jobTitle3: "Actions Taken",
-            jobSubtitle3: "Review the jobs that took action",
-            jobCount3: 0,
-            showSavedJobs: true,
-        },
-        RECRUITER: {
-            jobTitle2: "Applied Jobs",
-            jobSubtitle2: "See the jobs you applied to",
-            jobCount2: appliedJobs?.length || 0,
-            jobTitle3: "Posted Jobs",
-            jobSubtitle3: "See jobs that you posted",
-            jobCount3: user?.postedJobs?.length || 0,
-            showSavedJobs: true,
-        },
-        ORGANIZATION: {
-            jobTitle2: "Posted Jobs",
-            jobSubtitle2: "See jobs that you posted",
-            jobCount2: user?.postedJobs?.length || 0,
-            jobTitle3: "Actions Taken",
-            jobSubtitle3: "Review the jobs that took action",
-            jobCount3: 0,
-            showSavedJobs: false, 
-        },
-    } as const;
+  const role = user.role as UserRole;
+  
+  const roleConfig = {
+    CANDIDATE: {
+      second: {
+        title: 'Applied Jobs',
+        subtitle: 'Jobs you have applied to',
+        count: appliedJobs.length,
+        href: '/dashboard?appliedJobs',
+      },
+      third: {
+        title: 'Actions Taken',
+        subtitle: 'Jobs that responded to you',
+        count: 0,
+        href: '/dashboard?actionTaken',
+      },
+      showSaved: true,
+    },
+    RECRUITER: {
+      second: {
+        title: 'Applied Jobs',
+        subtitle: 'Jobs you have applied to',
+        count: appliedJobs.length,
+        href: '/dashboard?appliedJobs',
+      },
+      third: {
+        title: 'Posted Jobs',
+        subtitle: 'Jobs you created',
+        count: user.postedJobs?.length ?? 0,
+        href: '/dashboard?postedJobs',
+      },
+      showSaved: true,
+    },
+    ORGANIZATION: {
+      second: {
+        title: 'Posted Jobs',
+        subtitle: 'Jobs you created',
+        count: user.postedJobs?.length ?? 0,
+        href: '/dashboard?postedJobs',
+      },
+      third: {
+        title: 'Actions Taken',
+        subtitle: 'Candidate responses',
+        count: 0,
+        href: '/dashboard?actionTaken',
+      },
+      showSaved: false,
+    },
+  } as const;
 
-    const userRole = user?.role as keyof typeof roleConfig;
-    const { jobTitle2, jobSubtitle2, jobCount2, jobTitle3, jobSubtitle3, jobCount3, showSavedJobs } =
-        roleConfig[userRole] || {
-            jobTitle2: "",
-            jobSubtitle2: "",
-            jobCount2: 0,
-            jobTitle3: "",
-            jobSubtitle3: "",
-            jobCount3: 0,
-            showSavedJobs: false,
-        };
+  const config = roleConfig[role];
+  
+  const cards = [
+    {
+      id: 'profileViews',
+      icon: <LuUsers size={22} />,
+      title: 'Profile Views',
+      count: user.ProfileViews?.length ?? 0,
+      subtitle: 'People who viewed your profile',
+      href: '/dashboard?profileViews',
+    },
+    {
+      id: 'second',
+      icon: <LiaListSolid size={22} />,
+      ...config.second,
+    },
+    {
+      id: 'third',
+      icon: <MdOutlinePendingActions size={22} />,
+      ...config.third,
+    },
+    ...(config.showSaved
+      ? [
+          {
+            id: 'saved',
+            icon: <FaRegBookmark size={22} />,
+            title: 'Saved Jobs',
+            count: user.savedJobs?.length ?? 0,
+            subtitle: 'Jobs you bookmarked',
+            href: '/dashboard?savedJobs',
+          },
+        ]
+      : []),
+  ];
 
-    const Analysis = [
-        {
-            id: 1,
-            icon: <LuUsers size={25} />,
-            title: "Profile Views",
-            count: user?.ProfileViews?.length || 0,
-            subtitle: "Discover who viewed your profile",
-            href: "/dashboard?profileViews",
-        },
-        {
-            id: 2,
-            icon: <LiaListSolid size={25} />,
-            title: jobTitle2,
-            count: jobCount2,
-            subtitle: jobSubtitle2,
-            href: "/dashboard?appliedJobs",
-        },
-        {
-            id: 3,
-            icon: <MdOutlinePendingActions size={25} />,
-            title: jobTitle3,
-            count: jobCount3,
-            subtitle: jobSubtitle3,
-            href: user?.role !== "CANDIDATE" ? "/dashboard?postedJobs" : "/dashboard?actionTaken",
-        },
-        ...(showSavedJobs
-            ? [
-                {
-                    id: 4,
-                    icon: <FaRegBookmark size={25} />,
-                    title: "Saved Jobs",
-                    count: user?.savedJobs?.length || 0,
-                    subtitle: "See jobs that you saved",
-                    href: "/dashboard?savedJobs",
-                },
-            ]
-            : []),
-    ];
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      {cards.map((card) => (
+        <Link
+          key={card.id}
+          href={card.href}
+          className="group rounded-2xl border bg-white/70 backdrop-blur-sm p-5 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between gap-4"
+        >
+          {/* Top */}
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-neutral-100 group-hover:bg-black group-hover:text-white transition">
+              {card.icon}
+            </div>
+            <h3 className="text-sm font-semibold">{card.title}</h3>
+          </div>
 
-    return (
-        <div className="w-full max-h-max grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {Analysis.map(({ id, icon, title, count, subtitle, href }) => (
-                <Link
-                    key={id}
-                    href={href}
-                    className="border rounded-[20px] p-5 h-full w-full md:flex-1 flex flex-col items-start gap-5 hover:opacity-50 transition"
-                >
-                    <div className="flex flex-row items-center gap-5">
-                        {icon}
-                        <h3>{title}</h3>
-                    </div>
-                    <div className="flex flex-row items-start justify-between gap-10">
-                        <h1>{count}</h1>
-                        <span className="h-[25px] md:h-[50px] w-[1px] bg-neutral-200"></span>
-                        <h5 className="text-[var(--lighttext)]">{subtitle}</h5>
-                    </div>
-                </Link>
-            ))}
-        </div>
-    );
+          {/* Middle */}
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold">{card.count}</h1>
+            <span className="h-8 w-[1px] bg-neutral-200" />
+            <p className="text-xs text-neutral-500 text-right max-w-[120px]">
+              {card.subtitle}
+            </p>
+          </div>
+
+          {/* Bottom hover effect */}
+          <div className="text-xs text-neutral-400 group-hover:text-black transition">
+            View details →
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
 };
 
 export default AppliedCounts;

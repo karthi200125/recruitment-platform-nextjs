@@ -1,67 +1,71 @@
 'use server';
 
-import Stripe from 'stripe';
+import Stripe from "stripe";
+import { db } from "@/lib/db";
+import { PLANS } from "@/lib/data/subscription-plans";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-01-27.acacia',
-    typescript: true
+    apiVersion: "2025-01-27.acacia",
 });
 
-export const CheckOutSession = async (values: any) => {
-    const { user, plan } = values;
+export async function createCheckoutSession({
+    userId,
+    priceId,
+}: {
+    userId: number;
+    priceId: string;
+}) {
+    const user = await db.user.findUnique({
+        where: { id: userId },
+        include: {
+            subscription: true,
+        },
+    });
 
-    if (!user || !plan) {
-        console.log("User or subscription plan missing.");
-        return;
+    if (!user) throw new Error("User not found");
+
+    if (user.isPro) {
+        throw new Error("Already subscribed");
     }
 
-    try {
-        let customer: any = await stripe.customers.list({ email: user.email, limit: 1 });
+    const allPlans = Object.values(PLANS).flat();
+    const selectedPlan = allPlans.find(p => p.priceId === priceId);
 
-        if (!customer.data.length) {
-            customer = await stripe.customers.create({
-                email: user.email,
-                name: user.username,
-            });
-        } else {
-            customer = customer.data[0];
-        }
+    if (!selectedPlan) {
+        throw new Error("Invalid plan selected");
+    }
 
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            mode: 'subscription',
-            success_url: `${process.env.NEXT_PUBLIC_URL}/success`,
-            cancel_url: `${process.env.NEXT_PUBLIC_URL}/subscription`,
-            customer: customer.id,
-            metadata: {
-                userId: user.id,
-                role: user.role,
-                planName: plan.name,
-                subscriptionType: plan.type,
-            },
-            billing_address_collection: 'required',
-            line_items: [
-                {
-                    price_data: {
-                        currency: 'inr',
-                        product_data: {
-                            name: plan.name,
-                            description: plan.features.join(', '),
-                        },
-                        unit_amount: Number(plan.price.replace(',', '')) * 100,
-                        recurring: {
-                            interval: plan.type === 'Monthly' ? 'month' : 'year',
-                        },
-                    },
-                    quantity: 1,
-                },
-            ],
+    // ✅ Get or create customer
+    let customerId = user.subscription?.[0]?.stripeCustomerId;
+
+    if (!customerId) {
+        const customer = await stripe.customers.create({
+            email: user.email,
+            name: user.username,
         });
 
-        return { sessionUrl: session.url };
-
-    } catch (error) {
-        console.error("Error during Stripe checkout session creation:", error);
-        throw error;
+        customerId = customer.id;
     }
-};
+
+    const session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        customer: customerId,
+        payment_method_types: ["card"],
+
+        line_items: [
+            {
+                price: priceId, // ✅ CORRECT WAY
+                quantity: 1,
+            },
+        ],
+
+        success_url: `${process.env.NEXT_PUBLIC_URL}/subscription/success`,
+        cancel_url: `${process.env.NEXT_PUBLIC_URL}/subscription`,
+
+        metadata: {
+            userId: String(user.id),
+        },
+    });
+
+    return { url: session.url };
+}

@@ -1,47 +1,36 @@
-'use server'
-
 import { db } from "@/lib/db";
+import { cache } from "react";
+import { Prisma } from "@prisma/client";
 
-export const getCompanies = async () => {
+
+export type CompanyWithJobsCount = Prisma.CompanyGetPayload<{
+    include: {
+        jobs: {
+            select: { id: true };
+        };
+    };
+}>;
+
+
+export const getCompanies = cache(async (): Promise<CompanyWithJobsCount[]> => {
     try {
-        const companies: any = await db.company.findMany({
+        const companies = await db.company.findMany({
             where: {
-                companyIsVerified: true
+                companyIsVerified: true,
             },
             include: {
-                jobs: true
-            }
-        });
-
-        return companies
-    } catch (err) {
-        return { error: "Get companies failed" };
-    }
-};
-
-export const getRecruiterCompany = async (userId?: number) => {    
-    try {
-        if (!userId) {
-            return { error: "userId not found" };
-        }
-
-        const user = await db.user.findFirst({
-            where: {
-                employees: {
-                    has: userId,
+                jobs: {
+                    select: { id: true }, 
                 },
             },
-            select: {
-                username: true,
+            orderBy: {
+                createdAt: "desc", 
             },
         });
 
-        if (!user) {
-            return { error: "Company not found" };
-        }
-
-        return { companyName: user.username };
-    } catch (err) {
-        return { error: "Get company failed" };
+        return companies;
+    } catch (error) {
+        console.error("❌ getCompanies error:", error);
+        throw new Error("Failed to fetch companies");
     }
-};
+});

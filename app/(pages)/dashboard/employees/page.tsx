@@ -1,72 +1,59 @@
-'use client';
 
-import { getCompanyVerifyEmployees } from "@/actions/company/getCompanyVerifyEmployees";
-import { getCompaniesEmployees } from "@/actions/getCompanyEmployees";
-import EmployeesSkeleton from "@/Skeletons/EmployeesSkeleton";
-import { useQuery } from "@tanstack/react-query";
-import { useSelector } from "react-redux";
-import Employee from "./Employee";
 
-const Employees = () => {
-    const user = useSelector((state: any) => state.user.user);
+import { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
 
-    const { data: companyEmps = [], isLoading: companyEmpIsLoading } = useQuery({
-        queryKey: ['getCompanyEmps', user?.employees],
-        queryFn: async () => await getCompaniesEmployees(user?.employees),
-        enabled: !!user?.employees,
-    });
+import { authOptions } from '@/lib/authOptions';
 
-    const { data: verificationEmps = [], isLoading: verifyEmpsIsLoading } = useQuery({
-        queryKey: ['getVerificationEmps', user?.verifyEmps],
-        queryFn: async () => await getCompanyVerifyEmployees(user?.verifyEmps),
-        enabled: !!user?.verifyEmps,
+import { getCompaniesEmployees } from '@/actions/getCompanyEmployees';
+import { getCompanyVerifyEmployees } from '@/actions/company/getCompanyVerifyEmployees';
+import EmployeesClient from './EmployeesClient';
+import { db } from '@/lib/db';
+
+export const metadata: Metadata = {
+    title: 'Employees Dashboard',
+    robots: {
+        index: false,
+        follow: false,
+    },
+};
+
+const EmployeesPage = async () => {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+        redirect('/login');
+    }
+
+    const userId = Number(session.user.id);
+
+    
+    const user = await db.user.findUnique({
+        where: { id: userId },
+        select: {
+            employees: true,
+            verifyEmps: true,
+        },
     });
 
     if (!user) {
-        return <EmployeesSkeleton />;
+        redirect('/login');
     }
 
+    const [companyEmps, verificationEmps] = await Promise.all([
+        getCompaniesEmployees(user?.employees ?? []),
+        getCompanyVerifyEmployees(user?.verifyEmps ?? []),
+    ]);
+
     return (
-        <div className="w-full flex flex-col lg:flex-row items-start py-5 gap-5 min-h-screen">
-
-            {/* Verification Employees */}
-            <div className="flex-1 max-h-max w-full space-y-5 p-5 border rounded-[20px]">
-                <h3>Employees Verifications ({user?.verifyEmps?.length || 0})</h3>
-                {verifyEmpsIsLoading ? (
-                    <EmployeesSkeleton />
-                ) : (
-                    <div className="space-y-2 w-full">
-                        {verificationEmps.length > 0 ? (
-                            verificationEmps.map((emp: any) => (
-                                <Employee user={emp} key={emp.id} isVerify={true} />
-                            ))
-                        ) : (
-                            <h3 className="text-neutral-500 text-sm">No Verification Employees yet!</h3>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            {/* Company Employees */}
-            <div className="flex-1 max-h-max w-full space-y-5 p-5 border rounded-[20px]">
-                <h3>Company Employees ({user?.employees?.length || 0})</h3>
-                {companyEmpIsLoading ? (
-                    <EmployeesSkeleton />
-                ) : (
-                    <div className="space-y-2 w-full">
-                        {companyEmps.length > 0 ? (
-                            companyEmps.map((emp: any) => (
-                                <Employee user={emp} key={emp.id} isVerify={false} />
-                            ))
-                        ) : (
-                            <h3 className="text-neutral-500 text-sm">No Employees yet!</h3>
-                        )}
-                    </div>
-                )}
-            </div>
-
-        </div>
+        <EmployeesClient
+            user={user}
+            currentUserId={userId}
+            companyEmps={companyEmps}
+            verificationEmps={verificationEmps}
+        />
     );
 };
 
-export default Employees;
+export default EmployeesPage;

@@ -1,13 +1,32 @@
 'use server';
 
-import { db } from "@/lib/db";
-import { Job } from "@prisma/client";
+import { db } from '@/lib/db';
+import { Prisma } from '@prisma/client';
 
-export const getActionTakenJobs = async (userId: number): Promise<Job[]> => {
+interface ActionResponse<T> {
+    success: boolean;
+    data?: T;
+    error?: string;
+}
+
+type ActionTakenJob = Prisma.JobGetPayload<{
+    include: {
+        company: true;
+    };
+}>;
+
+export const getActionTakenJobs = async (
+    userId: number
+): Promise<ActionResponse<ActionTakenJob[]>> => {
     try {
-        if (!userId) {
-            throw new Error("Invalid user ID");
+
+        if (!userId || typeof userId !== 'number') {
+            return {
+                success: false,
+                error: 'Invalid userId',
+            };
         }
+
 
         const jobs = await db.job.findMany({
             where: {
@@ -18,11 +37,24 @@ export const getActionTakenJobs = async (userId: number): Promise<Job[]> => {
                     },
                 },
             },
+            include: {
+                company: true,
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
         });
 
-        return jobs;
+        return {
+            success: true,
+            data: jobs,
+        };
     } catch (error) {
-        console.error("Error fetching action taken jobs:", error);
-        throw new Error("Failed to retrieve action taken jobs.");
+        console.error('[GET_ACTION_TAKEN_JOBS_ERROR]', error);
+
+        return {
+            success: false,
+            error: 'Failed to retrieve action taken jobs',
+        };
     }
 };

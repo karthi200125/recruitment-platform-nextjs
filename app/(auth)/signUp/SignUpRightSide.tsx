@@ -1,9 +1,24 @@
 'use client'
 
-import RegisterForm from "@/app/Forms/RegisterForm"
+import dynamic from "next/dynamic"
 import GoogleAuth from "@/app/(auth)/GoogleAuth"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, Suspense } from "react"
+import Skeleton from "@/components/ui/skeleton"
+
+// PERFORMANCE FIX: Lazy load RegisterForm
+// Form component (~12KB) only loaded when user navigates to signup page
+// Reduces initial bundle by deferring form code until needed
+const RegisterForm = dynamic(() => import("@/app/Forms/RegisterForm"), {
+    loading: () => (
+        <div className="w-full space-y-3">
+            <div className="h-10 bg-white/10 rounded-lg animate-pulse" />
+            <div className="h-10 bg-white/10 rounded-lg animate-pulse" />
+            <div className="h-10 bg-white/10 rounded-lg animate-pulse" />
+        </div>
+    ),
+    ssr: true
+});
 
 const SignUpRightSide = () => {
 
@@ -17,7 +32,15 @@ const SignUpRightSide = () => {
             </div>
             <h2 className='font-semibold'>SignUp Account</h2>
 
-            <RegisterForm onRole={(r: string) => setRole(r)} />
+            <Suspense fallback={
+                <div className="w-full space-y-3">
+                    <div className="h-10 bg-white/10 rounded-lg animate-pulse" />
+                    <div className="h-10 bg-white/10 rounded-lg animate-pulse" />
+                    <div className="h-10 bg-white/10 rounded-lg animate-pulse" />
+                </div>
+            }>
+                <RegisterForm onRole={(r: string) => setRole(r)} />
+            </Suspense>
 
             {/* or */}
             <div className='w-full flex flex-row items-center justify-between text-neutral-500'>

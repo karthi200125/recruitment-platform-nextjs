@@ -1,59 +1,83 @@
-'use server';
 
-import { getUserById } from "@/actions/auth/getUserById";
+"use server";
+
 import { db } from "@/lib/db";
+import { getUserById } from "@/actions/auth/getUserById";
 
-export const UserFollowAction = async (currentUserId: any, userId: any) => {
+export const UserFollowAction = async (
+    currentUserId: number,
+    targetUserId: number
+) => {
     try {
-        const currentUser = await getUserById(currentUserId);
-        const user = await getUserById(userId);
-
-        if (!currentUser || !user) {
-            return { error: "User not found" };
+        // ── Validate IDs ─────────────────────────────────────────────
+        if (
+            !Number.isInteger(currentUserId) ||
+            !Number.isInteger(targetUserId)
+        ) {
+            throw new Error("Invalid user ID");
         }
 
-        const isFollowing = currentUser.followings.includes(userId);
+        if (currentUserId === targetUserId) {
+            return { error: "You cannot follow yourself." };
+        }
 
-        if (isFollowing) {
-            await db.user.update({
+        // ── Fetch both users in parallel ─────────────────────────────
+        const [currentUser, targetUser] = await Promise.all([
+            getUserById(currentUserId),
+            getUserById(targetUserId),
+        ]);
+
+        if (!currentUser || !targetUser) {
+            return { error: "User not found." };
+        }
+
+        const currentFollowings: number[] = currentUser.followings ?? [];
+        const targetFollowers: number[] = targetUser.followers ?? [];
+
+        const isFollowing = currentFollowings.includes(targetUserId);
+
+        // ── Prepare updated arrays ───────────────────────────────────
+        const updatedFollowings = isFollowing
+            ? currentFollowings.filter((id) => id !== targetUserId)
+            : [...currentFollowings, targetUserId];
+
+        const updatedFollowers = isFollowing
+            ? targetFollowers.filter((id) => id !== currentUserId)
+            : [...targetFollowers, currentUserId];
+
+        // ── Atomic transaction ───────────────────────────────────────
+        await db.$transaction([
+            db.user.update({
                 where: { id: currentUserId },
                 data: {
                     followings: {
-                        set: currentUser.followings.filter((id: any) => id !== userId),
+                        set: updatedFollowings,
                     },
                 },
-            });
-            await db.user.update({
-                where: { id: userId },
-                data: {
-                    followers: {
-                        set: user.followers.filter((id: any) => id !== currentUserId),
-                    },
-                },
-            });
-            return { success: `${user?.username} has been unfollowed` };
-        } else {
-            await db.user.update({
-                where: { id: currentUserId },
-                data: {
-                    followings: {
-                        set: [...currentUser.followings, userId],
-                    },
-                },
-            });
-            await db.user.update({
-                where: { id: userId },
-                data: {
-                    followers: {
-                        set: [...user.followers, currentUserId],
-                    },
-                },
-            });
-            return { success: `${user?.username} has been followed` };
-        }
+            }),
 
+            db.user.update({
+                where: { id: targetUserId },
+                data: {
+                    followers: {
+                        set: updatedFollowers,
+                    },
+                },
+            }),
+        ]);
+
+        return {
+            success: isFollowing
+                ? `${targetUser.username} has been unfollowed`
+                : `${targetUser.username} has been followed`,
+            isFollowing: !isFollowing,
+        };
     } catch (error) {
-        console.error("Error in UserFollowAction:", error);
-        return { error: "An error occurred while updating follow status" };
+        console.error("[UserFollowAction]", error);
+
+        return {
+            error: "Failed to update follow status. Please try again.",
+        };
     }
 };
+

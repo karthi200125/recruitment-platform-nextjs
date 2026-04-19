@@ -10,7 +10,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { CiSearch } from "react-icons/ci";
-import { debounce } from 'lodash';
+import { debounce } from '@/lib/debounce';
 
 interface SelectProps {
     field: {
