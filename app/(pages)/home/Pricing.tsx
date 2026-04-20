@@ -17,7 +17,7 @@ export default function Pricing() {
     const plans = PLANS[role];
 
     return (
-        <section className="relative w-full min-h-screen bg-[#09090b] text-white overflow-hidden py-24 px-4 sm:px-6 lg:px-8">
+        <section className="relative w-full min-h-screen text-white overflow-hidden py-24 px-4 sm:px-6 lg:px-8">
 
             {/* Ambient glow */}
             <div className="pointer-events-none absolute inset-0 flex justify-center">

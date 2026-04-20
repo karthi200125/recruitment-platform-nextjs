@@ -41,9 +41,7 @@ model User {
   educations      Education[]
   experiences     Experience[]
   projects        Project[]
-
-  followers       Int[]
-  followings      Int[]
+  
   savedJobs       Int[]       
   ProfileViews    Int[]
   employees       Int[]
@@ -53,10 +51,28 @@ model User {
   chatsReceived Chats[]  @relation("ReceiverChats")
   messages      Message[]
 
+  followers  Follow[] @relation("UserFollowers")
+  following  Follow[] @relation("UserFollowing")
+
   subscription   Subscription[]
  
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+}
+
+model Follow {
+  id           Int      @id @default(autoincrement())
+
+  followerId   Int
+  followingId  Int
+
+  follower     User @relation("UserFollowing", fields: [followerId], references: [id])
+  following    User @relation("UserFollowers", fields: [followingId], references: [id])
+  
+
+  createdAt    DateTime @default(now())
+
+  @@unique([followerId, followingId]) 
 }
 
 model Job {
@@ -88,28 +104,66 @@ model Job {
   updatedAt   DateTime  @updatedAt
 }
 
-model JobApplication {
-  id                 Int      @id @default(autoincrement())
-  userId             Int
-  jobId              Int
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  job                Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+enum ApplicationStatus {
+  APPLIED
+  VIEWED
+  SHORTLISTED
+  REJECTED
+}
 
+model JobApplication {
+  id        Int      @id @default(autoincrement())
+
+  userId    Int
+  jobId     Int
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  
   candidateEmail     String
   candidateMobile    String
   candidateResume    String   
   questionAndAnswers Json?
 
-  isNotIntrested     Boolean @default(false)
 
-  isApplicationViewed Boolean @default(false)  
-  ApplicationViewedUpdatedAt    DateTime?
+isApplicationViewed Boolean @default(false)
+ApplicationViewedUpdatedAt DateTime?
 
-  isSelected          Boolean @default(false)
-  SelectedUpdatedAt   DateTime?
+isSelected Boolean @default(false)
+SelectedUpdatedAt DateTime?
+
+isNotIntrested Boolean @default(false)
   
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt  
+  status ApplicationStatus @default(APPLIED)
+
+  
+  viewedAt     DateTime?
+  shortlistedAt DateTime?
+  rejectedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+statusHistory ApplicationStatusHistory[]
+  
+  @@unique([userId, jobId])
+  @@index([userId])
+  @@index([jobId])
+  @@index([status])
+}
+
+
+model ApplicationStatusHistory {
+  id            Int @id @default(autoincrement())
+  applicationId Int
+
+  status        ApplicationStatus
+  createdAt     DateTime @default(now())
+
+  jobApplication JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
 }
 
 
@@ -241,9 +295,3 @@ model Subscription {
   updatedAt            DateTime @updatedAt
 }
 
-enum ApplicationStatus {
-  APPLIED
-  VIEWED
-  SHORTLISTED
-  REJECTED
-}

@@ -96,7 +96,7 @@ const JobCard = ({ job, index }: { job: Job; index: number }) => {
     const badgeClass = MODE_STYLES[modeLower] ?? 'bg-white/[0.05] text-zinc-500 border border-white/[0.07]';
 
     return (
-        <article className="group flex flex-col rounded-2xl border border-white/[0.07] bg-zinc-900/50 p-6 hover:border-indigo-500/35 hover:-translate-y-1 hover:bg-zinc-900/80 hover:shadow-xl hover:shadow-indigo-500/[0.08] transition-all duration-300">
+        <article className="group flex flex-col rounded-2xl border border-white/[0.07] p-6 hover:border-indigo-500/35 hover:-translate-y-1 hover:bg-zinc-900/80 hover:shadow-xl hover:shadow-indigo-500/[0.08] transition-all duration-300">
 
             {/* Top row — logo + mode badge */}
             <div className="flex items-start justify-between mb-5">

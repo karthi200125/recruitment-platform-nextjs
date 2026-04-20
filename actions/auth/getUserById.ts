@@ -9,7 +9,7 @@ interface ActionResponse<T> {
   error?: string;
 }
 
-// ✅ Strong Prisma type
+// ✅ Strong Prisma type (UPDATED with relations)
 export type ProfileUser = Prisma.UserGetPayload<{
   include: {
     jobApplications: true;
@@ -22,6 +22,14 @@ export type ProfileUser = Prisma.UserGetPayload<{
     educations: true;
     experiences: true;
     projects: true;
+
+    // ✅ ADD THESE (important)
+    followers: {
+      select: { id: true };
+    };
+    following: {
+      select: { id: true };
+    };
   };
 }>;
 
@@ -50,10 +58,18 @@ export const getUserById = async (
         educations: true,
         experiences: true,
         projects: true,
+
+        // ✅ Relations
+        followers: {
+          select: { id: true },
+        },
+        following: {
+          select: { id: true },
+        },
       },
     });
 
-    // ✅ Not found handling
+    // ✅ Handle not found (CRITICAL)
     if (!user) {
       return {
         success: false,
@@ -61,15 +77,20 @@ export const getUserById = async (
       };
     }
 
+    // ✅ Normalize userAbout safely
+    const formattedUser: ProfileUser = {
+      ...user,
+      userAbout:
+        typeof user.userAbout === 'string'
+          ? user.userAbout
+          : user.userAbout
+            ? JSON.stringify(user.userAbout)
+            : null,
+    };
+
     return {
       success: true,
-      data: {
-        ...user,
-        userAbout:
-          typeof user.userAbout === "string"
-            ? user.userAbout
-            : JSON.stringify(user.userAbout),
-      },
+      data: formattedUser,
     };
   } catch (error) {
     console.error('[getUserById]', error);

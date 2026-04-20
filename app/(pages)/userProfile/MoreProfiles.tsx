@@ -1,64 +1,46 @@
-
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
-import { useTransition } from "react";
-import { GoPlus } from "react-icons/go";
 import { IoMdSend } from "react-icons/io";
-import { useDispatch, useSelector } from "react-redux";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useDispatch } from "react-redux";
+import { useQuery } from "@tanstack/react-query";
 
-import { moreProUsers } from "@/actions/moreProfileUsers";
-import { UserFollowAction } from "@/actions/user/UserFollowAction";
-import { userFollow } from "@/app/Redux/AuthSlice";
+import { moreProUsers, MoreProfileUser } from "@/actions/moreProfileUsers";
 import { openModal } from "@/app/Redux/ModalSlice";
 
 import Batch from "@/components/Batch";
 import Button from "@/components/Button";
 import Model from "@/components/Model/Model";
 import MessageBox from "../messages/MessageBox";
+import FollowButton from "@/components/FollowButton";
 
-import { useCustomToast } from "@/lib/CustomToast";
 import MoreProfileSkeleton from "@/Skeletons/MoreProfileSkeleton";
-
 import noAvatar from "@/public/noProfile.webp";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
-interface User {
-    id: number;
-    userImage?: string | null;
-    username?: string;
-    isPro?: boolean;
-    role?: string;
-    profession?: string;
-}
-
-interface RootState {
-    user: {
-        user: {
-            id: number;
-            isPro?: boolean;
-            followings?: number[];
-        } | null;
-    };
-}
+type UserRole = "CANDIDATE" | "RECRUITER" | "ORGANIZATION";
 
 interface ProfileUserProps {
     userId?: number;
 }
 
 const MoreProfiles = ({ userId }: ProfileUserProps) => {
-    const user = useSelector((state: RootState) => state.user.user);
+    const { user, isLoading } = useCurrentUser();
 
-    const {
-        data: profiles = [],
-        isPending,
-    } = useQuery<User[]>({
+    const { data: profiles = [], isPending } = useQuery<MoreProfileUser[]>({
         queryKey: ["moreProfiles", user?.id, userId],
-        queryFn: () => moreProUsers(user, userId!),
+        queryFn: () => {
+            if (!user?.id || typeof userId !== "number") return [];
+            return moreProUsers(user, userId);
+        },
         enabled: !!user?.id && typeof userId === "number",
         staleTime: 1000 * 60 * 5,
     });
+
+    if (isLoading) {
+        return <MoreProfileSkeleton />;
+    }
 
     return (
         <aside className="w-full min-h-[200px] rounded-2xl border p-5 space-y-4 overflow-hidden">
@@ -82,48 +64,18 @@ const MoreProfiles = ({ userId }: ProfileUserProps) => {
 export default MoreProfiles;
 
 interface MoreUserProfileProps {
-    moreUser: User;
+    moreUser: MoreProfileUser;
 }
 
 const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
-    const user = useSelector((state: RootState) => state.user.user);
-
+    const { user } = useCurrentUser();
     const dispatch = useDispatch();
-    const queryClient = useQueryClient();
-
-    const { showSuccessToast, showErrorToast } = useCustomToast();
-
-    const [isPending, startTransition] = useTransition();
 
     const isCurrentUser = user?.id === moreUser.id;
-    const isFollowing = user?.followings?.includes(moreUser.id);
-
-    const handleFollow = () => {
-        if (!user?.id) return;
-
-        startTransition(async () => {
-            try {
-                const result = await UserFollowAction(user.id, moreUser.id);
-
-                if (result?.success) {
-                    showSuccessToast(result.success);
-
-                    dispatch(userFollow(moreUser.id));
-
-                    queryClient.invalidateQueries({
-                        queryKey: ["getUser", user.id],
-                    });
-                } else if (result?.error) {
-                    showErrorToast(result.error);
-                }
-            } catch {
-                showErrorToast("Something went wrong.");
-            }
-        });
-    };
 
     return (
         <div className="flex items-start gap-4 border-b py-4 last:border-b-0">
+            {/* Avatar */}
             <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0">
                 <Image
                     src={moreUser.userImage || noAvatar}
@@ -134,6 +86,7 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                 />
             </div>
 
+            {/* Info */}
             <div className="flex-1 space-y-2 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                     <Link
@@ -151,21 +104,19 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                 </div>
 
                 {moreUser.profession && (
-                    <p className="text-sm text-neutral-500">{moreUser.profession}</p>
+                    <p className="text-sm text-neutral-500">
+                        {moreUser.profession}
+                    </p>
                 )}
 
+                {/* Actions */}
                 {!isCurrentUser && (
                     <div className="flex items-center gap-2 flex-wrap">
-                        <Button
-                            variant="border"
-                            isLoading={isPending}
-                            onClick={handleFollow}
-                            icon={!isFollowing ? <GoPlus size={18} /> : undefined}
-                            className={`!h-[32px] ${isFollowing ? "!bg-[var(--voilet)] text-white" : ""
-                                }`}
-                        >
-                            {isFollowing ? "Unfollow" : "Follow"}
-                        </Button>
+                        <FollowButton
+                            targetUserId={moreUser.id}
+                            initialIsFollowing={moreUser.isFollowing}
+                            className="!h-[32px]"
+                        />
 
                         <Button
                             variant="border"
@@ -182,6 +133,7 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                 )}
             </div>
 
+            {/* Modal */}
             <Model
                 modalId={`messageModel-${moreUser.id}`}
                 title={`Message ${moreUser.username || "User"}`}
@@ -195,4 +147,3 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
         </div>
     );
 };
-

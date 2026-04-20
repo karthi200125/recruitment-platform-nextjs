@@ -8,7 +8,7 @@ const WhyChooseUs = () => {
   return (
     <section
       aria-labelledby="why-choose-us-heading"
-      className="relative w-full bg-[#09090b] py-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
+      className="relative w-full py-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
     >
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0 flex justify-center items-center">

@@ -1,12 +1,12 @@
 'use client'
 
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { NavIconSkeleton, PremiumSkeleton, UserProfileSkeleton } from '@/Skeletons/NavbarSkeletons';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { Suspense } from 'react';
-import { useSelector } from 'react-redux';
 import Logo from '../Logo';
 import Menu from './Menu';
-import { useRouter } from 'next/navigation';
 
 const Premium = dynamic(() => import('./Premiem'), { suspense: true });
 const NavIcons = dynamic(() => import('./NavIcons'), { suspense: true });
@@ -15,7 +15,7 @@ const UserProfileCard = dynamic(() => import('./UserProfileCard'), { suspense: t
 
 const Navbar = () => {
 
-    const user = useSelector((state: any) => state.user.user);
+    const { user } = useCurrentUser()
 
     const router = useRouter()
 
@@ -36,7 +36,7 @@ const Navbar = () => {
                     <Suspense fallback={<UserProfileSkeleton />}>
                         <UserProfileCard />
                     </Suspense>
-                    <Suspense fallback={<PremiumSkeleton />}>
+                    {/* <Suspense fallback={<PremiumSkeleton />}>
                         {user?.isPro ?
                             <div onClick={() => router.push('/subscription')} className="underline protext text-sm cursor-pointer trans hover:opacity-50">
                                 Premium features
@@ -44,7 +44,7 @@ const Navbar = () => {
                             :
                             <Premium />
                         }
-                    </Suspense>
+                    </Suspense> */}
                 </div>
                 <Menu />
             </nav>

@@ -14,7 +14,7 @@ import EasyApply from "./EasyApply/EasyApply";
 import { VscLinkExternal } from "react-icons/vsc";
 import { useDispatch, useSelector } from "react-redux";
 import { SavedJobAction } from "../../../../actions/user/SavedJobAction";
-import { userSavedJobs } from "@/app/Redux/AuthSlice";
+// import { userSavedJobs } from "@/app/Redux/AuthSlice";
 import noImage from "../../../../public/noImage.webp";
 import JobTitlesSkeleton from "@/Skeletons/JobTitlesSkeleton";
 import { useQuery } from "@tanstack/react-query";

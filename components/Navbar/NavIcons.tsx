@@ -1,17 +1,17 @@
 'use client'
 
+import { getUnreadMessagesCount } from '@/actions/message/getUnreadMessagesCount ';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useQuery } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { BsFillBuildingsFill } from "react-icons/bs";
-import { FaHome, FaSuitcase } from "react-icons/fa";
+import { FaSuitcase } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { RiMessage3Fill } from "react-icons/ri";
-import { useSelector } from 'react-redux';
 import Icon from '../Icon';
-import { useQuery } from '@tanstack/react-query';
-import { getUnreadMessagesCount } from '@/actions/message/getUnreadMessagesCount ';
 
 const NavIcons = () => {
-    const user = useSelector((state: any) => state.user.user)
+    const { user, isAuthenticated, isLoading } = useCurrentUser();
 
     const { data, isPending } = useQuery({
         queryKey: ['getUnreadMessagesCount', user?.id],

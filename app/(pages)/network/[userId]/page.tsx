@@ -3,15 +3,13 @@
 import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { useSelector } from "react-redux";
 
 import { getNetworkusers } from "@/actions/user/getNetworkusers";
 import EmployeesSkeleton from "@/Skeletons/EmployeesSkeleton";
 import NetworkUser from "../NetworkUser";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
-/* ────────────────────────────────────────────────
-   Types
-──────────────────────────────────────────────── */
+
 interface AuthUser {
     id: number;
 }
@@ -27,14 +25,13 @@ interface NetworkUserType {
     profession?: string | null;
 }
 
-/* ────────────────────────────────────────────────
-   Component
-──────────────────────────────────────────────── */
+
 const Network = () => {
     const params = useParams();
     const userId = Number(params?.userId);
 
-    const currentUser = useSelector((state: RootState) => state.user.user);
+    const session = useCurrentUser();
+    const currentUser = session?.user
 
     const [network, setNetwork] =
         useState<"followers" | "followings">("followers");
@@ -113,8 +110,8 @@ const Network = () => {
                                 key={type}
                                 onClick={() => handleTabChange(type)}
                                 className={`flex-1 py-4 capitalize transition ${active
-                                        ? "border-b-2 border-blue-600 text-blue-600"
-                                        : "text-gray-500 hover:text-black"
+                                    ? "border-b-2 border-blue-600 text-blue-600"
+                                    : "text-gray-500 hover:text-black"
                                     }`}
                             >
                                 {type}

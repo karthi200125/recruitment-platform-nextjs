@@ -55,7 +55,7 @@ const BADGES = ["50K+ Hires", "12K+ Companies", "4.9★ Rated"];
 
 const Footer = () => {
     return (
-        <footer className="relative w-full bg-[#09090b] border-t border-white/[0.06] px-4 sm:px-6 lg:px-8 pt-14 pb-8 overflow-hidden">
+        <footer className="relative w-full border-t border-white/[0.06] px-4 sm:px-6 lg:px-8 pt-14 pb-8 overflow-hidden">
 
             {/* Ambient glow */}
             <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[160px] bg-indigo-600/8 blur-[90px] rounded-full" />

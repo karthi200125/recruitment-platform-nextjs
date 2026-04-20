@@ -30,28 +30,28 @@ const JobDetails = ({ job, safeSearchParams }: JobDescProps) => {
 
     return (
         <div className="w-full h-full overflow-y-auto p-5 space-y-5">
-            <JobTitles
+            {/* <JobTitles
                 job={job}
                 company={memoizedCompanyData}
                 isPending={isDataLoading}
                 safeSearchParams={safeSearchParams}
-            />
-            <JobRecruiter
+            /> */}
+            {/* <JobRecruiter
                 job={job}
                 company={memoizedCompanyData}
                 isPending={isDataLoading}
-            />
-            <JobDescription
+            /> */}
+            {/* <JobDescription
                 job={job}
                 isPending={isDataLoading}
             />
-            {!user?.isPro && <JobPremium />}
-            {user?.role !== "ORGANIZATION" && (
+            {!user?.isPro && <JobPremium />} */}
+            {/* {user?.role !== "ORGANIZATION" && (
                 <JobCompany
                     company={memoizedCompanyData}
                     isPending={isDataLoading}
                 />
-            )}
+            )} */}
         </div>
     );
 };

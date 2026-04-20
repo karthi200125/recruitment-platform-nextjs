@@ -15,6 +15,7 @@ import Experiences from "../Experiences";
 import MoreProfiles from "../MoreProfiles";
 import Projects from "../Projects";
 import UserInfo from "../UserInfo";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface AuthUser {
   id: number;
@@ -26,7 +27,8 @@ interface RootState {
 }
 
 const UserProfile = () => {
-  const loggedInUser = useSelector((state: RootState) => state.user.user);
+  const session = useCurrentUser();
+  const loggedInUser = session?.user
 
   const params = useParams();
   const rawUserId = params?.userId;
@@ -52,14 +54,14 @@ const UserProfile = () => {
         throw new Error(res.error || "Failed to fetch user");
       }
 
-      return res.data; 
+      return res.data;
     },
     enabled: userId !== null,
     staleTime: 1000 * 60 * 2,
     retry: 1,
   });
 
-  
+
   const company = profileData?.company?.[0] ?? null;
   const isOrg = profileData?.role === "ORGANIZATION";
 
@@ -94,22 +96,22 @@ const UserProfile = () => {
 
   return (
     <main className="min-h-screen w-full flex gap-5 py-5">
-      <div className="w-full md:w-[70%] space-y-5">
-        <UserInfo
+      {/* <div className="w-full md:w-[70%] space-y-5"> */}
+      {/* <UserInfo
           profileUser={profileData}
           isLoading={isPending}
           company={company}
           isOrg={isOrg}
-        />
+        /> */}
 
-        <AboutMe
+      {/* <AboutMe
           profileUser={profileData}
           isLoading={isPending}
           company={company}
           isOrg={isOrg}
-        />
+        /> */}
 
-        {!isOrg && profileData && (
+      {/* {!isOrg && profileData && (
           <>
             <Education userId={userId} profileUser={profileData} />
             <Projects userId={userId} profileUser={profileData} />
@@ -120,7 +122,7 @@ const UserProfile = () => {
         {isOrg && profileData && (
           <CompanySlides company={company} profileUser={profileData} />
         )}
-      </div>
+      </div>*/}
 
       <aside className="hidden md:block md:w-[30%]">
         {!isPending && <MoreProfiles userId={userId} />}
