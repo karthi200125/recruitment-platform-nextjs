@@ -5,7 +5,7 @@ import JobLists from './JobLists/JobLists';
 import JobDetails from './Job/JobDetails';
 import { JobWithCompany } from '@/actions/job/getFilterAllJobs';
 
-interface JobSearchParams {
+export interface JobSearchParams {
     userId?: number;
     q?: string;
     location?: string;
@@ -54,10 +54,12 @@ const Jobb = ({
 
                 {/* 🔹 Job Details */}
                 <div className="hidden md:block w-full md:w-[60%] overflow-y-auto jobsh">
-                    <JobDetails
-                        job={job}
-                        safeSearchParams={safeSearchParams}
-                    />
+                    {job && (
+                        <JobDetails
+                            job={job}
+                            safeSearchParams={safeSearchParams}
+                        />
+                    )}
                 </div>
             </div>
         </div>

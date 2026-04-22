@@ -3,6 +3,7 @@ import JobsClient from "./JobsClient";
 import { getFilteredJobs } from "@/actions/job/getFilterAllJobs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
+import { getUserById } from "@/actions/auth/getUserById";
 
 interface JobsPageProps {
   searchParams: Record<string, string | undefined>;
@@ -55,7 +56,7 @@ export async function generateMetadata({
 export default async function JobsPage({ searchParams }: JobsPageProps) {
 
   const session = await getServerSession(authOptions);
-
+  
   const userId: number | undefined = session?.user?.id
     ? Number(session.user.id)
     : undefined;

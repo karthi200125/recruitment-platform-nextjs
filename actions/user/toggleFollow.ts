@@ -5,53 +5,78 @@ import { authOptions } from "@/lib/authOptions";
 import { db } from "@/lib/db";
 
 type ToggleFollowResponse = {
+    success: boolean;
     isFollowing: boolean;
+    error?: string;
 };
 
 export async function toggleFollow(
     targetUserId: number
 ): Promise<ToggleFollowResponse> {
-    const session = await getServerSession(authOptions);
+    try {
+        const session = await getServerSession(authOptions);
+        const currentUserId = session?.user?.id;
 
-    const currentUserId = session?.user?.id;
+        // ❌ Not logged in
+        if (!currentUserId) {
+            return { success: false, isFollowing: false, error: "Unauthorized" };
+        }
 
-    if (!currentUserId) {
-        throw new Error("Unauthorized");
-    }
+        // ❌ Self follow
+        if (currentUserId === targetUserId) {
+            return {
+                success: false,
+                isFollowing: false,
+                error: "You cannot follow yourself",
+            };
+        }
 
-    if (currentUserId === targetUserId) {
-        throw new Error("You cannot follow yourself");
-    }
+        // ✅ Transaction (safe toggle)
+        const result = await db.$transaction(async (tx) => {
+            const existingFollow = await tx.follow.findUnique({
+                where: {
+                    followerId_followingId: {
+                        followerId: currentUserId,
+                        followingId: targetUserId,
+                    },
+                },
+                select: { id: true },
+            });
 
-    const existingFollow = await db.follow.findUnique({
-        where: {
-            followerId_followingId: {
-                followerId: currentUserId,
-                followingId: targetUserId,
-            },
-        },
-        select: { id: true },
-    });
+            if (existingFollow) {
+                await tx.follow.delete({
+                    where: {
+                        followerId_followingId: {
+                            followerId: currentUserId,
+                            followingId: targetUserId,
+                        },
+                    },
+                });
 
-    if (existingFollow) {
-        await db.follow.delete({
-            where: {
-                followerId_followingId: {
+                return { isFollowing: false };
+            }
+
+            await tx.follow.create({
+                data: {
                     followerId: currentUserId,
                     followingId: targetUserId,
                 },
-            },
+            });
+
+            return { isFollowing: true };
         });
 
-        return { isFollowing: false };
+        return {
+            success: true,
+            isFollowing: result.isFollowing,
+        };
+    } catch (error) {
+        console.error("Toggle follow error:", error);
+
+        return {
+            success: false,
+            isFollowing: false,
+            error: "Something went wrong",
+        };
     }
-
-    await db.follow.create({
-        data: {
-            followerId: currentUserId,
-            followingId: targetUserId,
-        },
-    });
-
-    return { isFollowing: true };
 }

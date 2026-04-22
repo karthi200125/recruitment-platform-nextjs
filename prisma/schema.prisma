@@ -41,8 +41,7 @@ model User {
   educations      Education[]
   experiences     Experience[]
   projects        Project[]
-  
-  savedJobs       Int[]       
+    
   ProfileViews    Int[]
   employees       Int[]
   verifyEmps      Int[]
@@ -50,6 +49,8 @@ model User {
   chatsSent     Chats[]  @relation("SenderChats")  
   chatsReceived Chats[]  @relation("ReceiverChats")
   messages      Message[]
+
+  savedJobs       SavedJob[]
 
   followers  Follow[] @relation("UserFollowers")
   following  Follow[] @relation("UserFollowing")
@@ -75,6 +76,22 @@ model Follow {
   @@unique([followerId, followingId]) 
 }
 
+model SavedJob {
+  id        Int      @id @default(autoincrement())
+
+  userId    Int
+  jobId     Int
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, jobId])
+  @@index([userId])
+  @@index([jobId])
+}
+
 model Job {
   id          Int       @id @default(autoincrement())
   jobTitle    String
@@ -94,6 +111,8 @@ model Job {
 
   userId      Int
   user        User      @relation("PostedJobs", fields: [userId], references: [id], onDelete: Cascade)
+
+   savedBy     SavedJob[]
 
   jobApplications JobApplication[] 
 

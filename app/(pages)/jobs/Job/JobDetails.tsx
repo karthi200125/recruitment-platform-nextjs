@@ -2,56 +2,94 @@
 
 import { getCompanyById } from "@/actions/company/getCompanyById";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { useSelector } from "react-redux";
+
 import JobCompany from "./JobCompany";
 import JobDescription from "./JobDescription";
 import JobPremium from "./JobPremium";
 import JobRecruiter from "./JobRecruiter";
 import JobTitles from "./JobTitles";
 
-interface JobDescProps {
-    job: any;
-    safeSearchParams?: any;
+import { useCurrentUser } from "../../../../hooks/useCurrentUser";
+import { JobSearchParams } from "../Job";
+
+// ✅ TYPES
+
+interface Job {
+    id: number;
+    companyId: number;
+    userId: number;
+    jobTitle: string;
+    jobDesc: string;
 }
 
-const JobDetails = ({ job, safeSearchParams }: JobDescProps) => {
-    const user = useSelector((state: any) => state.user.user);
-    const cId = job?.companyId;
+interface Company {
+    id: number;
+    companyName: string;
+    companyImage?: string | null;
+    companyAbout: string;
+    companyTotalEmployees: string;
+    userId: number;
+}
 
-    const { data, isPending } = useQuery({
-        queryKey: ['getCompany', cId],
-        queryFn: () => getCompanyById(cId),
-        enabled: !!cId,
+interface JobDescProps {
+    job: Job;
+    safeSearchParams?: JobSearchParams;
+}
+
+const JobDetails: React.FC<JobDescProps> = ({
+    job,
+    safeSearchParams,
+}) => {
+    const { user } = useCurrentUser();
+    const companyId = job.companyId;
+
+    // ✅ Only fetch company here
+    const {
+        data: company,
+        isPending: isCompanyLoading,
+    } = useQuery<Company>({
+        queryKey: ["company", companyId],
+        queryFn: () => getCompanyById(companyId),
+        enabled: !!companyId,
+        staleTime: 1000 * 60 * 5,
     });
 
-    const memoizedCompanyData = useMemo(() => data, [data]);
-    const isDataLoading = isPending || !job;
+    const isDataLoading = isCompanyLoading || !company;
 
     return (
         <div className="w-full h-full overflow-y-auto p-5 space-y-5">
-            {/* <JobTitles
+            {/* Job Title */}
+            <JobTitles
+                user={user}
                 job={job}
-                company={memoizedCompanyData}
+                company={company}
                 isPending={isDataLoading}
                 safeSearchParams={safeSearchParams}
-            /> */}
-            {/* <JobRecruiter
+            />
+
+            {/* Recruiter */}
+            <JobRecruiter
                 job={job}
-                company={memoizedCompanyData}
+                company={company}
                 isPending={isDataLoading}
-            /> */}
-            {/* <JobDescription
+            />
+
+            {/* Description */}
+            <JobDescription
                 job={job}
                 isPending={isDataLoading}
             />
-            {!user?.isPro && <JobPremium />} */}
-            {/* {user?.role !== "ORGANIZATION" && (
+
+            {/* Premium */}
+            {!user?.isPro && <JobPremium />}
+
+            {/* Company + Follow */}
+            {user?.role !== "ORGANIZATION" && company && (
                 <JobCompany
-                    company={memoizedCompanyData}
+                    company={company}
                     isPending={isDataLoading}
                 />
-            )} */}
+            )}
         </div>
     );
 };
