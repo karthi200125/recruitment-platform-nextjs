@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { LiaListSolid } from 'react-icons/lia';
-import { LuUsers } from 'react-icons/lu';
-import { MdOutlinePendingActions } from 'react-icons/md';
-import { FaRegBookmark } from 'react-icons/fa';
-import { Prisma } from '@prisma/client';
+import Link from "next/link";
+import { LiaListSolid } from "react-icons/lia";
+import { LuUsers } from "react-icons/lu";
+import { MdOutlinePendingActions } from "react-icons/md";
+import { FaRegBookmark } from "react-icons/fa";
+import { Prisma } from "@prisma/client";
 
 type JobWithCompany = Prisma.JobGetPayload<{
   include: { company: true };
@@ -14,10 +14,11 @@ type JobWithCompany = Prisma.JobGetPayload<{
 type UserWithRelations = Prisma.UserGetPayload<{
   include: {
     postedJobs: true;
+    savedJobs: true;
   };
 }>;
 
-type UserRole = 'CANDIDATE' | 'RECRUITER' | 'ORGANIZATION';
+type UserRole = "CANDIDATE" | "RECRUITER" | "ORGANIZATION";
 
 interface AppliedCountsProps {
   appliedJobs: JobWithCompany[];
@@ -26,87 +27,54 @@ interface AppliedCountsProps {
 
 const AppliedCounts = ({ appliedJobs, user }: AppliedCountsProps) => {
   const role = user.role as UserRole;
-  
-  const roleConfig = {
-    CANDIDATE: {
-      second: {
-        title: 'Applied Jobs',
-        subtitle: 'Jobs you have applied to',
-        count: appliedJobs.length,
-        href: '/dashboard?appliedJobs',
-      },
-      third: {
-        title: 'Actions Taken',
-        subtitle: 'Jobs that responded to you',
-        count: 0,
-        href: '/dashboard?actionTaken',
-      },
-      showSaved: true,
-    },
-    RECRUITER: {
-      second: {
-        title: 'Applied Jobs',
-        subtitle: 'Jobs you have applied to',
-        count: appliedJobs.length,
-        href: '/dashboard?appliedJobs',
-      },
-      third: {
-        title: 'Posted Jobs',
-        subtitle: 'Jobs you created',
-        count: user.postedJobs?.length ?? 0,
-        href: '/dashboard?postedJobs',
-      },
-      showSaved: true,
-    },
-    ORGANIZATION: {
-      second: {
-        title: 'Posted Jobs',
-        subtitle: 'Jobs you created',
-        count: user.postedJobs?.length ?? 0,
-        href: '/dashboard?postedJobs',
-      },
-      third: {
-        title: 'Actions Taken',
-        subtitle: 'Candidate responses',
-        count: 0,
-        href: '/dashboard?actionTaken',
-      },
-      showSaved: false,
-    },
-  } as const;
 
-  const config = roleConfig[role];
-  
   const cards = [
     {
-      id: 'profileViews',
+      id: "profileViews",
       icon: <LuUsers size={22} />,
-      title: 'Profile Views',
+      title: "Profile Views",
       count: user.ProfileViews?.length ?? 0,
-      subtitle: 'People who viewed your profile',
-      href: '/dashboard?profileViews',
+      subtitle: "People viewed your profile",
+      href: "/dashboard?tab=profileViews",
     },
-    {
-      id: 'second',
-      icon: <LiaListSolid size={22} />,
-      ...config.second,
-    },
-    {
-      id: 'third',
-      icon: <MdOutlinePendingActions size={22} />,
-      ...config.third,
-    },
-    ...(config.showSaved
+
+    ...(role !== "ORGANIZATION"
       ? [
-          {
-            id: 'saved',
-            icon: <FaRegBookmark size={22} />,
-            title: 'Saved Jobs',
-            count: user.savedJobs?.length ?? 0,
-            subtitle: 'Jobs you bookmarked',
-            href: '/dashboard?savedJobs',
-          },
-        ]
+        {
+          id: "applied",
+          icon: <LiaListSolid size={22} />,
+          title: "Applied Jobs",
+          count: appliedJobs.length,
+          subtitle: "Jobs you applied",
+          href: "/dashboard?tab=applied",
+        },
+      ]
+      : []),
+
+    ...(role !== "CANDIDATE"
+      ? [
+        {
+          id: "posted",
+          icon: <MdOutlinePendingActions size={22} />,
+          title: "Posted Jobs",
+          count: user.postedJobs?.length ?? 0,
+          subtitle: "Jobs you created",
+          href: "/dashboard?tab=posted",
+        },
+      ]
+      : []),
+
+    ...(role !== "ORGANIZATION"
+      ? [
+        {
+          id: "saved",
+          icon: <FaRegBookmark size={22} />,
+          title: "Saved Jobs",
+          count: user.savedJobs?.length ?? 0,
+          subtitle: "Jobs you bookmarked",
+          href: "/dashboard?tab=saved",
+        },
+      ]
       : []),
   ];
 
@@ -116,7 +84,7 @@ const AppliedCounts = ({ appliedJobs, user }: AppliedCountsProps) => {
         <Link
           key={card.id}
           href={card.href}
-          className="group rounded-2xl border bg-white/70 backdrop-blur-sm p-5 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between gap-4"
+          className="group rounded-2xl border bg-white/70 backdrop-blur-sm p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between gap-4"
         >
           {/* Top */}
           <div className="flex items-center gap-3">
@@ -129,14 +97,13 @@ const AppliedCounts = ({ appliedJobs, user }: AppliedCountsProps) => {
           {/* Middle */}
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">{card.count}</h1>
-            <span className="h-8 w-[1px] bg-neutral-200" />
             <p className="text-xs text-neutral-500 text-right max-w-[120px]">
               {card.subtitle}
             </p>
           </div>
 
-          {/* Bottom hover effect */}
-          <div className="text-xs text-neutral-400 group-hover:text-black transition">
+          {/* Bottom */}
+          <div className="text-xs text-neutral-400 group-hover:text-black">
             View details →
           </div>
         </Link>

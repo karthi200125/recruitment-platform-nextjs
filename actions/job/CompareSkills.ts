@@ -1,58 +1,55 @@
-interface SkillsCheckResult {
-    percentage: number;
-    message: string;
+export interface SkillsCheckResult {
+  percentage: number;
+  matchedSkills: string[];
+  missingSkills: string[];
 }
 
-interface SkillOwner {
-    skills?: string[];
-}
+const normalizeSkill = (skill: string): string => {
+  return skill
+    .trim()
+    .toLowerCase()
+    .replace(/\.js$/, "") // react.js → react
+    .replace(/\s+/g, ""); // remove spaces
+};
 
 export const checkSkills = (
-    user?: SkillOwner,
-    job?: SkillOwner
+  user?: { skills?: string[] },
+  job?: { skills?: string[] }
 ): SkillsCheckResult => {
-    const userSkills = new Set(
-        (user?.skills ?? [])
-            .map((skill) => skill.trim().toLowerCase())
-            .filter(Boolean)
-    );
+  const userSkills = new Set(
+    (user?.skills ?? []).map(normalizeSkill)
+  );
 
-    const jobSkills = Array.from(
-        new Set(
-            (job?.skills ?? [])
-                .map((skill) => skill.trim().toLowerCase())
-                .filter(Boolean)
-        )
-    );
+  const jobSkills = Array.from(
+    new Set((job?.skills ?? []).map(normalizeSkill))
+  );
 
-    if (jobSkills.length === 0) {
-        return {
-            percentage: 0,
-            message: 'No job skills available for comparison.',
-        };
-    }
-
-    const matchedCount = jobSkills.filter((skill) =>
-        userSkills.has(skill)
-    ).length;
-
-    const percentage = Math.round(
-        (matchedCount / jobSkills.length) * 100
-    );
-
-    let message =
-        'Poor skill match — consider improving relevant skills.';
-
-    if (percentage >= 70) {
-        message =
-            'Strong skill match — you may be a great fit!';
-    } else if (percentage >= 31) {
-        message =
-            'Moderate skill match — you have some relevant skills.';
-    }
-
+  if (!jobSkills.length) {
     return {
-        percentage,
-        message,
+      percentage: 0,
+      matchedSkills: [],
+      missingSkills: [],
     };
+  }
+
+  const matchedSkills: string[] = [];
+  const missingSkills: string[] = [];
+
+  for (const skill of jobSkills) {
+    if (userSkills.has(skill)) {
+      matchedSkills.push(skill);
+    } else {
+      missingSkills.push(skill);
+    }
+  }
+
+  const percentage = Math.round(
+    (matchedSkills.length / jobSkills.length) * 100
+  );
+
+  return {
+    percentage,
+    matchedSkills,
+    missingSkills,
+  };
 };

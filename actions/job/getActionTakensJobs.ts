@@ -19,21 +19,19 @@ export const getActionTakenJobs = async (
     userId: number
 ): Promise<ActionResponse<ActionTakenJob[]>> => {
     try {
-
         if (!userId || typeof userId !== 'number') {
-            return {
-                success: false,
-                error: 'Invalid userId',
-            };
+            return { success: false, error: 'Invalid userId' };
         }
-
 
         const jobs = await db.job.findMany({
             where: {
                 jobApplications: {
                     some: {
                         userId,
-                        isSelected: true,
+                        OR: [
+                            { isSelected: true },
+                            { isApplicationViewed: true }, // 👈 add this (better UX)
+                        ],
                     },
                 },
             },
