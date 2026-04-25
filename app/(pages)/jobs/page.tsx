@@ -3,12 +3,10 @@ import JobsClient from "./JobsClient";
 import { getFilteredJobs } from "@/actions/job/getFilterAllJobs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
-import { getUserById } from "@/actions/auth/getUserById";
 
 interface JobsPageProps {
   searchParams: Record<string, string | undefined>;
 }
-
 
 interface JobFilters {
   userId?: number;
@@ -28,36 +26,18 @@ export async function generateMetadata({
   const query = searchParams.q || "Jobs";
   const location = searchParams.location;
 
-  const title = location
-    ? `${query} jobs in ${location} | Find your next opportunity`
-    : `${query} jobs | Find your next opportunity`;
-
-  const description = location
-    ? `Browse ${query} jobs in ${location}. Apply to top companies hiring now.`
-    : `Browse ${query} jobs from top companies. Apply and grow your career.`;
-
   return {
-    title,
-    description,
-    alternates: {
-      canonical: `/jobs`,
-    },
-    openGraph: {
-      title,
-      description,
-      url: "/jobs",
-      siteName: "YourJobPlatform",
-      type: "website",
-    },
+    title: location
+      ? `${query} jobs in ${location}`
+      : `${query} jobs`,
+    description: "Find your next opportunity",
   };
 }
 
-
 export default async function JobsPage({ searchParams }: JobsPageProps) {
-
   const session = await getServerSession(authOptions);
-  
-  const userId: number | undefined = session?.user?.id
+
+  const userId = session?.user?.id
     ? Number(session.user.id)
     : undefined;
 
@@ -77,39 +57,12 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
 
   const { jobs, count } = await getFilteredJobs(filters);
 
-
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    itemListElement: jobs.map((job, index) => ({
-      "@type": "JobPosting",
-      position: index + 1,
-      title: job.jobTitle,
-      hiringOrganization: {
-        "@type": "Organization",
-        name: job.company.companyName,
-      },
-      datePosted: job.createdAt,
-    })),
-  };
-
   return (
-    <>
-      {/* ✅ JSON-LD */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData),
-        }}
-      />
-
-      {/* ✅ Client Component */}
-      <JobsClient
-        initialJobs={jobs}
-        initialCount={count}
-        searchParams={filters}
-        currentPage={currentPage}
-      />
-    </>
+    <JobsClient
+      initialJobs={jobs}
+      initialCount={count}
+      searchParams={filters}
+      currentPage={currentPage}
+    />
   );
 }

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { JobWithCompany } from '@/actions/job/getFilterAllJobs';
 import Jobb from './Job';
 
 interface JobSearchParams {
-    userId?: number; 
+    userId?: number;
     q?: string;
     location?: string;
     type?: string;
@@ -32,45 +32,42 @@ const JobsClient = ({
 
     const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
 
+    // ✅ Always sync with jobs
+    useEffect(() => {
+        if (initialJobs.length > 0) {
+            setSelectedJobId(initialJobs[0].id);
+        } else {
+            setSelectedJobId(null);
+        }
+    }, [initialJobs]);
 
     const selectedJob = useMemo(() => {
         if (!initialJobs.length) return null;
 
-        if (selectedJobId === null) return initialJobs[0];
-
         return (
-            initialJobs.find((job) => job.id === selectedJobId) ??
+            initialJobs.find(j => j.id === selectedJobId) ??
             initialJobs[0]
         );
     }, [selectedJobId, initialJobs]);
 
-
-    const handleSelectedJob = useCallback((jobId: number) => {
-        setSelectedJobId(jobId);
+    const handleSelectedJob = useCallback((id: number) => {
+        setSelectedJobId(id);
     }, []);
 
-
     if (!initialJobs.length) {
-        return (
-            <div className="w-full py-20 flex items-center justify-center text-sm text-muted-foreground">
-                No jobs found
-            </div>
-        );
+        return <div className="p-10 text-center">No jobs found</div>;
     }
 
-
     return (
-        <div className="w-full relative">
-            <Jobb
-                count={initialCount}
-                safeSearchParams={searchParams}
-                currentPage={currentPage}
-                jobs={initialJobs}
-                job={selectedJob}
-                isPending={false}
-                onSelectedJob={handleSelectedJob}
-            />
-        </div>
+        <Jobb
+            jobs={initialJobs}
+            job={selectedJob}
+            count={initialCount}
+            currentPage={currentPage}
+            isPending={false}
+            onSelectedJob={handleSelectedJob}
+            safeSearchParams={searchParams}
+        />
     );
 };
 
