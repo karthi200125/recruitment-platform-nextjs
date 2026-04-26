@@ -21,7 +21,7 @@ const LpNavbar = () => {
 
             <div className='flex flex-row items-center gap-2 bg-white/10 rounded-full p-1 z-10'>
                 <Button onClick={() => router.push('/signin')} className='bg-black'>Sign In</Button>
-                <Button onClick={() => router.push('/signUp')} className='bg-white !text-black'>Sign Up</Button>
+                <Button onClick={() => router.push('/signup')} className='bg-white !text-black'>Sign Up</Button>
             </div>
 
         </div>

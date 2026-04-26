@@ -13,8 +13,8 @@ model User {
   firstName       String?
   lastName        String?
   email           String      @unique
-  password        String?
-  role            Role
+  password        String
+  role            Role?
   isPro           Boolean     @default(false)
   userBio         String?
   userAbout       Json?
@@ -56,6 +56,9 @@ model User {
   following  Follow[] @relation("UserFollowing")
 
   subscription   Subscription[]
+
+  resetPasswordToken     String?  @unique
+  resetPasswordExpires   DateTime?
  
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt

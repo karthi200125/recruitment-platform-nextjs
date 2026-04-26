@@ -4,13 +4,13 @@ import { getSkills } from "@/actions/getSkills";
 import { userSkillAction } from "@/actions/user/userSkillsAction";
 import Button from "@/components/Button";
 import FormError from "@/components/ui/FormError";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCustomToast } from "@/lib/CustomToast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, usePathname } from "next/navigation";
 import { ChangeEvent, FormEvent, KeyboardEvent, useEffect, useState, useTransition } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
-import { loginRedux } from "../Redux/AuthSlice";
 
 interface SkillsFormProps {
     skillsData?: string[];
@@ -18,8 +18,7 @@ interface SkillsFormProps {
 }
 
 export function SkillsForm({ skillsData = [], onClose }: SkillsFormProps) {
-    const user = useSelector((state: any) => state.user.user);
-    const dispatch = useDispatch();
+    const { user } = useCurrentUser()    
     const queryClient = useQueryClient();
     const { showSuccessToast } = useCustomToast();
 
@@ -52,8 +51,7 @@ export function SkillsForm({ skillsData = [], onClose }: SkillsFormProps) {
             userSkillAction(skills, userId)
                 .then((data) => {
                     if (data?.success) {
-                        queryClient.invalidateQueries({ queryKey: ["getuser", userId] });
-                        dispatch(loginRedux(data?.data));
+                        queryClient.invalidateQueries({ queryKey: ["getuser", userId] });                        
                         showSuccessToast(data?.success);
                         onClose?.();
                     }

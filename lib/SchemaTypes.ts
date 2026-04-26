@@ -208,3 +208,28 @@ export const CompanySchema = z.object({
         message: "Total Employees must be at least 1",
     }),
 });
+
+export const ChangePasswordSchema = z.object({
+    oldPassword: z.string().min(6, "Required"),
+    newPassword: z.string().min(6, "Minimum 6 characters"),
+});
+
+export const ChangeEmailSchema = z.object({
+    email: z.string().email("Invalid email"),
+});
+
+export const DeleteAccountSchema = z.object({
+    password: z.string().min(6, "Password required"),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email"),
+});
+
+export const resetPasswordSchema = z.object({
+  password: z
+    .string()
+    .min(8, "Minimum 8 characters")
+    .regex(/[A-Z]/, "Must include uppercase")
+    .regex(/[0-9]/, "Must include number"),
+});

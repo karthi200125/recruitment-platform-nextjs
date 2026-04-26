@@ -96,22 +96,22 @@ const UserProfile = () => {
 
   return (
     <main className="min-h-screen w-full flex gap-5 py-5">
-      {/* <div className="w-full md:w-[70%] space-y-5"> */}
-      {/* <UserInfo
+      <div className="w-full md:w-[70%] space-y-5">
+        {/* <UserInfo
           profileUser={profileData}
           isLoading={isPending}
           company={company}
           isOrg={isOrg}
         /> */}
 
-      {/* <AboutMe
+        <AboutMe
           profileUser={profileData}
           isLoading={isPending}
           company={company}
           isOrg={isOrg}
-        /> */}
+        />
 
-      {/* {!isOrg && profileData && (
+        {!isOrg && profileData && (
           <>
             <Education userId={userId} profileUser={profileData} />
             <Projects userId={userId} profileUser={profileData} />
@@ -122,7 +122,7 @@ const UserProfile = () => {
         {isOrg && profileData && (
           <CompanySlides company={company} profileUser={profileData} />
         )}
-      </div>*/}
+      </div>
 
       <aside className="hidden md:block md:w-[30%]">
         {!isPending && <MoreProfiles userId={userId} />}

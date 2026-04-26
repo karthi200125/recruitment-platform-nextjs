@@ -1,24 +1,18 @@
 'use server';
 
-import { RegisterSchema, RoleSchema } from '@/lib/SchemaTypes';
+import { RegisterSchema } from '@/lib/SchemaTypes';
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import * as z from 'zod';
 
 export const register = async (
-    values: z.infer<typeof RegisterSchema>,
-    role: z.infer<typeof RoleSchema>
+    values: z.infer<typeof RegisterSchema>
 ) => {
     try {
         const validatedFields = RegisterSchema.safeParse(values);
-        const validatedRole = RoleSchema.safeParse(role);
 
         if (!validatedFields.success) {
             return { error: "Invalid fields" };
-        }
-
-        if (!validatedRole.success) {
-            return { error: "Invalid role selected" };
         }
 
         const { username, email, password } = validatedFields.data;
@@ -39,18 +33,15 @@ export const register = async (
             data: {
                 username,
                 email,
-                password: hashedPassword,
-                role: validatedRole.data,
+                password: hashedPassword,                
             },
         });
 
         return {
-            success: "User registration successful",
+            success: "User created",
             data: {
                 id: newUser.id,
                 email: newUser.email,
-                username: newUser.username,
-                role: newUser.role,
             },
         };
     } catch (error) {

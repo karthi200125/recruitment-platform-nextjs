@@ -30,7 +30,7 @@ export default function SigninRightSide() {
             {/* Sign up link */}
             <p className="mt-8 text-center text-sm text-zinc-600">
                 Don't have an account?{" "}
-                <Link href="/signUp" className="text-indigo-400 font-medium hover:text-indigo-300 transition-colors duration-200">
+                <Link href="/signup" className="text-indigo-400 font-medium hover:text-indigo-300 transition-colors duration-200">
                     Create one free
                 </Link>
             </p>

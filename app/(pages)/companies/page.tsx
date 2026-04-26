@@ -14,7 +14,7 @@ export const metadata = {
         "Browse verified companies hiring right now. Discover job opportunities, company profiles, and open roles.",
 };
 
-{/* <script
+<script
     type="application/ld+json"
     dangerouslySetInnerHTML={{
         __html: JSON.stringify({
@@ -28,7 +28,7 @@ export const metadata = {
             })),
         }),
     }}
-/> */}
+/>
 
 export default async function CompaniesPage() {
     const companies = await getCompanies();
@@ -69,16 +69,16 @@ export default async function CompaniesPage() {
                             {/* INFO */}
                             <div className="flex flex-col gap-1 flex-1">
                                 <div className="flex flex-row items-center gap-5">
-                                <Link
-                                    href={`/userProfile/${company.id}`}
-                                    className="font-semibold text-base md:text-lg leading-tight group-hover:text-primary transition"
-                                >
-                                    {company.companyName}
-                                </Link>
+                                    <Link
+                                        href={`/userProfile/${company.id}`}
+                                        className="font-semibold text-base md:text-lg leading-tight group-hover:text-primary transition"
+                                    >
+                                        {company.companyName}
+                                    </Link>
 
-                                <div className="flex items-center gap-2">
-                                    <Batch type="ORGANIZATION" />
-                                </div>
+                                    <div className="flex items-center gap-2">
+                                        <Batch type="ORGANIZATION" />
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">

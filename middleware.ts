@@ -42,7 +42,7 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token, // only checks login
+      authorized: ({ token }) => !!token, 
     },
     pages: {
       signIn: "/signin",
@@ -57,8 +57,7 @@ export const config = {
     "/messages/:path*",
     "/network/:path*",
     "/setting/:path*",
-    "/subscription/:path*",
-    "/success/:path*",
+    "/subscription/:path*",    
     "/userProfile/:path*",
   ],
 };

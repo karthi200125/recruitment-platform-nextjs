@@ -15,6 +15,7 @@ import {
     Form, FormControl, FormField, FormItem, FormMessage,
 } from "@/components/ui/form";
 import { FaLock, FaLockOpen } from "react-icons/fa";
+import Link from "next/link";
 
 const LoginForm = () => {
     const router = useRouter();
@@ -93,6 +94,15 @@ const LoginForm = () => {
                         <FormMessage />
                     </FormItem>
                 )} />
+
+                <div className="flex justify-end mt-2">
+  <Link
+    href="/forgot-password"
+    className="text-sm text-blue-500 hover:text-black transition"
+  >
+    Forgot password?
+  </Link>
+</div>
 
                 <FormError message={error} />
 

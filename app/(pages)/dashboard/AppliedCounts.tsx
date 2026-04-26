@@ -42,7 +42,7 @@ const AppliedCounts = ({ appliedJobs, user }: AppliedCountsProps) => {
             id: "applied",
             icon: ListChecks,
             label: "Applied Jobs",
-            count: appliedJobs.length,
+            count: appliedJobs?.length ?? 0,
             subtitle: "Applications sent",
             href: "/dashboard?tab=applied",
             iconBg: "bg-violet-50",

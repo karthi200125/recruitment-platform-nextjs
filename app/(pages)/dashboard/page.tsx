@@ -41,7 +41,6 @@ interface DashboardPageProps {
 }
 
 const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
-  // 🔐 Auth check
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
@@ -54,7 +53,6 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
     redirect("/signin");
   }
 
-  // 🚀 Parallel fetching (best practice)
   const [
     userRes,
     appliedJobsRes,
@@ -67,12 +65,14 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
     getActionTakenJobs(userId),
   ]);
 
-  // ❌ Critical: user must exist
-  if (!userRes) {
+  console.log("User Res:", userRes);
+
+  // ✅ FIXED VALIDATION
+  if (!userRes?.success || !userRes.data) {
     redirect("/signin");
   }
 
-  // ✅ Safe data extraction
+  // ✅ SAFE EXTRACTION
   const appliedJobs: JobWithCompany[] =
     appliedJobsRes?.success ? appliedJobsRes.data ?? [] : [];
 
@@ -80,13 +80,11 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
     savedJobsRes?.success ? savedJobsRes.data ?? [] : [];
 
   const actionTakenJobs: JobWithCompany[] =
-    actionTakenJobsRes?.success
-      ? actionTakenJobsRes.data ?? []
-      : [];
+    actionTakenJobsRes?.success ? actionTakenJobsRes.data ?? [] : [];
 
   return (
     <DashboardClient
-      user={userRes as UserWithRelations}
+      user={userRes.data}   // ✅ FIXED
       appliedJobs={appliedJobs}
       savedJobs={savedJobs}
       actionTakenJobs={actionTakenJobs}

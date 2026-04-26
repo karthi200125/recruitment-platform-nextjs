@@ -35,16 +35,7 @@ const Navbar = () => {
                     </Suspense>
                     <Suspense fallback={<UserProfileSkeleton />}>
                         <UserProfileCard />
-                    </Suspense>
-                    {/* <Suspense fallback={<PremiumSkeleton />}>
-                        {user?.isPro ?
-                            <div onClick={() => router.push('/subscription')} className="underline protext text-sm cursor-pointer trans hover:opacity-50">
-                                Premium features
-                            </div>
-                            :
-                            <Premium />
-                        }
-                    </Suspense> */}
+                    </Suspense>                    
                 </div>
                 <Menu />
             </nav>

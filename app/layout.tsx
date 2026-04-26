@@ -1,6 +1,5 @@
 import Providers from "@/components/Providers";
 import { Toaster } from "@/components/ui/toaster";
-import ProtectedRoute from "@/lib/ProtectedRoute";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import RootLayoutClient from "@/components/RootLayoutClient";
