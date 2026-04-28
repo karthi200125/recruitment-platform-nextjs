@@ -5,6 +5,7 @@ import { selectRole } from '@/actions/user/selectRole';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Briefcase, Users, Building2, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { signIn } from 'next-auth/react';
 
 type Role = "CANDIDATE" | "RECRUITER" | "ORGANIZATION";
 
@@ -84,8 +85,17 @@ export default function RoleForm() {
             if (!res.success) throw new Error(res.error || 'Something went wrong');
             return role;
         },
-        onSuccess: (role) => {
-            router.push(role === "CANDIDATE" ? '/jobs' : '/dashboard');
+        onSuccess: async (role) => {
+            // 🔥 CRITICAL: refresh session
+            await signIn("credentials", { redirect: false });
+
+            // redirect
+            if (role === "CANDIDATE") {
+                router.push("/jobs");
+            } else {
+                router.push("/dashboard");
+            }
+
             router.refresh();
         },
         onError: (error: Error) => {
@@ -152,8 +162,8 @@ export default function RoleForm() {
                                 disabled={mutation.isPending}
                                 aria-pressed={isSelected}
                                 className={`group relative flex flex-col text-left rounded-2xl border-2 p-6 transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white shadow-sm ${isSelected
-                                        ? `${role.activeBorder} ${role.activeBg} shadow-lg -translate-y-1`
-                                        : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5'
+                                    ? `${role.activeBorder} ${role.activeBg} shadow-lg -translate-y-1`
+                                    : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5'
                                     } ${isDisabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
                             >
                                 {/* Icon + check */}

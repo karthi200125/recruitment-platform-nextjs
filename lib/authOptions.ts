@@ -67,43 +67,25 @@ export const authOptions: NextAuthOptions = {
     },
 
     callbacks: {
-        async jwt({ token, user, trigger, account }) {
-            if (trigger === "signIn" && user) {
+        async jwt({ token, user }) {
+            if (user) {
+                token.user = user;
+            }
 
-                if (account?.provider === "credentials") {
-                    token.user = {
-                        id: user.id as number,
-                        username: (user as any).username,
-                        email: user.email!,
-                        role: (user as any).role ?? null,
-                        isPro: (user as any).isPro,
-                        profileImage: (user as any).profileImage ?? null,
-                    };
-                }
+            // 🔥 ALWAYS fetch latest role from DB
+            if (token.email) {
+                const dbUser = await db.user.findUnique({
+                    where: { email: token.email },
+                });
 
-                if (account?.provider === "google" && token.email) {
-                    let dbUser = await db.user.findUnique({
-                        where: { email: token.email },
-                    });
-
-                    if (!dbUser) {
-                        dbUser = await db.user.create({
-                            data: {
-                                email: token.email,
-                                username: token.name ?? "User",
-                                profileImage: token.picture ?? null,
-                                role: null, 
-                            },
-                        });
-                    }
-
+                if (dbUser) {
                     token.user = {
                         id: dbUser.id,
-                        username: dbUser.username,
                         email: dbUser.email,
-                        role: dbUser.role ?? null,
+                        username: dbUser.username,
+                        role: dbUser.role,
                         isPro: dbUser.isPro,
-                        profileImage: dbUser.profileImage ?? null,
+                        profileImage: dbUser.profileImage,
                     };
                 }
             }
@@ -112,9 +94,7 @@ export const authOptions: NextAuthOptions = {
         },
 
         async session({ session, token }) {
-            if (token.user) {
-                session.user = token.user as any;
-            }
+            session.user = token.user as any;
             return session;
         },
     },

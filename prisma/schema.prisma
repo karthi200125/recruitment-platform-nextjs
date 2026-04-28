@@ -13,13 +13,15 @@ model User {
   firstName       String?
   lastName        String?
   email           String      @unique
-  password        String
+  password        String?
   role            Role?
   isPro           Boolean     @default(false)
   userBio         String?
   userAbout       Json?
-  userImage       String?
-  profileImage    String?
+  userImage             String?
+  userImagePublicId     String?
+  profileImage          String?
+  profileImagePublicId  String?
   gender          String?
   address         String?
   city            String?
@@ -30,7 +32,9 @@ model User {
   profession      String?
   website         String?
   currentCompany  String?
-  resume          String?
+  authProvider String @default("credentials")
+  resume                String?
+  resumePublicId        String?
   skills          String[]
 
   postedJobs      Job[]       @relation("PostedJobs")
@@ -145,7 +149,8 @@ model JobApplication {
   
   candidateEmail     String
   candidateMobile    String
-  candidateResume    String   
+  candidateResume    String
+  candidateResumePublicId    String?
   questionAndAnswers Json?
 
 
@@ -193,7 +198,9 @@ model Company {
   id                     Int       @id @default(autoincrement())  
   companyName            String    @unique
   companyImage           String?
+  companyImagePublicId   String?
   companyBackImage       String?
+  companyBackImagePublicId  String?
   companyAddress         String
   companyCity            String
   companyState           String
@@ -250,6 +257,7 @@ model Project {
   proName       String
   proLink       String
   proImage      String
+  proImagePublicId   String?
   proDesc       String  
 
   userId        Int   
@@ -285,7 +293,8 @@ model Message {
   chatId    Int
   senderId  Int
   text      String?
-  image     String?  
+  image           String?
+  imagePublicId   String?
   isSeen    Boolean  @default(false)
 
   chat      Chats    @relation(fields: [chatId], references: [id], onDelete: Cascade)

@@ -35,7 +35,7 @@ const LoginForm = () => {
             const result = await signIn("credentials", {
                 email: values.email,
                 password: values.password,
-                redirect: false, // 🔥 IMPORTANT
+                redirect: false, 
             });
 
             if (result?.error) {
@@ -49,7 +49,7 @@ const LoginForm = () => {
 
             const role = session?.user?.role;
 
-            
+
             if (!role) {
                 router.push("/selectrole");
             } else if (role === "CANDIDATE") {
@@ -58,7 +58,7 @@ const LoginForm = () => {
                 router.push("/dashboard");
             }
 
-            router.refresh(); 
+            router.refresh();
         });
     };
 
@@ -71,7 +71,7 @@ const LoginForm = () => {
                         <FormControl>
                             <Input {...field} type="email" placeholder="Email"
                                 disabled={isPending}
-                                className="bg-white/[0.02] border border-white/10" />
+                                className="bg-white/[0.02] border border-white/10 text-white" />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -83,7 +83,7 @@ const LoginForm = () => {
                             <div className="relative">
                                 <Input {...field} type={showPass ? "text" : "password"}
                                     placeholder="Password" disabled={isPending}
-                                    className="bg-white/[0.02] border border-white/10" />
+                                    className="bg-white/[0.02] border border-white/10 text-white" />
                                 <button type="button"
                                     onClick={() => setShowPass((p) => !p)}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50">
@@ -96,13 +96,13 @@ const LoginForm = () => {
                 )} />
 
                 <div className="flex justify-end mt-2">
-  <Link
-    href="/forgot-password"
-    className="text-sm text-blue-500 hover:text-black transition"
-  >
-    Forgot password?
-  </Link>
-</div>
+                    <Link
+                        href="/forgot-password"
+                        className="text-sm text-blue-500 hover:text-black transition"
+                    >
+                        Forgot password?
+                    </Link>
+                </div>
 
                 <FormError message={error} />
 

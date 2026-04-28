@@ -63,7 +63,11 @@ const RegisterForm = () => {
                     render={({ field }) => (
                         <FormItem>
                             <FormControl>
-                                <Input {...field} placeholder="Enter Username" />
+                                <Input
+                                    {...field}
+                                    placeholder="Enter Username"
+                                    className="bg-white/[0.02] border border-white/10 text-white"
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -73,7 +77,12 @@ const RegisterForm = () => {
                     render={({ field }) => (
                         <FormItem>
                             <FormControl>
-                                <Input {...field} type="email" placeholder="Enter Email" />
+                                <Input
+                                    {...field}
+                                    type="email"
+                                    placeholder="Enter Email"
+                                    className="bg-white/[0.02] border border-white/10 text-white"
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -87,6 +96,7 @@ const RegisterForm = () => {
                                     <Input {...field}
                                         type={showPass ? "text" : "password"}
                                         placeholder="Enter Password"
+                                        className="bg-white/[0.02] border border-white/10 text-white"
                                     />
                                     <button type="button"
                                         onClick={() => setShowPass((p) => !p)}
@@ -101,7 +111,7 @@ const RegisterForm = () => {
 
                 <Link
                     href="/forgot-password"
-                    className="text-sm text-gray-500 hover:text-blue-500 transition"
+                    className="text-sm text-gray-500 hover:text-blue-500 transition text-end mt-5"
                 >
                     Forgot password?
                 </Link>

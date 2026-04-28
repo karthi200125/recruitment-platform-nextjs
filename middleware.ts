@@ -6,16 +6,20 @@ export default withAuth(
     const token = req.nextauth.token;
     const pathname = req.nextUrl.pathname;
 
-    // ✅ Safety check
-    const role = token?.user?.role;
-    if (!role) {
-      return NextResponse.redirect(new URL("/signin", req.url));
+    // 🟢 Allow select-role page always (avoid loop)
+    if (pathname.startsWith("/select-role")) {
+      return NextResponse.next();
     }
 
-    // ✅ Helper function (clean + scalable)
-    const isAllowed = (allowedRoles: string[]) => {
-      return allowedRoles.includes(role);
-    };
+    const role = token?.user?.role;
+
+    // 🚨 Logged in but no role → force select-role
+    if (!role) {
+      return NextResponse.redirect(new URL("/selectrole", req.url));
+    }
+
+    const isAllowed = (allowedRoles: string[]) =>
+      allowedRoles.includes(role);
 
     // 🔒 Recruiter / Organization only
     if (pathname.startsWith("/createJob")) {
@@ -42,7 +46,7 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token, 
+      authorized: ({ token }) => !!token, // only checks login
     },
     pages: {
       signIn: "/signin",
@@ -52,12 +56,13 @@ export default withAuth(
 
 export const config = {
   matcher: [
+    "/select-role",              // ✅ VERY IMPORTANT
     "/createJob/:path*",
     "/dashboard/:path*",
     "/messages/:path*",
     "/network/:path*",
     "/setting/:path*",
-    "/subscription/:path*",    
+    "/subscription/:path*",
     "/userProfile/:path*",
   ],
 };

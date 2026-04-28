@@ -10,13 +10,13 @@ export default async function RolePage() {
         redirect("/signin");
     }
 
-    // if (session.user.role) {
-    //     if (session.user.role === "CANDIDATE") {
-    //         redirect("/jobs");
-    //     } else {
-    //         redirect("/dashboard");
-    //     }
-    // }
+    if (session.user.role) {
+        if (session.user.role === "CANDIDATE") {
+            redirect("/jobs");
+        } else {
+            redirect("/dashboard");
+        }
+    }
 
     return <RoleForm />;
 }
