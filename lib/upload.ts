@@ -1,4 +1,3 @@
-// /lib/upload.ts
 import cloudinary from "./cloudinary";
 
 export type UploadResult = {
@@ -12,7 +11,12 @@ export const uploadToCloudinary = async (
 ): Promise<UploadResult> => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder },
+      {
+        folder,
+        resource_type: "auto", 
+        use_filename: true,
+        unique_filename: true,
+      },
       (error, result) => {
         if (error || !result) {
           return reject(error || new Error("Upload failed"));

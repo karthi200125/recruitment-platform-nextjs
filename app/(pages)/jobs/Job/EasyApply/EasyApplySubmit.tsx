@@ -1,129 +1,170 @@
-'use client'
+"use client";
 
-import { applyForJob } from '@/actions/job/ApplyJob'
-import { closeModal } from '@/app/Redux/ModalSlice'
-import Button from '@/components/Button'
-import { useCustomToast } from '@/lib/CustomToast'
-import { useQueryClient } from '@tanstack/react-query'
-import Image from 'next/image'
-import { useTransition } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import noProfile from '../../../../../public/noProfile.webp'
+import { applyForJob } from "@/actions/job/ApplyJob";
+import { closeModal } from "@/app/Redux/ModalSlice";
+import Button from "@/components/Button";
+import { useCustomToast } from "@/lib/CustomToast";
+import { EasyApplyPayload, EasyApplyUser, Question } from "@/types/easyApply";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { useDispatch } from "react-redux";
+import noProfile from "../../../../../public/noProfile.webp";
+
 
 interface EasyApplySubmitProps {
-    job?: any;
-    data?: any;
-    safeSearchParams?: any;
+    job: {
+        id: number;
+        questions?: Question[];
+    };
+    applicationData: EasyApplyPayload;
+    safeSearchParams?: Record<string, string>;
+    user?: EasyApplyUser | null;
 }
 
-const EasyApplySubmit = ({ data, job ,safeSearchParams }: EasyApplySubmitProps) => {
-    const user = useSelector((state: any) => state.user.user)
-    const [isLoading, startTransition] = useTransition()
-    const queryClient = useQueryClient();
+/* ================= COMPONENT ================= */
+
+const EasyApplySubmit = ({
+    job,
+    applicationData,
+    safeSearchParams,
+    user,
+}: EasyApplySubmitProps) => {
+    const [isPending, startTransition] = useTransition();    
+    const dispatch = useDispatch();
     const { showSuccessToast, showErrorToast } = useCustomToast();
 
-    const dispatch = useDispatch()    
+    const router = useRouter();
 
-    const joinedArray = job?.questions?.map((q: any) => ({
-        id: q.id,
-        question: q.question,
-        answer: data?.answers[q.id] || ""
-    }));
+    /* ================= DERIVED DATA ================= */
+
+    const formattedAnswers =
+        job?.questions?.map((q) => ({
+            id: q.id,
+            question: q.question,
+            answer: applicationData.questionAnswers[q.id] || "",
+        })) ?? [];
+
+    /* ================= HANDLER ================= */
 
     const handleSubmit = () => {
-        startTransition(() => {
-            const applyData = {
-                userId: user?.id,
-                jobId: job?.id,
-                candidateEmail: data?.userData?.email,
-                candidateMobile: data?.userData?.phone,
-                candidateResume: data?.resume?.url,
-                questionAndAnswers: joinedArray
+        if (!applicationData.resumeData.url) {
+            return showErrorToast("Resume is required");
+        }
+
+        startTransition(async () => {
+            const result = await applyForJob(
+                job.id,
+                applicationData.contactInfo.email,
+                applicationData.contactInfo.phone,
+                applicationData.resumeData.url,
+                formattedAnswers
+            );
+
+            if (result?.success) {
+                showSuccessToast(result.success);
+
+                router.refresh();
+                
+                dispatch(closeModal("easyapplyModal"));
             }
-            applyForJob(
-                applyData.userId,
-                applyData.jobId,
-                applyData.candidateEmail,
-                applyData.candidateMobile,
-                applyData.candidateResume,
-                applyData.questionAndAnswers
-            )
-                .then((data: any) => {
-                    if (data?.success) {
-                        showSuccessToast(data?.success)
-                        queryClient.invalidateQueries({
-                            queryKey: ['getFiltredJobs', user?.id, safeSearchParams]
-                        });
-                        dispatch(closeModal('easyapplyModal'))
-                    }
-                    if (data?.error) {
-                        showErrorToast(data?.error)
-                    }
-                })
-        })
-    }
+
+            if (result?.error) {
+                showErrorToast(result.error);
+            }
+        });
+    };
+
+    /* ================= UI ================= */
+
+    const location = [user?.city, user?.state, user?.country]
+        .filter(Boolean)
+        .join(", ");
 
     return (
-        <div className='w-full p-5 rounded-md border space-y-5'>
+        <div className="w-full p-5 rounded-md border space-y-5">
+            {/* Header */}
             <div>
-                <h3 className='font-bold'>Review your application</h3>
-                <h6 className='text-[var(--lighttext)]'>The employer will also receive a copy of your profile.</h6>
+                <h3 className="font-bold">Review your application</h3>
+                <h6 className="text-[var(--lighttext)]">
+                    The employer will also receive a copy of your profile.
+                </h6>
             </div>
 
-            <div className='space-y-5'>
+            {/* Contact Info */}
+            <div className="space-y-2">
+                <h3 className="font-semibold text-sm">Contact Info</h3>
+
+                <div className="w-full border p-5 rounded-md flex flex-col md:flex-row gap-5">
+                    <div className="h-[80px] w-[80px] relative">
+                        <Image
+                            src={user?.userImage || noProfile}
+                            alt="User profile"
+                            fill
+                            className="rounded-md object-cover bg-neutral-200"
+                        />
+                    </div>
+
+                    <div className="w-full flex flex-col md:flex-row justify-between gap-5">
+                        <div className="space-y-1">
+                            <h4 className="font-bold">{user?.username}</h4>
+                            <h5 className="text-[var(--lighttext)]">
+                                {location || "Location not set"}
+                            </h5>
+                        </div>
+
+                        <div className="space-y-2">
+                            <div>
+                                <h6 className="text-[var(--lighttext)]">Email</h6>
+                                <h4>{applicationData.contactInfo.email}</h4>
+                            </div>
+
+                            <div>
+                                <h6 className="text-[var(--lighttext)]">Phone</h6>
+                                <h4>{applicationData.contactInfo.phone}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Resume */}
+            <div className="space-y-2">
+                <h3 className="font-semibold text-sm">Resume</h3>
+
+                <div className="border rounded-md p-5">
+                    {applicationData.resumeData.name || "No resume"}
+                </div>
+            </div>
+
+            {/* Questions */}
+            {formattedAnswers.length > 0 && (
                 <div className="space-y-2">
-                    <h3 className="font-semibold text-sm">Contact Info</h3>
-                    <div className="w-full border p-2 md:p-5 rounded-md flex flex-col md:flex-row items-start gap-2 md:gap-5">
-                        <div className="h-[80px] w-[80px] relative">
-                            <Image src={user?.userImage || noProfile.src} alt="" fill className="rounded-md bg-neutral-200 absolute top-0 left-0 w-full h-full" />
-                        </div>
-                        <div className="w-full flex flex-col md:flex-row items-start justify-between">
-                            <div className="space-y-2">
-                                <h4 className="font-bold">{user?.username}</h4>
-                                <h5>{user?.profession}</h5>
-                                <h5 className="text-[var(--lighttext)]">{user?.city}, {user?.state}, {user?.country}</h5>
-                            </div>
-                            <div className='space-y-2'>
-                                <div>
-                                    <h6 className='text-[var(--lighttext)]'>Email Address *</h6>
-                                    <h4>{data?.userData?.email}</h4>
-                                </div>
-                                <div>
-                                    <h6 className='text-[var(--lighttext)]'>Phone Number *</h6>
-                                    <h4>{data?.userData?.phone}</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    <h3 className="font-semibold text-sm">
+                        Additional Questions
+                    </h3>
 
-                <div className='space-y-2'>
-                    <h3 className="font-semibold text-sm">Resume</h3>
-                    <h6 className='text-[var(--lighttext)]'>Be sure to include an updated resume *</h6>
-                    <div className='border rounded-md p-5'>
-                        {data?.resume?.name}
-                    </div>
-                </div>
-
-                <div className='space-y-2'>
-                    <h3 className="font-semibold text-sm">Additional Questions</h3>
-                    <h6 className='text-[var(--lighttext)]'>Please answer the additional questions *</h6>
-                    <div className='space-y-2 border rounded-md p-5'>
-                        {joinedArray?.map((qs: any) => (
-                            <div key={qs?.id}>
-                                <h6 className='text-[var(--lighttext)]'>{qs?.question}</h6>
-                                <h4>{qs?.answer}</h4>
+                    <div className="space-y-3 border rounded-md p-5">
+                        {formattedAnswers.map((q) => (
+                            <div key={q.id}>
+                                <h6 className="text-[var(--lighttext)]">
+                                    {q.question}
+                                </h6>
+                                <h4>{q.answer || "-"}</h4>
                             </div>
                         ))}
                     </div>
                 </div>
-            </div>
+            )}
 
-            <div className="flex justify-end w-full">
-                <Button isLoading={isLoading} onClick={handleSubmit}>Submit Application</Button>
+            {/* Submit */}
+            <div className="flex justify-end">
+                <Button isLoading={isPending} onClick={handleSubmit}>
+                    Submit Application
+                </Button>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default EasyApplySubmit
+export default EasyApplySubmit;

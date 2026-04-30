@@ -1,137 +1,164 @@
-'use client'
+"use client";
 
-import { userResumeUpdate } from '@/actions/user/updateResume';
-import Button from '@/components/Button';
-import { Progress } from '@/components/ui/progress';
-import { useCustomToast } from '@/lib/CustomToast';
-import { useUpload } from '@/lib/Uploadfile';
-import React, { useEffect, useState } from 'react';
+import Button from "@/components/Button";
+import { Progress } from "@/components/ui/progress";
+import { useFileUpload } from "@/hooks/useFileUpload";
+import { useCustomToast } from "@/lib/CustomToast";
+import { EasyApplyUser , ResumeData} from "@/types/easyApply";
+import React, { useEffect, useState } from "react";
 import { IoMdCloudUpload } from "react-icons/io";
-import { useSelector } from 'react-redux';
 
-interface EasyApplyUserResumeProps {
-    onResume?: (value: { name: any, url: any }) => void,
-    onNext?: (value: number) => void,
-    onBack?: (value: number) => void,
-    currentStep?: number
+interface EasyApplyResumeProps {
+  user?: EasyApplyUser | null;
+  currentStep?: number;
+  onNext?: (step: number) => void;
+  onBack?: (step: number) => void;
+  onResume?: (data: ResumeData) => void;
 }
 
-const EasyApplyResume = ({ onResume, onNext, onBack, currentStep = 0 }: EasyApplyUserResumeProps) => {
+/* ================= COMPONENT ================= */
 
-    const user = useSelector((state: any) => state.user.user);
-    const { showErrorToast, showSuccessToast } = useCustomToast()
+const EasyApplyResume = ({
+  user,
+  currentStep = 0,
+  onNext,
+  onBack,
+  onResume,
+}: EasyApplyResumeProps) => {
+  const { upload, progress, loading, error } = useFileUpload();
+  const { showErrorToast, showSuccessToast } = useCustomToast();
 
-    const [file, setFile] = useState<File | null>(null);
+  const [resumeName, setResumeName] = useState<string>("");
+  const [resumeUrl, setResumeUrl] = useState<string>("");
 
-    const { per, UploadFile, downloadUrl } = useUpload({ file });
+  // ✅ Pre-fill existing resume (important UX)
+  useEffect(() => {
+    if (user?.resume) {
+      setResumeName("Resume");
+      setResumeUrl(user.resume);
+    }
+  }, [user]);
 
-    const [resumeName, setResumeName] = useState(user?.resume ? "Resume" : '');
-    const [resumeUrl, setResumeUrl] = useState((user?.resume || downloadUrl) || '');
+  /* ================= HANDLERS ================= */
 
-    const handleResumeUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            setFile(file)
-            const fileName = file.name;
-            const fileUrl = URL.createObjectURL(file);
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-            setResumeName(fileName);
-            setResumeUrl(fileUrl);
-        }
-    };
-
-    const resumeUpdate = async () => {
-        await userResumeUpdate(user?.id, downloadUrl)
-            .then((data) => {
-                if (data?.success) {
-                    showSuccessToast(data?.success)
-                }
-            })
+    // ✅ Validation (must match backend)
+    if (file.type !== "application/pdf") {
+      return showErrorToast("Only PDF files are allowed");
     }
 
-    useEffect(() => {
-        UploadFile();
-    }, [file])
+    if (file.size > 3 * 1024 * 1024) {
+      return showErrorToast("File too large (max 3MB)");
+    }
 
-    useEffect(() => {
-        if (downloadUrl) {
-            resumeUpdate();
-        }
-    }, [downloadUrl])
+    setResumeName(file.name);
 
-    const handleNext = () => {
-        if (!resumeUrl) {
-            return showErrorToast("select resume first")
-        }
-        if (onResume) {
-            onResume({ name: resumeName, url: resumeUrl });
-        }
-        if (onNext) {
-            onNext(currentStep + 1);
-        }
-    };
+    try {
+      const res = await upload({
+        file,
+        type: "resume",
+      });
 
-    const handleBack = () => {
-        if (onBack) {
-            onBack(currentStep - 1);
-        }
-    };
+      setResumeUrl(res.url);
+      showSuccessToast("Resume uploaded successfully");
+    } catch {
+      showErrorToast("Upload failed");
+    }
+  };
 
-    return (
-        <div className="w-full border rounded-md p-5 space-y-5">
-            <input
-                type="file"
-                id="resumeupload"
-                accept=".doc,.docx,.pdf"
-                hidden
-                onChange={handleResumeUpload}
-            />
+  const handleNext = () => {
+    if (!resumeUrl) {
+      return showErrorToast("Please upload your resume");
+    }
 
-            <div className="flex flex-col md:flex-row gap-5 items-start justify-between">
-                <div className="space-y-2">
-                    <h3 className="font-bold">Resume</h3>
-                    <h5>Be sure to include an updated resume *</h5>
-                </div>
+    onResume?.({
+      name: resumeName,
+      url: resumeUrl,
+    });
 
-                <label htmlFor="resumeupload" className="space-y-2">
-                    <div className="h-[40px] rounded-full border-[1px] border-solid border-[var(--voilet)] flex flex-row items-center gap-3 max-w-max px-5 text-sm text-[var(--voilet)] font-bold cursor-pointer hover:opacity-50 trans">
-                        <IoMdCloudUpload size={25} />
-                        Upload Resume
-                    </div>
-                    <h5 className="text-center text-[var(--lighttext)]">DOC, DOCX, PDF</h5>
-                </label>
-            </div>
+    onNext?.(currentStep + 1);
+  };
 
-            <div className="space-y-5">
-                <div className="w-full border rounded-md p-3">
-                    {resumeName || 'No resume uploaded'}
-                </div>
+  const handleBack = () => {
+    onBack?.(currentStep - 1);
+  };
 
-                {resumeUrl && (
-                    <div className="w-full max-h-max md:h-[800px] border rounded-md p-3">
-                        <iframe
-                            src={resumeUrl || downloadUrl}
-                            title="Resume Preview"
-                            className="w-full h-full"
-                        />
-                    </div>
-                )}
-            </div>
+  /* ================= UI ================= */
 
-            {per !== null && (
-                <div className="space-y-3">
-                    <h3>{downloadUrl ? "Completed" : "Uploading..."}</h3>
-                    <Progress value={Number(per)} className="w-full" />
-                </div>
-            )}
+  return (
+    <div className="w-full border rounded-md p-5 space-y-5">
+      {/* Hidden Input */}
+      <input
+        type="file"
+        id="resumeUpload"
+        accept=".pdf"
+        hidden
+        onChange={handleFileSelect}
+      />
 
-
-            <div className="flex flex-row items-center gap-5">
-                <Button variant="border" onClick={handleBack}>Back</Button>
-                <Button disabled={!resumeUrl} onClick={handleNext}>Next</Button>
-            </div>
+      {/* Header */}
+      <div className="flex flex-col md:flex-row gap-5 items-start justify-between">
+        <div className="space-y-2">
+          <h3 className="font-bold">Resume</h3>
+          <h5>Be sure to include an updated resume *</h5>
         </div>
-    );
-}
+
+        <label htmlFor="resumeUpload" className="space-y-2 cursor-pointer">
+          <div className="h-[40px] rounded-full border border-[var(--voilet)] flex items-center gap-3 px-5 text-sm text-[var(--voilet)] font-bold hover:opacity-70 transition">
+            <IoMdCloudUpload size={22} />
+            Upload Resume
+          </div>
+          <h5 className="text-center text-[var(--lighttext)]">
+            PDF only (max 3MB)
+          </h5>
+        </label>
+      </div>
+
+      {/* Resume Name */}
+      <div className="w-full border rounded-md p-3">
+        {resumeName || "No resume uploaded"}
+      </div>
+
+      {/* Preview */}
+      {resumeUrl && (
+        <div className="w-full md:h-[600px] border rounded-md overflow-hidden">
+          <iframe
+            src={resumeUrl}
+            title="Resume Preview"
+            className="w-full h-full"
+          />
+        </div>
+      )}
+
+      {/* Progress */}
+      {loading && (
+        <div className="space-y-2">
+          <p className="text-sm">Uploading...</p>
+          <Progress value={progress} />
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <p className="text-red-500 text-sm">{error}</p>
+      )}
+
+      {/* Actions */}
+      <div className="flex gap-5">
+        <Button variant="border" onClick={handleBack}>
+          Back
+        </Button>
+        <Button disabled={!resumeUrl} onClick={handleNext}>
+          Next
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 export default EasyApplyResume;
