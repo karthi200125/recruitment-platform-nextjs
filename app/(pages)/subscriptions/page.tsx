@@ -4,42 +4,54 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import CurrentSubscription from "./CurrentSubscription";
 import SubscriptionPlans from "./SubscriptionPlans";
+import { getPlans } from "@/lib/data/subscription-plans";
 
 export default async function SubscriptionPage() {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) redirect("/signin");
+    const plans = getPlans();
 
+    if (!session?.user?.email) {
+        redirect("/signin");
+    }
+
+    // 🔐 Get user with subscription
     const user = await db.user.findUnique({
         where: { email: session.user.email },
-        include: { subscription: true },
+        include: {
+            subscription: true,
+        },
     });
 
-    if (!user) redirect("/signin");
-    if (!user.role) redirect("/select-role");
+    if (!user) {
+        redirect("/signin");
+    }    
 
-    const subscription = user.subscription?.[0] ?? null;
+    const subscription = user.subscription ?? null; // ✅ FIXED
 
     return (
         <div className="w-full max-w-3xl mx-auto py-10 px-4 sm:px-6 space-y-6">
 
             {/* Page header */}
             <div>
-                <h1 className="text-xl font-bold text-slate-900">Billing & Subscription</h1>
+                <h1 className="text-xl font-bold text-slate-900">
+                    Billing & Subscription
+                </h1>
                 <p className="text-sm text-slate-400 mt-0.5">
                     Manage your plan, view billing details, and upgrade anytime.
                 </p>
             </div>
 
-            {/* Current plan card */}
+            {/* Current plan */}
             <CurrentSubscription user={user} subscription={subscription} />
 
-            {/* Available plans */}
+            {/* Plans */}
             <SubscriptionPlans
                 role={user.role as "CANDIDATE" | "RECRUITER" | "ORGANIZATION"}
                 userId={user.id}
                 currentPriceId={subscription?.stripePriceId ?? null}
                 isPro={user.isPro ?? false}
+                plans={plans}
             />
         </div>
     );

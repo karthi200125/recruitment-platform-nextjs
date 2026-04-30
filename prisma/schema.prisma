@@ -36,6 +36,7 @@ model User {
   resume                String?
   resumePublicId        String?
   skills          String[]
+  stripeCustomerId  String?  @unique
 
   postedJobs      Job[]       @relation("PostedJobs")
 
@@ -59,7 +60,7 @@ model User {
   followers  Follow[] @relation("UserFollowers")
   following  Follow[] @relation("UserFollowing")
 
-  subscription   Subscription[]
+  subscription      Subscription?
 
   resetPasswordToken     String?  @unique
   resetPasswordExpires   DateTime?
@@ -306,23 +307,24 @@ model Message {
 
 
 model Subscription {
-  id                   Int      @id @default(autoincrement())
+  id                         Int      @id @default(autoincrement())
+
+  userId                     Int      @unique
+  user                       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  stripeSubscriptionId       String?  @unique
+  stripePriceId              String?
+  stripeCurrentPeriodEnd     DateTime?
+
+  subscriptionStatus         String   
+
+  planName                   String?
+  billingInterval            String?  
+  amount                     Int?     
   
-  userId               Int    @unique
-  user                 User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cancelAtPeriodEnd          Boolean  @default(false)
+  canceledAt                 DateTime?
 
-  stripeSubscriptionId String?  @unique
-  stripeCustomerId     String   @unique
-  stripePriceId        String?
-  stripeCurrentPeriodEnd DateTime?
-  subscriptionStatus   String   @default("inactive")
-
-  planName             String?  
-  billingInterval      String?  
-  amount               Int?     
-  canceledAt           DateTime? 
-
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
 }
-

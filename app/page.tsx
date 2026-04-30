@@ -122,7 +122,7 @@ export default function Home() {
         <WhyChooseUs />
         <ForRecruiters />
         <Testimonials />
-        <Pricing />
+        {/* <Pricing /> */}
         <Newsletter />
 
       </main>

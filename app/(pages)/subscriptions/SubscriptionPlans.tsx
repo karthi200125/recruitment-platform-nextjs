@@ -1,21 +1,33 @@
 'use client';
 
 import { useTransition } from "react";
-import { PLANS } from "@/lib/data/subscription-plans";
 import { createCheckoutSession } from "@/actions/stripe";
 import { CheckCircle2, Loader2, ArrowRight, Sparkles } from "lucide-react";
+
+// ✅ import type only
+import type { Plan } from "@/lib/data/subscription-plans";
 
 interface Props {
     role: "CANDIDATE" | "RECRUITER" | "ORGANIZATION";
     userId: number;
     currentPriceId?: string | null;
     isPro: boolean;
+
+    // ✅ FIX: proper type
+    plans: Record<"CANDIDATE" | "RECRUITER" | "ORGANIZATION", Plan[]>;
 }
 
-export default function SubscriptionPlans({ role, userId, currentPriceId, isPro }: Props) {
+export default function SubscriptionPlans({
+    role,
+    userId,
+    currentPriceId,
+    isPro,
+    plans
+}: Props) {
     const [isPending, startTransition] = useTransition();
 
-    const plans = PLANS[role];
+    // ✅ FIX: use props instead of PLANS
+    const rolePlans = plans[role];
 
     const handleSubscribe = (priceId: string) => {
         startTransition(async () => {
@@ -40,7 +52,7 @@ export default function SubscriptionPlans({ role, userId, currentPriceId, isPro 
 
             <div className="p-6 sm:p-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {plans.map((plan) => {
+                    {rolePlans.map((plan) => {
                         const isCurrent = currentPriceId === plan.priceId;
                         const isYearly = plan.interval === "year";
                         const isLoadingThis = isPending;
@@ -48,22 +60,20 @@ export default function SubscriptionPlans({ role, userId, currentPriceId, isPro 
                         return (
                             <div
                                 key={plan.priceId}
-                                className={`relative flex flex-col rounded-2xl border-2 p-6 transition-all duration-200 ${
-                                    isCurrent
+                                className={`relative flex flex-col rounded-2xl border-2 p-6 transition-all duration-200 ${isCurrent
                                         ? "border-indigo-400 bg-indigo-50/50"
                                         : plan.popular
-                                        ? "border-violet-300 bg-violet-50/30"
-                                        : "border-slate-200 bg-white hover:border-slate-300"
-                                }`}
+                                            ? "border-violet-300 bg-violet-50/30"
+                                            : "border-slate-200 bg-white hover:border-slate-300"
+                                    }`}
                             >
                                 {/* Popular / Current badge */}
                                 {(isCurrent || plan.popular) && (
                                     <div className="absolute -top-3 left-5">
-                                        <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold tracking-wide ${
-                                            isCurrent
+                                        <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold tracking-wide ${isCurrent
                                                 ? "bg-indigo-600 text-white"
                                                 : "bg-violet-600 text-white"
-                                        }`}>
+                                            }`}>
                                             {isCurrent ? "✓ Current Plan" : "Most Popular"}
                                         </span>
                                     </div>
@@ -120,11 +130,10 @@ export default function SubscriptionPlans({ role, userId, currentPriceId, isPro 
                                     <button
                                         onClick={() => handleSubscribe(plan.priceId)}
                                         disabled={isPending}
-                                        className={`w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed ${
-                                            plan.popular
+                                        className={`w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed ${plan.popular
                                                 ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-sm shadow-indigo-200"
                                                 : "bg-slate-900 text-white hover:bg-slate-700"
-                                        }`}
+                                            }`}
                                     >
                                         {isLoadingThis ? (
                                             <>

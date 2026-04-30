@@ -3,6 +3,7 @@
 import { db } from '@/lib/db';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
+import { getPlans } from "@/lib/data/subscription-plans";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-01-27.acacia',
@@ -12,12 +13,16 @@ export async function POST(req: Request) {
   const body = await req.text();
   const signature = headers().get('stripe-signature');
 
+  const PLANS = getPlans();
+
+  console.log("🔥 WEBHOOK HIT");  
+
   if (!signature) {
     return new Response('Missing Stripe signature', { status: 400 });
   }
 
   let event: Stripe.Event;
-
+  
   try {
     event = stripe.webhooks.constructEvent(
       body,
@@ -25,35 +30,28 @@ export async function POST(req: Request) {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
   } catch (err) {
-    console.error('❌ Webhook signature verification failed:', err);
+    console.error('❌ Invalid signature:', err);
     return new Response('Invalid signature', { status: 400 });
   }
 
+console.log("EVENT:", event.type);
+
   try {
     switch (event.type) {
+
       /**
-       * ✅ 1. Checkout Completed (Initial Subscription)
+       * ✅ 1. Checkout Completed (Initial subscription)
        */
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
 
-        if (!session.subscription || !session.customer) break;
-
-        const subscription = await stripe.subscriptions.retrieve(
-          session.subscription as string
-        );
+        if (!session.customer || !session.subscription) break;
 
         const customerId = session.customer as string;
 
-        // 🔥 IMPORTANT: Find user using customerId (NOT metadata)
-        const user = await db.user.findFirst({
-          where: {
-            subscription: {
-              some: {
-                stripeCustomerId: customerId,
-              },
-            },
-          },
+        // 🔥 Find user via stripeCustomerId (FIXED)
+        const user = await db.user.findUnique({
+          where: { stripeCustomerId: customerId },
         });
 
         if (!user) {
@@ -61,33 +59,46 @@ export async function POST(req: Request) {
           break;
         }
 
+        const subscription = await stripe.subscriptions.retrieve(
+          session.subscription as string
+        );
+
+        const priceId = subscription.items.data[0].price.id;
+
+        // 🔥 Map plan details
+        const allPlans = Object.values(PLANS).flat();
+        const plan = allPlans.find(p => p.priceId === priceId);
+
         await db.subscription.upsert({
           where: { userId: user.id },
           update: {
             stripeSubscriptionId: subscription.id,
-            stripePriceId: subscription.items.data[0].price.id,
+            stripePriceId: priceId,
             stripeCurrentPeriodEnd: new Date(
               subscription.current_period_end * 1000
             ),
             subscriptionStatus: subscription.status,
+
+            planName: plan?.name ?? null,
+            billingInterval:
+              subscription.items.data[0].price.recurring?.interval ?? null,
             amount:
               (subscription.items.data[0].price.unit_amount ?? 0) / 100,
-            billingInterval:
-              subscription.items.data[0].price.recurring?.interval,
           },
           create: {
             userId: user.id,
-            stripeCustomerId: customerId,
             stripeSubscriptionId: subscription.id,
-            stripePriceId: subscription.items.data[0].price.id,
+            stripePriceId: priceId,
             stripeCurrentPeriodEnd: new Date(
               subscription.current_period_end * 1000
             ),
             subscriptionStatus: subscription.status,
+
+            planName: plan?.name ?? null,
+            billingInterval:
+              subscription.items.data[0].price.recurring?.interval ?? null,
             amount:
               (subscription.items.data[0].price.unit_amount ?? 0) / 100,
-            billingInterval:
-              subscription.items.data[0].price.recurring?.interval,
           },
         });
 
@@ -100,26 +111,26 @@ export async function POST(req: Request) {
       }
 
       /**
-       * ✅ 2. Subscription Updated (upgrade/downgrade/cancel)
+       * ✅ 2. Subscription Updated (upgrade/downgrade)
        */
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
 
         const customerId = subscription.customer as string;
 
-        const user = await db.user.findFirst({
-          where: {
-            subscription: {
-              some: { stripeCustomerId: customerId },
-            },
-          },
+        const user = await db.user.findUnique({
+          where: { stripeCustomerId: customerId },
         });
 
         if (!user) break;
 
         const status = subscription.status;
-
         const isActive = ['active', 'trialing'].includes(status);
+
+        const priceId = subscription.items.data[0].price.id;
+
+        const allPlans = Object.values(PLANS).flat();
+        const plan = allPlans.find(p => p.priceId === priceId);
 
         await db.subscription.update({
           where: { userId: user.id },
@@ -128,7 +139,15 @@ export async function POST(req: Request) {
             stripeCurrentPeriodEnd: new Date(
               subscription.current_period_end * 1000
             ),
-            stripePriceId: subscription.items.data[0].price.id,
+            stripePriceId: priceId,
+
+            planName: plan?.name ?? null,
+            billingInterval:
+              subscription.items.data[0].price.recurring?.interval ?? null,
+            amount:
+              (subscription.items.data[0].price.unit_amount ?? 0) / 100,
+
+            cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
           },
         });
 
@@ -141,19 +160,15 @@ export async function POST(req: Request) {
       }
 
       /**
-       * ✅ 3. Subscription Deleted (expired/canceled)
+       * ✅ 3. Subscription Deleted (cancelled/expired)
        */
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
 
         const customerId = subscription.customer as string;
 
-        const user = await db.user.findFirst({
-          where: {
-            subscription: {
-              some: { stripeCustomerId: customerId },
-            },
-          },
+        const user = await db.user.findUnique({
+          where: { stripeCustomerId: customerId },
         });
 
         if (!user) break;
@@ -182,12 +197,8 @@ export async function POST(req: Request) {
 
         const customerId = invoice.customer as string;
 
-        const user = await db.user.findFirst({
-          where: {
-            subscription: {
-              some: { stripeCustomerId: customerId },
-            },
-          },
+        const user = await db.user.findUnique({
+          where: { stripeCustomerId: customerId },
         });
 
         if (!user) break;
@@ -208,12 +219,8 @@ export async function POST(req: Request) {
 
         const customerId = invoice.customer as string;
 
-        const user = await db.user.findFirst({
-          where: {
-            subscription: {
-              some: { stripeCustomerId: customerId },
-            },
-          },
+        const user = await db.user.findUnique({
+          where: { stripeCustomerId: customerId },
         });
 
         if (!user) break;

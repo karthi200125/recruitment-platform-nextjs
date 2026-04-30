@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from "react";
-import { PLANS } from "@/lib/data/subscription-plans";
 import { FaCheck } from "react-icons/fa6";
 
 type Role = "CANDIDATE" | "RECRUITER" | "ORGANIZATION";
@@ -14,6 +13,7 @@ const ROLE_TABS: { key: Role; label: string }[] = [
 
 export default function Pricing() {
     const [role, setRole] = useState<Role>("CANDIDATE");
+    const PLANS = []
     const plans = PLANS[role];
 
     return (
