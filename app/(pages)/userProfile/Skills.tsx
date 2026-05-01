@@ -1,71 +1,45 @@
-
 "use client";
 
 import { LuPencil } from "react-icons/lu";
 import { SlDiamond } from "react-icons/sl";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import { SkillsForm } from "@/app/Forms/SkillsForm";
 import { openModal } from "@/app/Redux/ModalSlice";
 
 import Icon from "@/components/Icon";
 import Model from "@/components/Model/Model";
-
 import SkillsSkeleton from "@/Skeletons/SkillsSkeleton";
 
-/* ────────────────────────────────────────────────
-   Types
-──────────────────────────────────────────────── */
-interface SkillsProfileUser {
-    id: number;
-    skills?: string[];
-}
-
-interface AuthUser {
-    id: number;
-}
-
-interface RootState {
-    user: {
-        user: AuthUser | null;
-    };
-}
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { ProfileUser } from "@/types/userProfile";
 
 interface SkillsProps {
-    SkillsprofileUser?: SkillsProfileUser | null;
+    profileUser?: ProfileUser | null;
     isLoading?: boolean;
 }
 
-/* ────────────────────────────────────────────────
-   Component
-──────────────────────────────────────────────── */
 const Skills = ({
-    SkillsprofileUser,
+    profileUser,
     isLoading = false,
 }: SkillsProps) => {
     const dispatch = useDispatch();
+    const { user } = useCurrentUser();
 
-    const user = useSelector(
-        (state: RootState) => state.user.user
-    );
-
-    const isCurrentUser =
-        user?.id === SkillsprofileUser?.id;
-
-    const skills = SkillsprofileUser?.skills ?? [];
+    const isCurrentUser = user?.id === profileUser?.id;
+    const skills = profileUser?.skills ?? [];
 
     return (
         <section className="relative space-y-4 border rounded-[20px] p-5 mt-5">
-            {/* Edit Skills Modal */}
+
+            {/* EDIT BUTTON */}
             {isCurrentUser && (
                 <Model
-                    bodyContent={
-                        <SkillsForm skillsData={skills} />
-                    }
+                    bodyContent={<SkillsForm skillsData={skills} />}
                     modalId="userSkillsModal"
                     title="Add Your Skills"
                     desc="Add your technical and soft skills"
-                    className="min-w-[300px] lg:w-[800px] min-h-[100px]"
+                    className="min-w-[300px] lg:w-[800px]"
                     triggerCls="absolute top-3 right-3"
                 >
                     <Icon
@@ -79,22 +53,22 @@ const Skills = ({
                 </Model>
             )}
 
-            {/* Header */}
+            {/* HEADER */}
             <div className="flex items-center gap-3">
                 <SlDiamond size={20} />
                 <h3 className="font-bold">Skills</h3>
             </div>
 
-            {/* Skills Content */}
+            {/* CONTENT */}
             <div className="flex flex-wrap gap-3">
                 {isLoading ? (
                     <SkillsSkeleton />
                 ) : skills.length > 0 ? (
-                    skills.map((skill) => (
+                    skills.map((skill, index) => (
                         <span
-                            key={skill}
+                            key={`${skill}-${index}`}
                             className="
-                px-5 h-[30px]
+                px-4 h-[30px]
                 rounded-full border
                 text-sm font-semibold capitalize
                 flex items-center justify-center
@@ -114,4 +88,3 @@ const Skills = ({
 };
 
 export default Skills;
-

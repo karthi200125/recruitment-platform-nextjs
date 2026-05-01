@@ -1,24 +1,60 @@
-'use client';
+"use client";
+
+import { ChangeEvent, useCallback, useState, useTransition } from "react";
+import Image from "next/image";
+import { useDispatch } from "react-redux";
 
 import { updateImages } from "@/actions/user/updateImages";
 import { deleteImages } from "@/actions/user/deleteImages";
+
 import Button from "@/components/Button";
 import { Progress } from "@/components/ui/progress";
+
 import { useCustomToast } from "@/lib/CustomToast";
 import { useUpload } from "@/lib/Uploadfile";
-import { ChangeEvent, useState, useTransition, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { loginRedux } from "@/app/Redux/AuthSlice";
-import Image from "next/image";
-import noProfile from '../../../public/noProfile.webp'
+
 import { closeModal } from "@/app/Redux/ModalSlice";
 
-const UserProfileImage = ({ isCurrentUser, profileUser }: any) => {
-    const user = useSelector((state: any) => state.user.user);
+import noProfile from "../../../public/noProfile.webp";
+
+/* ────────────────────────────────────────────────
+   Types
+──────────────────────────────────────────────── */
+interface ProfileUser {
+    id: number;
+    userImage?: string | null;
+    role?: string | null;
+}
+
+interface CurrentUser {
+    id: number;
+    userImage?: string | null;
+    role?: string | null;
+}
+
+interface Props {
+    isCurrentUser?: boolean;
+    profileUser?: ProfileUser | null;
+    user?: CurrentUser | null;
+}
+
+/* ────────────────────────────────────────────────
+   Component
+──────────────────────────────────────────────── */
+const UserProfileImage = ({
+    isCurrentUser = false,
+    profileUser,
+    user,
+}: Props) => {
     const dispatch = useDispatch();
 
     const [file, setFile] = useState<File | null>(null);
-    const [showImage, setShowImage] = useState<string | null>((!isCurrentUser ? profileUser?.userImage : user?.userImage) || null);
+    const [showImage, setShowImage] = useState<string | null>(
+        (isCurrentUser
+            ? user?.userImage
+            : profileUser?.userImage) || null
+    );
+
     const [isPending, startTransition] = useTransition();
 
     const { showErrorToast, showSuccessToast } = useCustomToast();
@@ -26,110 +62,155 @@ const UserProfileImage = ({ isCurrentUser, profileUser }: any) => {
 
     const userId = user?.id;
 
+    /* ────────────────────────────────────────────────
+       DELETE IMAGE
+    ──────────────────────────────────────────────── */
     const handleDeleteImage = useCallback(async () => {
         if (!userId) return;
 
-        const response = await deleteImages(userId, "user", user?.role);
-        if (response.success) {
-            dispatch(loginRedux(response.data));
-            showSuccessToast(response.success);
-            dispatch(closeModal("profileImageModal"));
-            setShowImage(null);
-        } else if (response.error) {
-            showErrorToast(response.error);
-        }
-    }, [userId, dispatch, showSuccessToast, showErrorToast]);
+        try {
+            const res = await deleteImages(
+                userId,
+                "user",
+                user?.role
+            );
 
-    const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = e.target.files?.[0];
-        if (selectedFile) {
-            setFile(selectedFile);
-            setShowImage(URL.createObjectURL(selectedFile));
+            if (res.success) {
+                showSuccessToast(res.success);
+                setShowImage(null);
+                dispatch(closeModal("profileImageModal"));
+            } else {
+                showErrorToast(res.error || "Delete failed");
+            }
+        } catch (err) {
+            console.error("[deleteImage]", err);
+            showErrorToast("Something went wrong");
         }
+    }, [userId, user?.role, dispatch, showSuccessToast, showErrorToast]);
+
+    /* ────────────────────────────────────────────────
+       FILE SELECT
+    ──────────────────────────────────────────────── */
+    const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+        const selected = e.target.files?.[0];
+        if (!selected) return;
+
+        setFile(selected);
+        setShowImage(URL.createObjectURL(selected));
     };
 
+    /* ────────────────────────────────────────────────
+       UPLOAD
+    ──────────────────────────────────────────────── */
     const handleUpload = useCallback(() => {
-        if (file) {
-            UploadFile();
-        } else {
+        if (!file) {
             showErrorToast("Please select a file to upload.");
-        }
-    }, [file, UploadFile, showErrorToast]);
-
-    const handleUpdateImage = useCallback(async () => {
-        if (!downloadUrl) {
-            showErrorToast("No image URL available for update.");
             return;
         }
 
-        const isOrg = user?.role === "ORGANIZATION"
+        UploadFile();
+    }, [file, UploadFile, showErrorToast]);
+
+    /* ────────────────────────────────────────────────
+       UPDATE IMAGE
+    ──────────────────────────────────────────────── */
+    const handleUpdateImage = useCallback(() => {
+        if (!userId || !downloadUrl) {
+            showErrorToast("No image available for update.");
+            return;
+        }
+
+        const isOrg = user?.role === "ORGANIZATION";
 
         startTransition(async () => {
-            const response = await updateImages(userId, downloadUrl, null, isOrg);
-            if (response.success) {
-                dispatch(loginRedux(response.data));
-                dispatch(closeModal("profileImageModal"));
-                showSuccessToast(response.success);
-            } else if (response.error) {
-                showErrorToast(response.error);
+            try {
+                const res = await updateImages(
+                    userId,
+                    downloadUrl,
+                    null,
+                    isOrg
+                );
+
+                if (res.success) {
+                    showSuccessToast(res.success);
+                    dispatch(closeModal("profileImageModal"));
+                } else {
+                    showErrorToast(res.error || "Update failed");
+                }
+            } catch (err) {
+                console.error("[updateImage]", err);
+                showErrorToast("Something went wrong");
             }
         });
-    }, [userId, downloadUrl, dispatch, startTransition, showSuccessToast, showErrorToast]);
+    }, [userId, downloadUrl, user?.role, dispatch, showSuccessToast, showErrorToast]);
 
+    /* ────────────────────────────────────────────────
+       Render
+    ──────────────────────────────────────────────── */
     return (
         <div className="space-y-5">
-            <div className="flexcenter">
+
+            {/* IMAGE */}
+            <div className="flex justify-center">
                 <div className="relative w-[300px] h-[300px] rounded-full border overflow-hidden">
+
                     <Image
                         src={showImage || noProfile.src}
                         alt="User profile"
                         fill
-                        className="w-full h-full object-cover bg-neutral-100 absolute top-0 left-0"
+                        className="object-cover bg-neutral-100"
                     />
-                    <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        id="imageupload"
-                        onChange={handleImageUpload}
-                    />
-                    {isCurrentUser &&
-                        <label
-                            htmlFor="imageupload"
-                            className="absolute top-0 left-0 w-full h-full opacity-70 z-10 flex items-center justify-center cursor-pointer transition bg-black"
-                        >
-                            <div className="space-y-3 text-center">
-                                <h3 className="text-blue-400 z-10">Select Image</h3>
-                            </div>
-                        </label>
-                    }
+
+                    {isCurrentUser && (
+                        <>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                id="imageupload"
+                                onChange={handleImageUpload}
+                            />
+
+                            <label
+                                htmlFor="imageupload"
+                                className="absolute inset-0 flex items-center justify-center bg-black/60 cursor-pointer"
+                            >
+                                <span className="text-blue-400">
+                                    Select Image
+                                </span>
+                            </label>
+                        </>
+                    )}
                 </div>
             </div>
 
+            {/* PROGRESS */}
             {per !== null && (
-                <div className="space-y-3">
-                    <h3>{downloadUrl ? "Completed" : "Uploading..."}</h3>
-                    <Progress value={Number(per)} className="w-full" />
+                <div className="space-y-2">
+                    <p>{downloadUrl ? "Completed" : "Uploading..."}</p>
+                    <Progress value={Number(per)} />
                 </div>
             )}
 
-            {isCurrentUser &&
-                <div className="flex flex-row items-center justify-between">
-                    <h3
-                        className="text-sm font-bold text-red-500 cursor-pointer py-2 px-5 border rounded-full"
+            {/* ACTIONS */}
+            {isCurrentUser && (
+                <div className="flex items-center justify-between">
+
+                    <button
                         onClick={handleDeleteImage}
+                        className="text-sm font-bold text-red-500 border px-4 py-2 rounded-full"
                     >
                         Delete Image
-                    </h3>
+                    </button>
+
                     <Button
-                        className="!py-2"
                         onClick={downloadUrl ? handleUpdateImage : handleUpload}
                         isLoading={isPending}
                     >
                         {downloadUrl ? "Update Image" : "Upload Image"}
                     </Button>
                 </div>
-            }
+            )}
         </div>
     );
 };

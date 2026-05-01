@@ -1,54 +1,84 @@
-'use server';
+"use server";
 
-import { UserInfoSchema } from '@/lib/SchemaTypes';
-import { db } from '@/lib/db';
-import * as z from 'zod';
+import { db } from "@/lib/db";
+import { UserInfoSchema } from "@/lib/SchemaTypes";
+import { Prisma } from "@prisma/client";
+import * as z from "zod";
+
+interface ActionResponse<T = unknown> {
+    success?: string;
+    error?: string;
+    data?: T;
+}
 
 export const UserUpdate = async (
     values: z.infer<typeof UserInfoSchema>,
     id: number,
-    userAbout?: string 
-) => {
+    userAbout?: string
+): Promise<ActionResponse> => {
     try {
-        const validatedFields = UserInfoSchema.safeParse(values);
-
-        if (!validatedFields.success) {
-            return { error: "Invalid fields" };
+        // ✅ validate ID
+        if (!Number.isInteger(id) || id <= 0) {
+            return { error: "Invalid user ID" };
         }
-        const data = validatedFields.data;
 
-        if (data?.currentCompany) {
+        // ✅ validate form
+        const parsed = UserInfoSchema.safeParse(values);
+        if (!parsed.success) {
+            return { error: "Invalid form fields" };
+        }
+
+        const data = parsed.data;
+
+        /* ────────────────────────────────────────────────
+           HANDLE COMPANY VERIFICATION (RECRUITER)
+        ──────────────────────────────────────────────── */
+        if (data.currentCompany) {
             const company = await db.company.findUnique({
                 where: { companyName: data.currentCompany },
-                select: { userId: true }
+                select: { userId: true },
             });
 
             if (company?.userId) {
                 const existingUser = await db.user.findUnique({
                     where: { id: company.userId },
-                    select: { verifyEmps: true, employees: true },
+                    select: { employees: true },
                 });
-                
-                if (existingUser && !existingUser.employees?.includes(id)) {
+
+                if (
+                    existingUser &&
+                    !existingUser.employees?.includes(id)
+                ) {
                     await db.user.update({
                         where: { id: company.userId },
-                        data: { verifyEmps: { push: id } },
+                        data: {
+                            verifyEmps: { push: id },
+                        },
                     });
                 }
             }
         }
 
+        /* ────────────────────────────────────────────────
+           UPDATE USER
+        ──────────────────────────────────────────────── */
         const updatedUser = await db.user.update({
             where: { id },
             data: {
                 ...data,
-                userAbout: JSON.parse(JSON.stringify(userAbout))
+                userAbout:
+                    userAbout !== undefined
+                        ? userAbout
+                        : Prisma.JsonNull,
             },
         });
 
-        return { success: 'User updated successfully', data: updatedUser };
+        return {
+            success: "User updated successfully",
+            data: updatedUser,
+        };
     } catch (error) {
-        console.log(error);
-        return { error: 'User update failed' };
+        console.error("[UserUpdate]", error);
+        return { error: "User update failed" };
     }
 };

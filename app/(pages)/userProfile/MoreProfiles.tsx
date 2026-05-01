@@ -17,45 +17,75 @@ import FollowButton from "@/components/FollowButton";
 
 import MoreProfileSkeleton from "@/Skeletons/MoreProfileSkeleton";
 import noAvatar from "@/public/noProfile.webp";
+
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { ProfileUser } from "@/types/userProfile";
 
-type UserRole = "CANDIDATE" | "RECRUITER" | "ORGANIZATION";
-
-interface ProfileUserProps {
-    userId?: number;
+interface Props {
+    profileUser?: ProfileUser;
 }
 
-const MoreProfiles = ({ userId }: ProfileUserProps) => {
+const MoreProfiles = ({ profileUser }: Props) => {
     const { user, isLoading } = useCurrentUser();
 
-    const { data: profiles = [], isPending } = useQuery<MoreProfileUser[]>({
-        queryKey: ["moreProfiles", user?.id, userId],
-        queryFn: () => {
-            if (!user?.id || typeof userId !== "number") return [];
-            return moreProUsers(user, userId);
+    const profileUserId = profileUser?.id;
+
+    const role = profileUser?.role;
+
+    const {
+        data: profiles = [],
+        isPending,
+    } = useQuery<MoreProfileUser[]>({
+        queryKey: ["moreProfiles", user?.id, profileUserId, role],
+
+        queryFn: async () => {
+            if (
+                !profileUserId ||
+                typeof profileUserId !== "number" ||
+                !role
+            ) {
+                return [];
+            }
+
+            return moreProUsers(
+                profileUserId,
+                profileUser?.followers,
+                role
+            );
         },
-        enabled: !!user?.id && typeof userId === "number",
+
+        enabled:
+            !!user?.id &&
+            typeof profileUserId === "number" &&
+            !!role,
+
         staleTime: 1000 * 60 * 5,
     });
 
-    if (isLoading) {
-        return <MoreProfileSkeleton />;
-    }
+    if (isLoading) return <MoreProfileSkeleton />;
 
     return (
         <aside className="w-full min-h-[200px] rounded-2xl border p-5 space-y-4 overflow-hidden">
+
             <h3 className="font-bold text-base">
-                {user?.id === userId ? "More Profiles" : "Profile Followers"}
+                {user?.id === profileUserId
+                    ? "More Profiles"
+                    : "Profile Followers"}
             </h3>
 
             {isPending ? (
                 <MoreProfileSkeleton />
             ) : profiles.length > 0 ? (
                 profiles.map((profile) => (
-                    <MoreUserProfile key={profile.id} moreUser={profile} />
+                    <MoreUserProfile
+                        key={profile.id}
+                        moreUser={profile}
+                    />
                 ))
             ) : (
-                <p className="text-sm text-neutral-400">No profiles found.</p>
+                <p className="text-sm text-neutral-400">
+                    No profiles found.
+                </p>
             )}
         </aside>
     );
@@ -67,7 +97,9 @@ interface MoreUserProfileProps {
     moreUser: MoreProfileUser;
 }
 
-const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
+const MoreUserProfile = ({
+    moreUser,
+}: MoreUserProfileProps) => {
     const { user } = useCurrentUser();
     const dispatch = useDispatch();
 
@@ -75,10 +107,11 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
 
     return (
         <div className="flex items-start gap-4 border-b py-4 last:border-b-0">
-            {/* Avatar */}
+
+            {/* AVATAR */}
             <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0">
                 <Image
-                    src={moreUser.userImage || noAvatar}
+                    src={moreUser.userImage || noAvatar.src}
                     alt={moreUser.username || "User avatar"}
                     fill
                     className="object-cover"
@@ -86,9 +119,10 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                 />
             </div>
 
-            {/* Info */}
+            {/* INFO */}
             <div className="flex-1 space-y-2 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
+
                     <Link
                         href={`/userProfile/${moreUser.id}`}
                         className="font-semibold capitalize hover:underline truncate"
@@ -109,12 +143,12 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                     </p>
                 )}
 
-                {/* Actions */}
+                {/* ACTIONS */}
                 {!isCurrentUser && (
                     <div className="flex items-center gap-2 flex-wrap">
+
                         <FollowButton
                             targetUserId={moreUser.id}
-                            initialIsFollowing={moreUser.isFollowing}
                             className="!h-[32px]"
                         />
 
@@ -122,7 +156,11 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                             variant="border"
                             disabled={!user?.isPro}
                             onClick={() =>
-                                dispatch(openModal(`messageModel-${moreUser.id}`))
+                                dispatch(
+                                    openModal(
+                                        `messageModel-${moreUser.id}`
+                                    )
+                                )
                             }
                             icon={<IoMdSend size={18} />}
                             className="!h-[32px]"
@@ -133,13 +171,16 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                 )}
             </div>
 
-            {/* Modal */}
+            {/* MODAL */}
             <Model
                 modalId={`messageModel-${moreUser.id}`}
                 title={`Message ${moreUser.username || "User"}`}
                 className="min-w-[300px] lg:w-[800px]"
                 bodyContent={
-                    <MessageBox receiverId={moreUser.id} chatUser={moreUser} />
+                    <MessageBox
+                        receiverId={moreUser.id}
+                        chatUser={moreUser}
+                    />
                 }
             >
                 <div />

@@ -86,6 +86,7 @@ export const authOptions: NextAuthOptions = {
                         role: dbUser.role,
                         isPro: dbUser.isPro,
                         profileImage: dbUser.profileImage,
+                        userImage: dbUser.userImage,
                     };
                 }
             }

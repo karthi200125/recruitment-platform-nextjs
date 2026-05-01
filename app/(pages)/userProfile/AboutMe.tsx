@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMemo, useState } from "react";
@@ -6,18 +5,10 @@ import DOMPurify from "dompurify";
 
 import UserAboutMeSkeleton from "@/Skeletons/UserAboutMeSkeleton";
 import Skills from "./Skills";
+import { ProfileUser } from "@/types/userProfile";
 
-/* ────────────────────────────────────────────────
-   Types
-──────────────────────────────────────────────── */
 interface Company {
     companyAbout?: string | null;
-}
-
-interface ProfileUser {
-    id: number;
-    userAbout?: string | null;
-    skills?: string[];
 }
 
 interface AboutMeProps {
@@ -27,9 +18,6 @@ interface AboutMeProps {
     company?: Company | null;
 }
 
-/* ────────────────────────────────────────────────
-   Component
-──────────────────────────────────────────────── */
 const AboutMe = ({
     profileUser,
     isLoading = false,
@@ -38,22 +26,30 @@ const AboutMe = ({
 }: AboutMeProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    /* ────────────────────────────────────────────────
-       Sanitize HTML Only When Input Changes
-    ──────────────────────────────────────────────── */
+
     const sanitizedUserAbout = useMemo(() => {
         if (!profileUser?.userAbout) return "";
 
-        return DOMPurify.sanitize(profileUser.userAbout);
+        let value = profileUser.userAbout;
+
+        if (typeof value !== "string") {
+            try {
+                value = JSON.stringify(value);
+            } catch {
+                return "";
+            }
+        }
+
+        return DOMPurify.sanitize(value);
     }, [profileUser?.userAbout]);
 
-    /* ────────────────────────────────────────────────
-       Loading State
-    ──────────────────────────────────────────────── */
+
     if (isLoading) {
         return (
             <section className="w-full min-h-[100px] rounded-[20px] border overflow-hidden p-5">
-                <h3 className="font-bold mb-5">About Me</h3>
+                <h3 className="font-bold mb-5">
+                    {isOrg ? "About Company" : "About Me"}
+                </h3>
                 <UserAboutMeSkeleton />
             </section>
         );
@@ -71,6 +67,7 @@ const AboutMe = ({
                 </p>
             ) : (
                 <>
+                    {/* ABOUT TEXT */}
                     <div className="relative">
                         <div
                             className={`
@@ -85,6 +82,7 @@ const AboutMe = ({
                             }}
                         />
 
+                        {/* SHOW MORE / LESS */}
                         {sanitizedUserAbout && (
                             <button
                                 type="button"
@@ -93,8 +91,7 @@ const AboutMe = ({
                                 }
                                 className="
                   mt-3 text-blue-600 text-xs font-semibold
-                  hover:underline
-                  focus:outline-none
+                  hover:underline focus:outline-none
                   flex justify-end w-full
                 "
                             >
@@ -103,7 +100,8 @@ const AboutMe = ({
                         )}
                     </div>
 
-                    <Skills SkillsprofileUser={profileUser} />
+                    {/* SKILLS */}
+                    <Skills profileUser={profileUser} />
                 </>
             )}
         </section>
@@ -111,4 +109,3 @@ const AboutMe = ({
 };
 
 export default AboutMe;
-

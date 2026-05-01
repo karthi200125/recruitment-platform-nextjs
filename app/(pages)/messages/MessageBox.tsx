@@ -3,29 +3,17 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
 
 import { getConversation } from "@/actions/message/getConversation";
 
 import MessageBoxSkeleton from "@/Skeletons/MessageBoxSkeleton";
 
 import { markMessagesAsSeen } from "@/actions/message/markMessagesAsSeen ";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import ChatButton from "./ChatButton";
 import Chats from "./Chats";
 import ChatUser from "./ChatUser";
 
-
-interface AuthUser {
-  id: number;
-  username?: string;
-  userImage?: string | null;
-}
-
-interface RootState {
-  user: {
-    user: AuthUser | null;
-  };
-}
 
 interface ChatUserType {
   id: number;
@@ -63,7 +51,7 @@ const MessageBox = ({
   isLoading = false,
   isChatuser = false,
 }: MessageBoxProps) => {
-  const user = useSelector((state: RootState) => state.user.user);
+  const { user } = useCurrentUser()
 
   const queryClient = useQueryClient();
 
@@ -81,7 +69,7 @@ const MessageBox = ({
     staleTime: 1000 * 30,
   });
 
-  
+
   useEffect(() => {
     const handleMarkSeen = async () => {
       if (!conversation?.id || !user?.id) return;
@@ -108,7 +96,7 @@ const MessageBox = ({
     handleMarkSeen();
   }, [conversation?.id, user?.id, queryClient]);
 
-  
+
   if (isPending || isLoading) {
     return (
       <div className="h-full relative">
@@ -117,7 +105,7 @@ const MessageBox = ({
     );
   }
 
-  
+
   if (!receiverId) {
     return (
       <div className="h-full flex items-center justify-center text-sm text-neutral-400">
@@ -126,7 +114,7 @@ const MessageBox = ({
     );
   }
 
-  
+
   return (
     <div className="h-full relative flex flex-col">
       <ChatUser
