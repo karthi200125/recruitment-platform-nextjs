@@ -76,7 +76,6 @@ const JobCompany: React.FC<JobCompanyProps> = ({ company, isPending = false, isF
                     <div className="flex-shrink-0">
                         <FollowButton
                             targetUserId={company.userId}
-                            initialIsFollowing={isFollowing ?? false}                            
                         />
                     </div>
                 </div>

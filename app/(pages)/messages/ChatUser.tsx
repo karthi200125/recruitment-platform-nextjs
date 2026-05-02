@@ -1,34 +1,36 @@
-import Icon from '@/components/Icon'
-import noProfile from '@/public/noProfile.webp'
-import Image from 'next/image'
-import { IoIosMore } from 'react-icons/io'
+'use client'
 
-interface isChatuserProps {
-    chatUser?: any,
-    isChatuser?: boolean
-}
+import { MoreHorizontal, Circle } from "lucide-react";
+import Image from "next/image";
 
-const ChatUser = ({ chatUser, isChatuser }: isChatuserProps) => {
+interface ChatUserType { id: number; username?: string; userImage?: string | null; }
+interface ChatUserProps { chatUser?: ChatUserType | null; isChatuser?: boolean; }
 
+export const ChatUser = ({ chatUser, isChatuser }: ChatUserProps) => {
+    if (!isChatuser || !chatUser) return null;
     return (
-        <div className={`${isChatuser ? "flex" : "hidden"} w-full flex-row items-center justify-between border-b h-[90px] px-3 z-10`}>
-            <div className='flex flex-row items-center gap-5'>
-                <div className="w-[40px] md:w-[60px] h-[40px] md:h-[60px] rounded-full overflow-hidden relative">
-                    <Image
-                        src={chatUser?.userImage || noProfile.src}
-                        alt=""
-                        className="absolute top-0 left-0 w-full h-full object-cover"
-                        fill
-                    />
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-white flex-shrink-0">
+            <div className="flex items-center gap-3">
+                <div className="relative">
+                    <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-slate-100">
+                        <Image
+                            src={chatUser.userImage || '/noProfile.webp'}
+                            alt={chatUser.username || "User"}
+                            width={40} height={40}
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                    <Circle className="absolute bottom-0 right-0 w-3 h-3 text-emerald-500 fill-emerald-500 border border-white rounded-full" strokeWidth={0} />
                 </div>
-                <div className="space-y-1">
-                    <h3 className="capitalize">{chatUser?.username}</h3>
-                    <h5 className="text-neutral-500">Chat with that user</h5>
+                <div>
+                    <p className="text-sm font-bold text-slate-800 capitalize">{chatUser.username || "Unknown User"}</p>
+                    <p className="text-xs text-slate-400">Active now</p>
                 </div>
             </div>
-            <Icon icon={<IoIosMore size={25} />} title="More" tooltipbg="white" isHover />
+            <button aria-label="More" className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors duration-200">
+                <MoreHorizontal className="w-4 h-4" />
+            </button>
         </div>
-    )
-}
+    );
+};
 
-export default ChatUser

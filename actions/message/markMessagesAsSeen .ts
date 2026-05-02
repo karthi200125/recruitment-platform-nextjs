@@ -1,4 +1,3 @@
-
 "use server";
 
 import { db } from "@/lib/db";
@@ -14,9 +13,6 @@ export const markMessagesAsSeen = async (
     userId: number
 ): Promise<MarkMessagesAsSeenResult> => {
     try {
-        /* ────────────────────────────────────────────────
-           Validate Input
-        ──────────────────────────────────────────────── */
         if (
             !Number.isInteger(chatId) ||
             !Number.isInteger(userId)
@@ -24,9 +20,6 @@ export const markMessagesAsSeen = async (
             throw new Error("Invalid chatId or userId");
         }
 
-        /* ────────────────────────────────────────────────
-           Mark Unseen Incoming Messages As Seen
-        ──────────────────────────────────────────────── */
         const result = await db.message.updateMany({
             where: {
                 chatId,
@@ -34,6 +27,7 @@ export const markMessagesAsSeen = async (
                     not: userId,
                 },
                 isSeen: false,
+                isDeleted: false,
             },
             data: {
                 isSeen: true,
@@ -56,4 +50,3 @@ export const markMessagesAsSeen = async (
         };
     }
 };
-

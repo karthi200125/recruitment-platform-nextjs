@@ -1,16 +1,12 @@
 "use client";
 
-import { LuPencil } from "react-icons/lu";
-import { SlDiamond } from "react-icons/sl";
 import { useDispatch } from "react-redux";
+import { Pencil, Gem } from "lucide-react";
 
 import { SkillsForm } from "@/app/Forms/SkillsForm";
 import { openModal } from "@/app/Redux/ModalSlice";
-
-import Icon from "@/components/Icon";
 import Model from "@/components/Model/Model";
 import SkillsSkeleton from "@/Skeletons/SkillsSkeleton";
-
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ProfileUser } from "@/types/userProfile";
 
@@ -19,70 +15,72 @@ interface SkillsProps {
     isLoading?: boolean;
 }
 
-const Skills = ({
-    profileUser,
-    isLoading = false,
-}: SkillsProps) => {
+const Skills = ({ profileUser, isLoading = false }: SkillsProps) => {
     const dispatch = useDispatch();
     const { user } = useCurrentUser();
-
     const isCurrentUser = user?.id === profileUser?.id;
     const skills = profileUser?.skills ?? [];
 
     return (
-        <section className="relative space-y-4 border rounded-[20px] p-5 mt-5">
-
-            {/* EDIT BUTTON */}
-            {isCurrentUser && (
-                <Model
-                    bodyContent={<SkillsForm skillsData={skills} />}
-                    modalId="userSkillsModal"
-                    title="Add Your Skills"
-                    desc="Add your technical and soft skills"
-                    className="min-w-[300px] lg:w-[800px]"
-                    triggerCls="absolute top-3 right-3"
-                >
-                    <Icon
-                        icon={<LuPencil size={20} />}
-                        isHover
-                        title="Edit Skills"
-                        onClick={() =>
-                            dispatch(openModal("userSkillsModal"))
-                        }
-                    />
-                </Model>
-            )}
-
-            {/* HEADER */}
-            <div className="flex items-center gap-3">
-                <SlDiamond size={20} />
-                <h3 className="font-bold">Skills</h3>
+        <section className="space-y-3">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Gem className="w-4 h-4 text-slate-500" strokeWidth={1.75} />
+                    <h3 className="text-sm font-bold text-slate-800">Skills</h3>
+                    {skills.length > 0 && (
+                        <span className="text-xs font-semibold text-slate-400 bg-slate-100 rounded-full px-2 py-0.5">
+                            {skills.length}
+                        </span>
+                    )}
+                </div>
+                {isCurrentUser && (
+                    <Model
+                        bodyContent={<SkillsForm skillsData={skills} />}
+                        modalId="userSkillsModal"
+                        title="Add Your Skills"
+                        desc="Add your technical and soft skills"
+                        className="min-w-[300px] lg:w-[800px]"
+                        triggerCls=""
+                    >
+                        <button
+                            onClick={() => dispatch(openModal("userSkillsModal"))}
+                            aria-label="Edit skills"
+                            className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors duration-200"
+                        >
+                            <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+                        </button>
+                    </Model>
+                )}
             </div>
 
-            {/* CONTENT */}
-            <div className="flex flex-wrap gap-3">
-                {isLoading ? (
-                    <SkillsSkeleton />
-                ) : skills.length > 0 ? (
-                    skills.map((skill, index) => (
+            {/* Skills */}
+            {isLoading ? (
+                <SkillsSkeleton />
+            ) : skills.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                    {skills.map((skill, index) => (
                         <span
                             key={`${skill}-${index}`}
-                            className="
-                px-4 h-[30px]
-                rounded-full border
-                text-sm font-semibold capitalize
-                flex items-center justify-center
-              "
+                            className="inline-flex items-center px-3 py-1 rounded-full border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 capitalize hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition-colors duration-200"
                         >
                             {skill}
                         </span>
-                    ))
-                ) : (
-                    <p className="text-sm text-neutral-400">
-                        No skills added yet.
-                    </p>
-                )}
-            </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="flex items-center justify-between rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-3">
+                    <p className="text-xs text-slate-400">No skills added yet.</p>
+                    {isCurrentUser && (
+                        <button
+                            onClick={() => dispatch(openModal("userSkillsModal"))}
+                            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
+                        >
+                            + Add skills
+                        </button>
+                    )}
+                </div>
+            )}
         </section>
     );
 };

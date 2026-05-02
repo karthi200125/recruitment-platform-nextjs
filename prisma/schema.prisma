@@ -275,34 +275,49 @@ enum Role {
 }
 
 model Chats {
-  id          Int      @id @default(autoincrement())    
+  id          Int      @id @default(autoincrement())
+
   senderId    Int
   receiverId  Int
-  lastMessage String? 
-  
-  sender      User     @relation("SenderChats", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver    User     @relation("ReceiverChats", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  lastMessage     String?
+  lastMessageAt   DateTime?
+
+  sender      User @relation("SenderChats", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver    User @relation("ReceiverChats", fields: [receiverId], references: [id], onDelete: Cascade)
 
   messages    Message[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  @@unique([senderId, receiverId])
+  @@index([senderId])
+  @@index([receiverId])
+  
 }
 
 model Message {
-  id        Int      @id @default(autoincrement())  
+  id        Int      @id @default(autoincrement())
+
   chatId    Int
   senderId  Int
+
   text      String?
-  image           String?
-  imagePublicId   String?
+  image     String?
+  imagePublicId String?
+
   isSeen    Boolean  @default(false)
+  isDeleted Boolean @default(false)
 
   chat      Chats    @relation(fields: [chatId], references: [id], onDelete: Cascade)
   sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([chatId])
+  @@index([senderId])
 }
 
 

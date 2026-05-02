@@ -42,10 +42,10 @@ const Jobb = ({
   safeSearchParams,
 }: Props) => {
   return (
-    <div className="flex flex-col jobsh bg-white overflow-hidden">
+    <div className="flex h-[calc(100vh-60px)] flex-col bg-white overflow-hidden">
 
       {/* Filter bar */}
-      <div className="flex-shrink-0 border-b border-slate-100 bg-white z-20">
+      <div className="border-b border-slate-100 bg-white z-20">
         <FilterNavbar />
       </div>
 
@@ -65,7 +65,7 @@ const Jobb = ({
         </div>
 
         {/* RIGHT — Job details */}
-        <div className="hidden md:flex flex-col flex-1 overflow-hidden bg-slate-50/40">
+        <div className="hidden md:flex flex-col flex-1 overflow-hidden">
           {job
             ? <JobDetails job={job} safeSearchParams={safeSearchParams} />
             : <NoJobSelected />
