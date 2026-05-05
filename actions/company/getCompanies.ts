@@ -1,23 +1,39 @@
+'use server'
+
 import { db } from "@/lib/db";
 import { cache } from "react";
-import { Prisma } from "@prisma/client";
 
-export type CompanyWithJobsCount = Prisma.CompanyGetPayload<{
-    include: {
-        jobs: { select: { id: true } };
-    };
-}>;
+export type CompanyWithJobsCount = {
+    id: number;
+    companyName: string;
+    companyImage: string | null;
+    companyCity: string;
+    companyCountry: string;
+    jobsCount: number;
+};
 
 export const getCompanies = cache(
     async (): Promise<CompanyWithJobsCount[]> => {
         try {
-            return await db.company.findMany({
+            const companies = await db.company.findMany({
                 where: { companyIsVerified: true },
-                include: {
-                    jobs: { select: { id: true } },
+                select: {
+                    id: true,
+                    companyName: true,
+                    companyImage: true,
+                    companyCity: true,
+                    companyCountry: true,
+                    _count: {
+                        select: { jobs: true },
+                    },
                 },
                 orderBy: { createdAt: "desc" },
             });
+
+            return companies.map((c) => ({
+                ...c,
+                jobsCount: c._count.jobs,
+            }));
         } catch (error) {
             console.error("[getCompanies]", error);
             return [];

@@ -116,11 +116,13 @@ model Job {
   vacancies   String
   skills      String[]
   questions   Json?   
+  status      String    @default("ACTIVE")
+  expiresAt DateTime?
 
   userId      Int
   user        User      @relation("PostedJobs", fields: [userId], references: [id], onDelete: Cascade)
 
-   savedBy     SavedJob[]
+  savedBy     SavedJob[]
 
   jobApplications JobApplication[] 
 

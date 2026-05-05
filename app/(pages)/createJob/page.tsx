@@ -1,50 +1,46 @@
-'use client'
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
+import { db } from "@/lib/db";
+import { FEATURES } from "@/types/features";
+import CreateJobClient from "./CreateJobClient";
 
-import CreateJobForm from '@/app/Forms/CreateJobForm'
-import Button from '@/components/Button'
-import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { redirect, useRouter } from 'next/navigation'
-import React from 'react'
-import { useSelector } from 'react-redux'
+export default async function CreateJobPage() {
+    const session = await getServerSession(authOptions);
 
-const Page = () => {
-    const { user } = useCurrentUser()
+    if (!session?.user?.id) redirect("/signin");
 
-    const router = useRouter()
+    const user = await db.user.findUnique({ where: { id: session.user.id } });
 
-    const isRecruiter = user?.role === 'RECRUITER'
-    const isOrg = user?.role === 'ORGANIZATION'
-    const isCandidate = user?.role === 'CANDIDATE'
+    if (!user) redirect("/signin");
+    if (user.role === "CANDIDATE") redirect("/dashboard");
 
-    if (isCandidate) {
-        redirect('/dashboard')
-    }
+    const tier = user.isPro ? "PRO" : "FREE";
+    const features = FEATURES[user.role][tier];
 
-    const canCreateJob = isRecruiter ? user?.currentCompany : isOrg
+    const activeJobs = await db.job.count({
+        where: { userId: user.id, status: "ACTIVE" },
+    });
+
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const monthlyJobs = await db.job.count({
+        where: { userId: user.id, createdAt: { gte: startOfMonth } },
+    });
+
+    const isBlocked =
+        activeJobs >= features.MAX_ACTIVE_JOBS ||
+        ("JOBS_PER_MONTH" in features && monthlyJobs >= features.JOBS_PER_MONTH);
 
     return (
-        <div className='w-full min-h-screen py-5 space-y-5'>
-            <h2>Create New Job</h2>
-
-            {isRecruiter && !user?.currentCompany ? (
-                <h3 className='text-red-500 text-sm'>
-                    You are not yet Verified by your company. Get verification success, then you can create a job.
-                </h3>
-            ) : canCreateJob ? (
-                <div>
-                    {user?.isPro ?
-                        <Button onClick={() => router.push('/subscription')} className='pro !text-black'>Subscription to create job</Button>
-                        :
-                        <CreateJobForm />
-                    }
-                </div>
-            ) : (
-                <h3 className='text-red-500 text-sm'>
-                    You do not have the necessary permissions to create a job.
-                </h3>
-            )}
-        </div>
-    )
+        <CreateJobClient
+            userId={user.id}
+            role={user.role as "RECRUITER" | "ORGANIZATION"}
+            features={features}
+            usage={{ activeJobs, monthlyJobs }}
+            isBlocked={isBlocked}
+        />
+    );
 }
-
-export default Page

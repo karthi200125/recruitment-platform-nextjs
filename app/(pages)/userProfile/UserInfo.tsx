@@ -21,6 +21,7 @@ import { MapPin, Globe, Pencil, MessageSquare, Lock, Crown, Camera, Users } from
 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import noProfile from "../../../public/noProfile.webp";
+import UserBannerImage from "@/app/Forms/UserBackImage";
 
 interface ProfileUserProps {
     profileUser?: any;
@@ -52,7 +53,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
             {/* Cover image */}
             <div className="relative w-full h-32 sm:h-44">
                 <Image
-                    src={profileUser?.profileImage || "https://img.freepik.com/free-photo/abstract-grey-bg.jpg"}
+                    src={profileUser?.userImage || "https://img.freepik.com/free-photo/abstract-grey-bg.jpg"}
                     alt="Cover"
                     fill
                     className="object-cover"
@@ -64,15 +65,15 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                 {/* Edit cover button */}
                 {isCurrentUser && (
                     <Model
-                        bodyContent={<UserBackImage />}
+                        bodyContent={<UserBannerImage userBannerImage={profileUser?.userImage || null} />}
                         title="Edit Cover Image"
                         className="w-full md:w-[800px]"
                         triggerCls="absolute top-3 right-3"
-                        modalId="UserBackImageModal"
+                        modalId="UserBannerModel"
                     >
                         <button
                             aria-label="Edit cover image"
-                            onClick={() => dispatch(openModal("UserBackImageModal"))}
+                            onClick={() => dispatch(openModal("UserBannerModel"))}
                             className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-white/80 backdrop-blur-sm border border-white/60 flex items-center justify-center text-slate-700 hover:bg-white transition-all duration-200 shadow-sm"
                         >
                             <Camera className="w-4 h-4" strokeWidth={1.75} />
@@ -87,7 +88,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
 
                     {/* Avatar */}
                     <Model
-                        bodyContent={<UserProfileImage user={user} isCurrentUser={isCurrentUser} profileUser={profileUser} />}
+                        bodyContent={<UserProfileImage  isCurrentUser={isCurrentUser} profileUser={profileUser} />}
                         title={isCurrentUser ? "Edit Profile Image" : `${profileUser?.username}'s Photo`}
                         className="w-full md:w-[800px]"
                         triggerCls=""

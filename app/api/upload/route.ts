@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/authOptions";
 
 type UploadType =
   | "profile"
+  | "userBanner"
   | "companyLogo"
   | "companyBanner"
   | "resume"
@@ -44,6 +45,7 @@ export async function POST(req: NextRequest) {
     // ✅ TYPE-SPECIFIC VALIDATION
     const typeValidation: Record<UploadType, string[]> = {
       profile: ["image/jpeg", "image/png", "image/webp"],
+      userBanner: ["image/jpeg", "image/png", "image/webp"],
       companyLogo: ["image/jpeg", "image/png", "image/webp"],
       companyBanner: ["image/jpeg", "image/png", "image/webp"],
       projectImage: ["image/jpeg", "image/png", "image/webp"],
@@ -71,6 +73,7 @@ export async function POST(req: NextRequest) {
 
     const folderMap: Record<UploadType, string> = {
       profile: "job-board/users",
+      userBanner: "job-board/users/banner",
       companyLogo: "job-board/companies/logo",
       companyBanner: "job-board/companies/banner",
       resume: "job-board/resumes",
@@ -98,6 +101,30 @@ export async function POST(req: NextRequest) {
               profileImagePublicId: uploaded.publicId,
             },
           });
+          break;
+        }
+
+        case "userBanner": {
+          const user = await db.user.findUnique({
+            where: { id: userId },
+          });
+
+          if (!user) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 });
+          }
+
+          if (user.userImagePublicId) {
+            await deleteFromCloudinary(user.userImagePublicId);
+          }
+
+          await db.user.update({
+            where: { id: userId },
+            data: {
+              userImage: uploaded.url,
+              userImagePublicId: uploaded.publicId,
+            },
+          });
+
           break;
         }
 

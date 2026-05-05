@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth';
 import { db } from '@/lib/db';
 import { authOptions } from '@/lib/authOptions';
 import { CreateJobSchema } from '@/lib/SchemaTypes';
+import { FEATURES } from '@/lib/proFeatures';
 
 interface CreateJobProps {
     values: z.infer<typeof CreateJobSchema>;
@@ -27,34 +28,36 @@ export const createJobAction = async ({
     try {
         const session = await getServerSession(authOptions);
 
-        if (!session?.user) {
+        if (!session?.user?.id) {
             return { error: 'Unauthorized' };
         }
 
-        const currentUser = session.user;
+        const currentUser = await db.user.findUnique({
+            where: { id: session.user.id },
+            include: { company: true },
+        });
 
+        if (!currentUser) {
+            return { error: 'User not found' };
+        }
+
+        // 🚫 ROLE CHECK
         if (
-            currentUser.role !== 'ORGANIZATION' &&
-            currentUser.role !== 'RECRUITER'
+            currentUser.role !== 'RECRUITER' &&
+            currentUser.role !== 'ORGANIZATION'
         ) {
-            return {
-                error: 'Forbidden: You cannot create jobs',
-            };
+            return { error: 'You cannot create jobs' };
         }
 
-        const validatedFields =
-            CreateJobSchema.safeParse(values);
-
-        if (!validatedFields.success) {
-            return {
-                error: 'Invalid fields',
-                issues: validatedFields.error.format(),
-            };
+        // ✅ VALIDATE INPUT
+        const validated = CreateJobSchema.safeParse(values);
+        if (!validated.success) {
+            return { error: 'Invalid form data' };
         }
 
-        const { company, ...jobData } =
-            validatedFields.data;
+        const { company, ...jobData } = validated.data;
 
+        // ✅ COMPANY CHECK
         const ownedCompany = await db.company.findFirst({
             where: {
                 companyName: company,
@@ -63,30 +66,60 @@ export const createJobAction = async ({
         });
 
         if (!ownedCompany) {
-            return {
-                error:
-                    'Forbidden: You do not own this company',
-            };
+            return { error: 'You do not own this company' };
         }
 
+        if (!ownedCompany.companyIsVerified) {
+            return { error: 'Company is not verified' };
+        }
+
+        // ✅ FEATURE LIMITS
+        const tier = currentUser.isPro ? 'PRO' : 'FREE';
+        const features = FEATURES[currentUser.role][tier];
+
+        // ACTIVE JOBS
+        const activeJobs = await db.job.count({
+            where: {
+                userId: currentUser.id,
+                status: 'ACTIVE',
+            },
+        });
+
+        // MONTHLY JOBS
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+
+        const monthlyJobs = await db.job.count({
+            where: {
+                userId: currentUser.id,
+                createdAt: { gte: startOfMonth },
+            },
+        });
+
+        if (activeJobs >= features.MAX_ACTIVE_JOBS) {
+            return { error: 'Active job limit reached. Upgrade plan.' };
+        }
+
+        if (
+            'JOBS_PER_MONTH' in features &&
+            monthlyJobs >= features.JOBS_PER_MONTH
+        ) {
+            return { error: 'Monthly job limit reached. Upgrade plan.' };
+        }
+
+        // ✏️ EDIT JOB
         if (isEdit) {
-            if (!jobId) {
-                return { error: 'Job ID required for edit' };
-            }
+            if (!jobId) return { error: 'Job ID required' };
 
             const existingJob = await db.job.findUnique({
                 where: { id: jobId },
             });
 
-            if (!existingJob) {
-                return { error: 'Job not found' };
-            }
+            if (!existingJob) return { error: 'Job not found' };
 
             if (existingJob.userId !== currentUser.id) {
-                return {
-                    error:
-                        'Forbidden: You do not own this job',
-                };
+                return { error: 'Not authorized' };
             }
 
             const updatedJob = await db.job.update({
@@ -100,12 +133,10 @@ export const createJobAction = async ({
                 },
             });
 
-            return {
-                success: 'Job updated successfully',
-                data: updatedJob,
-            };
+            return { success: 'Job updated', data: updatedJob };
         }
 
+        // 🆕 CREATE JOB
         const newJob = await db.job.create({
             data: {
                 ...jobData,
@@ -114,22 +145,13 @@ export const createJobAction = async ({
                 skills,
                 questions,
                 jobDesc,
+                status: 'ACTIVE',
             },
         });
 
-        return {
-            success: 'Job created successfully',
-            data: newJob,
-        };
+        return { success: 'Job created successfully', data: newJob };
     } catch (error) {
-        console.error(
-            'Create Job Action Error:',
-            error
-        );
-
-        return {
-            error:
-                'Job creation failed. Please try again later.',
-        };
+        console.error('Create Job Error:', error);
+        return { error: 'Something went wrong' };
     }
 };

@@ -84,7 +84,7 @@ export const useProfileCardItems = (user: any) => {
                 id: 8,
                 title: 'Subscriptions',
                 icon: <FaUsers size={20} />,
-                href: '/dashboard/subscriptions',
+                href: '/subscriptions',
                 visible: isRec || isCan || isOrg,
             },
             {

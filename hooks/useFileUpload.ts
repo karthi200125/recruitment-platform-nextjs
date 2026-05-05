@@ -2,9 +2,18 @@
 
 import { useState } from "react";
 
+type UploadType =
+    | "profile"
+    | "userBanner"
+    | "companyLogo"
+    | "companyBanner"
+    | "resume"
+    | "projectImage"
+    | "chatImage";
+
 type UploadParams = {
     file: File;
-    type: string;
+    type: UploadType;
     userId?: number;
     companyId?: number;
     projectId?: number;
@@ -27,23 +36,28 @@ export function useFileUpload() {
             formData.append("file", file);
             formData.append("type", type);
 
+            // ✅ only send when needed
             if (userId) formData.append("userId", String(userId));
             if (companyId) formData.append("companyId", String(companyId));
             if (projectId) formData.append("projectId", String(projectId));
 
             const xhr = new XMLHttpRequest();
 
+            // ✅ progress
             xhr.upload.onprogress = (e) => {
                 if (e.lengthComputable) {
-                    setProgress((e.loaded / e.total) * 100);
+                    const percent = (e.loaded / e.total) * 100;
+                    setProgress(percent);
                 }
             };
 
+            // ✅ start
             xhr.onloadstart = () => {
                 setLoading(true);
                 setError(null);
             };
 
+            // ✅ success
             xhr.onload = () => {
                 setLoading(false);
 
@@ -60,6 +74,7 @@ export function useFileUpload() {
                 });
             };
 
+            // ❌ error
             xhr.onerror = () => {
                 setLoading(false);
                 setError("Upload failed");

@@ -2,6 +2,7 @@ import Providers from "@/components/Providers";
 import { Toaster } from "@/components/ui/toaster";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import 'react-quill/dist/quill.snow.css';
 import RootLayoutClient from "@/components/RootLayoutClient";
 import { Metadata } from "next";
 
