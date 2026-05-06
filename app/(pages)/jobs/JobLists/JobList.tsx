@@ -4,7 +4,6 @@ import Image from 'next/image';
 import moment from 'moment';
 import { MapPin, Clock, Briefcase, Users } from 'lucide-react';
 import { JobWithCompany } from '@/actions/job/getFilterAllJobs';
-import noImage from '@/public/noImage.webp';
 
 interface Props {
   job: JobWithCompany;
@@ -40,7 +39,7 @@ const JobList = ({ job, selectedJob, isHover, border }: Props) => {
         {/* Company logo */}
         <div className="w-11 h-11 rounded-xl overflow-hidden border border-slate-200 bg-white flex-shrink-0">
           <Image
-            src={job.company?.companyImage || noImage}
+            src={job.company?.companyImage || '/noImage.webp'}
             alt={job.company?.companyName ?? "Company"}
             width={44}
             height={44}

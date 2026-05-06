@@ -1,23 +1,29 @@
 'use server';
 
+import { authOptions } from '@/lib/authOptions';
 import { db } from '@/lib/db';
 import { CompanySchema } from '@/lib/SchemaTypes';
+import { Role } from '@prisma/client';
+import { getServerSession } from 'next-auth';
 import * as z from 'zod';
-import { getUserById } from '../auth/getUserById';
+
+interface UserProps {
+    id: number,
+    role?: Role
+}
 
 export const createCompanyAction = async (
     values: z.infer<typeof CompanySchema>,
-    userId?: string,
     isEdit?: boolean,
     companyId?: number
 ) => {
-    try {        
-        const user = await getUserById(userId);
-        
+    try {
+        const user: UserProps = await getServerSession(authOptions);
+
         if (!user || user.role !== 'ORGANIZATION') {
             return { error: 'You are not allowed to create a company' };
         }
-        
+
         const validatedFields = CompanySchema.safeParse(values);
 
         if (!validatedFields.success) {
@@ -37,7 +43,7 @@ export const createCompanyAction = async (
             });
 
             return { success: 'Company edited successfully', data: updatedCompany };
-        } else {            
+        } else {
             const companyExists = await db.company.findFirst({
                 where: { companyName: data.companyName }
             });
@@ -45,7 +51,7 @@ export const createCompanyAction = async (
             if (companyExists) {
                 return { error: `Company '${data.companyName}' already exists` };
             }
-            
+
             const newCompany = await db.company.create({
                 data: {
                     ...data,

@@ -14,6 +14,7 @@ import { CompanySchema } from "@/lib/SchemaTypes";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from 'react';
 import { useSelector } from "react-redux";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface CompanyFormProps {
     company?: any,
@@ -23,9 +24,7 @@ interface CompanyFormProps {
 const CompanyForm = ({ company, isPending }: CompanyFormProps) => {
 
 
-    console.log("welcome form", company)
-
-    const user = useSelector((state: any) => state.user.user)
+    const { user } = useCurrentUser()
     const [err, setErr] = useState("");
     const [success, setSuccess] = useState("");
     const router = useRouter();
@@ -51,7 +50,7 @@ const CompanyForm = ({ company, isPending }: CompanyFormProps) => {
             const userId = user?.id
             const isEdit = company ? true : false
             const companyId = company?.id
-            createCompanyAction(values, userId, isEdit, companyId)
+            createCompanyAction(values, isEdit, companyId)
                 .then((data) => {
                     console.log(data)
                     if (data?.success) {

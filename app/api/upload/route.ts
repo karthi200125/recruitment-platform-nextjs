@@ -11,7 +11,8 @@ type UploadType =
   | "companyBanner"
   | "resume"
   | "projectImage"
-  | "chatImage";
+  | "chatImage"
+  | "chatFile"
 
 export async function POST(req: NextRequest) {
   try {
@@ -50,6 +51,12 @@ export async function POST(req: NextRequest) {
       companyBanner: ["image/jpeg", "image/png", "image/webp"],
       projectImage: ["image/jpeg", "image/png", "image/webp"],
       chatImage: ["image/jpeg", "image/png", "image/webp"],
+      chatFile: [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/zip",
+],
       resume: ["application/pdf"],
     };
 
@@ -79,6 +86,7 @@ export async function POST(req: NextRequest) {
       resume: "job-board/resumes",
       projectImage: "job-board/projects",
       chatImage: "job-board/chats",
+      chatFile: "job-board/chats/files",
     };
 
     const uploaded = await uploadToCloudinary(buffer, folderMap[type]);
@@ -230,6 +238,7 @@ export async function POST(req: NextRequest) {
         }
 
         case "chatImage":
+        case "chatFile":
           break;
       }
     } catch (err) {

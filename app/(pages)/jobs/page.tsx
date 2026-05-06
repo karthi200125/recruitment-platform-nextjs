@@ -1,8 +1,8 @@
-import { Metadata } from "next";
-import JobsClient from "./JobsClient";
 import { getFilteredJobs } from "@/actions/job/getFilterAllJobs";
-import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
+import { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import JobsClient from "./JobsClient";
 
 interface JobsPageProps {
   searchParams: Record<string, string | undefined>;
@@ -56,6 +56,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
   };
 
   const { jobs, count } = await getFilteredJobs(filters);
+
 
   return (
     <JobsClient

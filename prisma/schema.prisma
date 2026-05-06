@@ -309,6 +309,10 @@ model Message {
   image     String?
   imagePublicId String?
 
+  file      String?
+  fileName  String?
+  fileType  String?
+
   isSeen    Boolean  @default(false)
   isDeleted Boolean @default(false)
 

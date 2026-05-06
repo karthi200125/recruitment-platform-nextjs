@@ -5,6 +5,7 @@ import JobLists from './JobLists/JobLists';
 import JobDetails from './Job/JobDetails';
 import { JobWithCompany } from '@/actions/job/getFilterAllJobs';
 import { Briefcase } from 'lucide-react';
+import JobsSearchBar from '@/components/JobsSearchBar';
 
 interface Props {
   jobs: JobWithCompany[];
@@ -43,6 +44,8 @@ const Jobb = ({
 }: Props) => {
   return (
     <div className="flex h-[calc(100vh-60px)] flex-col bg-white overflow-hidden">
+
+      <JobsSearchBar />
 
       {/* Filter bar */}
       <div className="border-b border-slate-100 bg-white z-20">

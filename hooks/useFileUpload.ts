@@ -9,7 +9,8 @@ type UploadType =
     | "companyBanner"
     | "resume"
     | "projectImage"
-    | "chatImage";
+    | "chatImage"
+    | "chatFile";
 
 type UploadParams = {
     file: File;

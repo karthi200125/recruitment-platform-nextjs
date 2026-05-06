@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { cache } from "react";
+import { searchJobs } from "../meili/searchJobs";
 
 interface GetFilteredJobsParams {
     userId?: number;
@@ -61,9 +62,13 @@ export const getFilteredJobs = cache(
 
 
             if (q) {
-                where.jobTitle = {
-                    contains: q,
-                    mode: "insensitive",
+
+                const matchedJobIds = await searchJobs(q);
+
+                where.id = {
+                    in: matchedJobIds.length
+                        ? matchedJobIds
+                        : [-1],
                 };
             }
 
