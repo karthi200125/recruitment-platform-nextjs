@@ -63,7 +63,7 @@ const JobLists = ({
   return (
     <div className="flex flex-col h-full">
       {/* Count */}
-      <div className="px-4 py-2.5 border-b border-slate-100 flex-shrink-0">
+      <div className="px-4 py-2.5  border-b border-slate-100 flex-shrink-0">
         <p className="text-xs text-slate-500">
           <span className="font-semibold text-slate-700">{count.toLocaleString()}</span> jobs found
         </p>

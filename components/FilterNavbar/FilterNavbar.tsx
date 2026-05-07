@@ -82,7 +82,7 @@ const FilterNavbar = () => {
     const activeCount = Object.values(selectedFilters).filter(Boolean).length + (easyApply ? 1 : 0);
 
     return (
-        <div className="w-full bg-white border-b border-slate-100 px-4 py-2.5 flex items-center gap-2 overflow-x-auto">
+        <div className="w-full bg-white border-b border-slate-100 py-2.5 flex items-center gap-2 overflow-x-auto">
 
             {/* Filter pills */}
             {filters.map((filter) => {

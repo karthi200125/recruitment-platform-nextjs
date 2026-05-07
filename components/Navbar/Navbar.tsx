@@ -8,9 +8,7 @@ import { Suspense } from 'react';
 import Logo from '../Logo';
 import Menu from './Menu';
 
-const Premium = dynamic(() => import('./Premiem'), { suspense: true });
 const NavIcons = dynamic(() => import('./NavIcons'), { suspense: true });
-const Search = dynamic(() => import('../Search/Search'), { suspense: true });
 const UserProfileCard = dynamic(() => import('./UserProfileCard'), { suspense: true });
 
 const Navbar = () => {
@@ -26,7 +24,7 @@ const Navbar = () => {
             >
                 <Logo />
 
-                <Search />
+                
 
                 <div className="hidden sm:flex flex-row items-center gap-5">
                     <Suspense fallback={<NavIconSkeleton />}>

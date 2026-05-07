@@ -159,37 +159,50 @@ const JobTitles: React.FC<JobTitlesProps> = ({ user, job, company, isPending, sa
       )}
 
       {/* Actions */}
-      <div className="flex flex-wrap gap-3 pt-1">
-        {isApplied ? (
-          <div className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-5 py-2.5 text-sm font-semibold text-emerald-700">
-            <CheckCircle2 className="w-4 h-4" strokeWidth={2} />Applied
-          </div>
-        ) : (
-          user?.role !== "ORGANIZATION" && (
-            <>
-              {job.isEasyApply ? (
-                <Model
-                  bodyContent={<EasyApply job={job} safeSearchParams={safeSearchParams} />}
-                  title={`Apply to ${company?.companyName}`}
-                  modalId="easyapplyModal"
-                >
-                  <button className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors duration-200 shadow-sm shadow-indigo-200">
-                    <Zap className="w-4 h-4" strokeWidth={2} />Easy Apply
+      {user ?
+        <div className="flex flex-wrap gap-3 pt-1">
+          {isApplied ? (
+            <div className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-5 py-2.5 text-sm font-semibold text-emerald-700">
+              <CheckCircle2 className="w-4 h-4" strokeWidth={2} />Applied
+            </div>
+          ) : (
+            user?.role !== "ORGANIZATION" && (
+              <>
+                {job.isEasyApply ? (
+                  <Model
+                    bodyContent={<EasyApply job={job} safeSearchParams={safeSearchParams} />}
+                    title={`Apply to ${company?.companyName}`}
+                    modalId="easyapplyModal"
+                  >
+                    <button className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors duration-200 shadow-sm shadow-indigo-200">
+                      <Zap className="w-4 h-4" strokeWidth={2} />Easy Apply
+                    </button>
+                  </Model>
+                ) : (
+                  <button
+                    onClick={() => job.applyLink && window.open(job.applyLink, "_blank")}
+                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors duration-200 shadow-sm shadow-indigo-200"
+                  >
+                    Apply<ExternalLink className="w-3.5 h-3.5" strokeWidth={2} />
                   </button>
-                </Model>
-              ) : (
-                <button
-                  onClick={() => job.applyLink && window.open(job.applyLink, "_blank")}
-                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors duration-200 shadow-sm shadow-indigo-200"
-                >
-                  Apply<ExternalLink className="w-3.5 h-3.5" strokeWidth={2} />
-                </button>
-              )}
-              {user?.id && <SaveJobButton userId={user.id} jobId={job.id} />}
-            </>
-          )
-        )}
-      </div>
+                )}
+                {user?.id && <SaveJobButton userId={user.id} jobId={job.id} />}
+              </>
+            )
+          )}
+        </div>
+        :
+        <div className="max-w-max flex items-center gap-2 rounded-xl bg-amber-50 border border-indigo-200 px-3 py-2.5">
+
+          <p className="text-xs text-indigo-700">
+            <span className="font-semibold">Signin</span> users can only apply jobs.{" "}
+            <Link href="/signin" className="underline underline-offset-2 hover:text-indigo-800 transition-colors">
+              SignIn
+            </Link>
+          </p>
+        </div>
+      }
+
     </div>
   );
 };

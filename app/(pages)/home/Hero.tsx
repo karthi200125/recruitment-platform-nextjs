@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Search, MapPin } from "lucide-react";
+import JobsSearchBar from "@/components/JobsSearchBar";
 
 const STATS = [
   { value: "1,000+", label: "Companies Hiring" },
@@ -47,44 +48,9 @@ const HeroSection = () => {
         </p>
 
         {/* 🔥 SEARCH BAR (MAIN FEATURE) */}
-        <form
-          action="/jobs"
-          className="w-full mt-4 flex flex-col md:flex-row items-stretch gap-3 bg-white/5 border border-white/10 rounded-xl p-2 backdrop-blur"
-        >
-          {/* Job Input */}
-          <div className="flex items-center gap-2 flex-1 px-3">
-            <Search className="w-4 h-4 text-white/40" />
-            <input
-              type="text"
-              name="q"
-              placeholder="Job title or keyword"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full bg-transparent outline-none text-sm text-white placeholder:text-white/40"
-            />
-          </div>
-
-          {/* Location Input */}
-          <div className="flex items-center gap-2 flex-1 px-3 border-t md:border-t-0 md:border-l border-white/10">
-            <MapPin className="w-4 h-4 text-white/40" />
-            <input
-              type="text"
-              name="location"
-              placeholder="Location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="w-full bg-transparent outline-none text-sm text-white placeholder:text-white/40"
-            />
-          </div>
-
-          {/* Search Button */}
-          <button
-            type="submit"
-            className="bg-indigo-600 hover:bg-indigo-500 transition px-6 py-3 rounded-lg text-sm font-semibold"
-          >
-            Search Jobs
-          </button>
-        </form>
+        <JobsSearchBar
+          className="max-w-5xl mx-auto bg-black text-white border border-white/10 rounded-sm"
+        />
 
         {/* Secondary CTA */}
         <div className="flex gap-4 mt-3 flex-wrap justify-center">
