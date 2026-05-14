@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
 interface JobResult {
     id: number;
@@ -106,7 +106,10 @@ const JobsSearchBar = ({
     showPopularTags = true,
 }: JobsSearchBarProps) => {
     const router = useRouter();
+    const pathname = usePathname();
     const searchParams = useSearchParams();
+
+    const isHomePage = pathname === '/';
 
     const [query, setQuery] = useState(searchParams.get('q') || '');
     const [location, setLocation] = useState(
@@ -123,7 +126,7 @@ const JobsSearchBar = ({
     const queryInputRef = useRef<HTMLInputElement>(null);
     const locationInputRef = useRef<HTMLInputElement>(null);
 
-    // debounce
+    // debounce search
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedQuery(query);
@@ -182,8 +185,12 @@ const JobsSearchBar = ({
 
         document.addEventListener('mousedown', handleOutsideClick);
 
-        return () =>
-            document.removeEventListener('mousedown', handleOutsideClick);
+        return () => {
+            document.removeEventListener(
+                'mousedown',
+                handleOutsideClick
+            );
+        };
     }, []);
 
     const handleSearch = useCallback(() => {
@@ -219,7 +226,9 @@ const JobsSearchBar = ({
         setActiveIndex(-1);
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyDown = (
+        e: React.KeyboardEvent<HTMLInputElement>
+    ) => {
         if (!openSuggestions || suggestions.length === 0) {
             if (e.key === 'Enter') {
                 handleSearch();
@@ -231,19 +240,24 @@ const JobsSearchBar = ({
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
+
                 setActiveIndex((prev) =>
                     Math.min(prev + 1, suggestions.length - 1)
                 );
+
                 break;
 
             case 'ArrowUp':
                 e.preventDefault();
+
                 setActiveIndex((prev) => Math.max(prev - 1, -1));
+
                 break;
 
             case 'Escape':
                 setOpenSuggestions(false);
                 setActiveIndex(-1);
+
                 break;
 
             case 'Enter':
@@ -262,121 +276,149 @@ const JobsSearchBar = ({
     return (
         <div
             ref={containerRef}
-            className={`relative min-w-0 ${className || ''}`}
+            className={`relative w-full min-w-0 ${className || ''}`}
         >
             {/* SEARCH BAR */}
-            <div className="h-[50px] flex items-center w-full flex-col overflow-hidden rounded-sm md:rounded-full bg-white/10 p-1 shadow-[0_4px_30px_rgba(0,0,0,0.06)] transition-all duration-200 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.08)] md:flex-row md:items-center">
+            <div
+                className={`flex w-full flex-col overflow-hidden rounded-2xl border p-2 shadow-[0_4px_30px_rgba(0,0,0,0.06)] transition-all duration-300 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.10)] md:h-[70px] md:flex-row md:items-center md:rounded-full ${isHomePage
+                    ? 'border-white/10 bg-black'
+                    : 'border-slate-200 bg-white/10 backdrop-blur-xl'
+                    }`}
+            >
                 {/* QUERY */}
                 <div
-                    className="flex min-h-[50px] flex-1 cursor-text items-center gap-3 px-4"
+                    className="flex min-h-[56px] flex-1 items-center gap-3 px-3 md:px-5"
                     onClick={() => queryInputRef.current?.focus()}
                 >
-                    <div className="text-slate-400">
+                    <div
+                        className={`flex-shrink-0 ${isHomePage
+                            ? 'text-slate-400'
+                            : 'text-slate-500'
+                            }`}
+                    >
                         <SearchIcon />
                     </div>
 
-                    <div className="flex flex-1 flex-col">
+                    <div className="flex flex-1 items-center gap-2">
+                        <input
+                            ref={queryInputRef}
+                            type="text"
+                            placeholder="Job title, company, skills..."
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            onFocus={() => {
+                                if (suggestions.length > 0) {
+                                    setOpenSuggestions(true);
+                                }
+                            }}
+                            className={`w-full border-none bg-transparent text-sm outline-none ${isHomePage
+                                ? 'text-white placeholder:text-slate-500'
+                                : 'text-slate-800 placeholder:text-slate-400'
+                                }`}
+                        />
 
-                        <div className="flex items-center gap-2">
-                            <input
-                                ref={queryInputRef}
-                                type="text"
-                                placeholder="Job title, company, skills..."
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                onFocus={() => {
-                                    if (suggestions.length > 0) {
-                                        setOpenSuggestions(true);
-                                    }
+                        {loading && (
+                            <div className="text-slate-400">
+                                <SpinnerIcon />
+                            </div>
+                        )}
+
+                        {query && !loading && (
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+
+                                    setQuery('');
+                                    setSuggestions([]);
+                                    setOpenSuggestions(false);
                                 }}
-                                className="w-full border-none bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-500"
-                            />
-
-                            {loading && (
-                                <div className="text-slate-400">
-                                    <SpinnerIcon />
-                                </div>
-                            )}
-
-                            {query && !loading && (
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setQuery('');
-                                        setSuggestions([]);
-                                        setOpenSuggestions(false);
-                                    }}
-                                    className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-400 transition hover:bg-slate-200 hover:text-slate-500"
-                                >
-                                    <ClearIcon />
-                                </button>
-                            )}
-                        </div>
+                                className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 text-slate-500 transition hover:bg-slate-300"
+                            >
+                                <ClearIcon />
+                            </button>
+                        )}
                     </div>
                 </div>
 
-                {/* divider */}
-                <div className="mx-3 hidden h-10 w-px bg-slate-100 md:block" />
+                {/* DIVIDER */}
+                <div
+                    className={`mx-4 hidden h-10 w-px md:block ${isHomePage
+                        ? 'bg-white/10'
+                        : 'bg-slate-200'
+                        }`}
+                />
 
-                <div className="mx-4 h-px bg-slate-100 md:hidden" />
+                <div
+                    className={`mx-4 h-px md:hidden ${isHomePage
+                        ? 'bg-white/10'
+                        : 'bg-slate-200'
+                        }`}
+                />
 
                 {/* LOCATION */}
                 <div
-                    className="flex min-h-[50px] flex-1 cursor-text items-center gap-3 px-4"
+                    className="flex min-h-[56px] flex-1 items-center gap-3 px-3 md:px-5"
                     onClick={() => locationInputRef.current?.focus()}
                 >
-                    <div className="text-slate-400">
+                    <div
+                        className={`flex-shrink-0 ${isHomePage
+                            ? 'text-slate-400'
+                            : 'text-slate-500'
+                            }`}
+                    >
                         <LocationIcon />
                     </div>
 
-                    <div className="flex flex-1 flex-col">
+                    <div className="flex flex-1 items-center gap-2">
+                        <input
+                            ref={locationInputRef}
+                            type="text"
+                            placeholder="City, state, remote..."
+                            value={location}
+                            onChange={(e) =>
+                                setLocation(e.target.value)
+                            }
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleSearch();
+                                }
+                            }}
+                            className={`w-full border-none bg-transparent text-sm outline-none ${isHomePage
+                                ? 'text-white placeholder:text-slate-500'
+                                : 'text-slate-800 placeholder:text-slate-400'
+                                }`}
+                        />
 
-                        <div className="flex items-center gap-2">
-                            <input
-                                ref={locationInputRef}
-                                type="text"
-                                placeholder="City, state, remote..."
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        handleSearch();
-                                    }
+                        {location && (
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setLocation('');
                                 }}
-                                className="w-full border-none bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-500"
-                            />
-
-                            {location && (
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setLocation('');
-                                    }}
-                                    className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-400 transition hover:bg-slate-200 hover:text-slate-600"
-                                >
-                                    <ClearIcon />
-                                </button>
-                            )}
-                        </div>
+                                className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 text-slate-500 transition hover:bg-slate-300"
+                            >
+                                <ClearIcon />
+                            </button>
+                        )}
                     </div>
                 </div>
 
-                {/* BUTTON */}
+                {/* SEARCH BUTTON */}
                 <button
                     type="button"
                     onClick={handleSearch}
-                    className="mt-2 flex h-[50px] items-center justify-center gap-2 rounded-sm md:rounded-full bg-indigo-600 text-white hover:bg-indigo-500 transition-colors duration-200 shadow-lg shadow-indigo-500/20 px-6 text-sm font-semibold md:mt-0"
+                    className="mt-2 flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-white transition-all duration-200 hover:bg-indigo-500 md:mt-0 md:w-auto md:min-w-[140px] md:rounded-full"
                 >
                     <SearchIcon />
-                    Find Jobs
+                    <span>Find Jobs</span>
                 </button>
             </div>
 
             {/* POPULAR TAGS */}
-            {/* {showPopularTags && (
+            {showPopularTags && (
                 <div className="mt-4 flex flex-wrap gap-2">
                     {popularTags.map((tag) => (
                         <button
@@ -385,17 +427,20 @@ const JobsSearchBar = ({
                                 setQuery(tag);
                                 queryInputRef.current?.focus();
                             }}
-                            className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-800"
+                            className={`rounded-full border px-4 py-2 text-xs font-medium transition-all duration-200 ${isHomePage
+                                ? 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+                                : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                                }`}
                         >
                             {tag}
                         </button>
                     ))}
                 </div>
-            )} */}
+            )}
 
             {/* SUGGESTIONS */}
             {openSuggestions && suggestions.length > 0 && (
-                <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-50 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_10px_40px_rgba(0,0,0,0.10)]">
+                <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-50 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                     {suggestions.map((job, index) => (
                         <div
                             key={job.id}
@@ -403,8 +448,10 @@ const JobsSearchBar = ({
                                 e.preventDefault();
                                 selectSuggestion(job);
                             }}
-                            onMouseEnter={() => setActiveIndex(index)}
-                            className={`flex cursor-pointer items-center gap-4 border-b border-slate-100 px-5 py-4 transition last:border-none ${activeIndex === index
+                            onMouseEnter={() =>
+                                setActiveIndex(index)
+                            }
+                            className={`flex cursor-pointer items-center gap-4 border-b border-slate-100 px-5 py-4 transition-all duration-150 last:border-none ${activeIndex === index
                                 ? 'bg-slate-100'
                                 : 'hover:bg-slate-50'
                                 }`}
@@ -414,7 +461,7 @@ const JobsSearchBar = ({
                             </div>
 
                             <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-medium text-slate-800">
+                                <p className="truncate text-sm font-semibold text-slate-800">
                                     {job.jobTitle}
                                 </p>
 
@@ -425,16 +472,19 @@ const JobsSearchBar = ({
                         </div>
                     ))}
 
+                    {/* FOOTER */}
                     <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50 px-5 py-3 text-xs text-slate-400">
                         <div className="flex items-center gap-2">
                             <span className="rounded border bg-white px-1.5 py-0.5">
                                 ↑↓
                             </span>
+
                             navigate
 
                             <span className="ml-2 rounded border bg-white px-1.5 py-0.5">
                                 ↵
                             </span>
+
                             select
                         </div>
 
