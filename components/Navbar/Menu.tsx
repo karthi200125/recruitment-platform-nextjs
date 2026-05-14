@@ -21,6 +21,14 @@ import Icon from '../Icon';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useProfileCardItems } from './UserProfileCard';
 
+type MenuItem = {
+    id: number;
+    title: string;
+    href: string;
+    visible: boolean;
+    icon: React.ReactNode;
+};
+
 const Menu = () => {
     const { user, isLoading } = useCurrentUser();
 
@@ -29,9 +37,9 @@ const Menu = () => {
 
     const [open, setOpen] = useState(false);
 
-    const extraItems = [
+    const extraItems: MenuItem[] = [
         {
-            id: 999,
+            id: 9,
             title: 'Companies',
             href: '/companies',
             visible: true,
@@ -41,7 +49,10 @@ const Menu = () => {
 
     const profileItems = useProfileCardItems(user);
 
-    const menuItems = [...extraItems, ...profileItems];
+    const menuItems: MenuItem[] = [
+        ...extraItems,
+        ...profileItems,
+    ];
 
     const basePath = useMemo(() => {
         return pathname.startsWith('/userProfile')
@@ -49,86 +60,164 @@ const Menu = () => {
             : pathname.split('/').slice(0, 2).join('/');
     }, [pathname]);
 
-    const handleClick = useCallback(
-        async (item: (typeof menuItems)[number]) => {
+    const handleNavigate = useCallback(
+        async (item: MenuItem) => {
             setOpen(false);
 
             if (item.title === 'Sign Out') {
                 await signOut({
                     callbackUrl: '/signin',
                 });
+
                 return;
             }
 
             router.push(item.href);
         },
-        [router, menuItems]
+        [router]
     );
 
-    if (isLoading || !user) return null;
+    // if (isLoading) {
+    //     return (
+    //         <div className="h-10 w-10 animate-pulse rounded-xl bg-white/10" />
+    //     );
+    // }
 
     return (
-        <div className="md:hidden w-[40px] h-[40px] rounded-md bg-white/10 flexcenter text-white">
+        <div className="flex items-center justify-center md:hidden">
             <Sheet open={open} onOpenChange={setOpen}>
+
                 <SheetTrigger asChild>
-                    <button>
-                        <RiMenu3Line size={25} />
+                    <button
+                        type="button"
+                        aria-label="Open menu"
+                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white transition-all duration-200 hover:bg-white/[0.08] active:scale-95"
+                    >
+                        <RiMenu3Line size={22} />
                     </button>
                 </SheetTrigger>
 
-                <SheetContent className="w-[90%] h-screen space-y-5">
-                    <div className="flex gap-3">
-                        <div className="relative w-[50px] h-[50px] rounded-full overflow-hidden">
-                            <Image
-                                src={user.profileImage || noAvatar}
-                                alt="User Profile"
-                                fill
-                                className="object-cover"
-                            />
-                        </div>
+                <SheetContent
+                    side="left"
+                    className="flex h-screen w-full max-w-sm flex-col border-r border-white/10 bg-black px-0 text-white"
+                >
 
-                        <div>
-                            <h4 className="font-bold">{user.username}</h4>
-                            <p className="text-xs text-neutral-400">{user.email}</p>
-                        </div>
+                    {/* HEADER */}
+                    <div className="border-b border-white/10 px-5 py-5">
+
+                        {user ? (
+                            <div className="flex items-center gap-3">
+
+                                <div className="relative h-14 w-14 overflow-hidden rounded-full border border-white/10 bg-white/5">
+                                    <Image
+                                        src={user.profileImage || noAvatar}
+                                        alt="User Profile"
+                                        fill
+                                        className="object-cover"
+                                    />
+                                </div>
+
+                                <div className="min-w-0">
+                                    <h4 className="truncate text-sm font-semibold">
+                                        {user.username}
+                                    </h4>
+
+                                    <p className="truncate text-xs text-zinc-400">
+                                        {user.email}
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+
+                                <button
+                                    onClick={() => {
+                                        setOpen(false);
+                                        router.push('/signin');
+                                    }}
+                                    className="w-full rounded-xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200"
+                                >
+                                    Sign In
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        setOpen(false);
+                                        router.push('/signup');
+                                    }}
+                                    className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                                >
+                                    Create Account
+                                </button>
+                            </div>
+                        )}
                     </div>
 
-                    {user.isPro ? (
-                        <button
-                            onClick={() => {
-                                setOpen(false);
-                                router.push('/subscription');
-                            }}
-                            className="underline text-sm"
-                        >
-                            Premium Features
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => {
-                                setOpen(false);
-                                router.push('/subscription');
-                            }}
-                            className="w-full px-5 rounded-md h-[50px] flex items-center gap-3"
-                        >
-                            <Icon icon={<FaCrown size={20} />} title="Upgrade Premium" />
-                        </button>
+                    {/* PREMIUM CTA */}
+                    {user && (
+                        <div className="px-5 py-4">
+
+                            {user.isPro ? (
+                                <button
+                                    onClick={() => {
+                                        setOpen(false);
+                                        router.push('/subscription');
+                                    }}
+                                    className="w-full rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-300 transition hover:bg-amber-500/15"
+                                >
+                                    Manage Premium
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => {
+                                        setOpen(false);
+                                        router.push('/subscription');
+                                    }}
+                                    className="flex w-full items-center gap-3 rounded-2xl border border-indigo-500/20 bg-indigo-500/10 px-4 py-3 text-sm font-medium text-indigo-300 transition hover:bg-indigo-500/15"
+                                >
+                                    <Icon
+                                        icon={<FaCrown size={18} />}
+                                        title="Upgrade Premium"
+                                    />
+                                </button>
+                            )}
+                        </div>
                     )}
 
-                    <div className="space-y-1">
+                    {/* MENU ITEMS */}
+                    <div className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
+
                         {menuItems
                             .filter((item) => item.visible)
-                            .map((item) => (
-                                <button
-                                    key={item.id}
-                                    onClick={() => handleClick(item)}
-                                    className={`w-full flex items-center gap-4 p-3 rounded-md text-left hover:bg-neutral-100 ${basePath === item.href ? 'bg-neutral-100' : ''
-                                        }`}
-                                >
-                                    {item.icon}
-                                    <span>{item.title}</span>
-                                </button>
-                            ))}
+                            .map((item) => {
+                                const active = basePath === item.href;
+
+                                return (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => handleNavigate(item)}
+                                        className={`flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left text-sm font-medium transition-all duration-200 ${active
+                                            ? 'bg-white text-black'
+                                            : 'text-zinc-300 hover:bg-white/[0.06] hover:text-white'
+                                            }`}
+                                    >
+                                        <span className="flex-shrink-0">
+                                            {item.icon}
+                                        </span>
+
+                                        <span className="truncate">
+                                            {item.title}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                    </div>
+
+                    {/* FOOTER */}
+                    <div className="border-t border-white/10 px-5 py-4">
+                        <p className="text-center text-xs text-zinc-500">
+                            Built for modern hiring
+                        </p>
                     </div>
                 </SheetContent>
             </Sheet>

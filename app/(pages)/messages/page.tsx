@@ -53,7 +53,7 @@ const Messages = () => {
     }
 
     return (
-        <div className="w-full h-[calc(100vh-64px)] flex bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+        <div className="w-full h-[calc(100vh-68px)] flex bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
 
             {/* LEFT — chat list */}
             <div className="w-full md:w-[300px] lg:w-[340px] flex-shrink-0 flex flex-col border-r border-slate-100">

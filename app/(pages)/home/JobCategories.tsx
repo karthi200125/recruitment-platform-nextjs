@@ -62,7 +62,7 @@ const JobCategories = () => {
                                         <div className={`w-11 h-11 flex items-center justify-center rounded-xl ${category.iconBg} transition-colors duration-300`}>
                                             <Icon className="w-5 h-5" strokeWidth={1.75} />
                                         </div>
-                                        <span className="text-xs font-semibold text-zinc-600 border border-white/[0.06] bg-white/[0.03] rounded-full px-2.5 py-1">
+                                        <span className="text-xs font-semibold text-zinc-600 border border-white/[0.06] bg-black rounded-full px-2.5 py-1">
                                             {category.count.toLocaleString()} jobs
                                         </span>
                                     </div>

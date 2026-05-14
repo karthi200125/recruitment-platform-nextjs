@@ -12,6 +12,7 @@ type Props = {
     MAX_ACTIVE_JOBS: number;
     JOBS_PER_MONTH?: number;
   };
+  recruiterCompany: any;
   usage: {
     activeJobs: number;
     monthlyJobs: number;
@@ -44,7 +45,7 @@ function UsageStat({ label, used, max }: { label: string; used: number; max: num
   );
 }
 
-export default function CreateJobClient({ features, usage, isBlocked, job, isEdit = false }: Props) {
+export default function CreateJobClient({ features, usage, recruiterCompany, isBlocked, job, isEdit = false }: Props) {
   const router = useRouter();
 
   return (
@@ -130,7 +131,7 @@ export default function CreateJobClient({ features, usage, isBlocked, job, isEdi
         <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
           <div className="h-1 w-full bg-gradient-to-r from-indigo-500 to-violet-500" />
           <div className="p-6 sm:p-8">
-            <CreateJobForm job={job} isEdit={isEdit} />
+            <CreateJobForm job={job} isEdit={isEdit} recruiterCompany={recruiterCompany}/>
           </div>
         </div>
       )}

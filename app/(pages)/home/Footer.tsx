@@ -51,8 +51,6 @@ const SOCIALS = [
     { icon: FaInstagram, label: "Instagram", href: "#" },
 ];
 
-const BADGES = ["50K+ Hires", "12K+ Companies", "4.9★ Rated"];
-
 const Footer = () => {
     return (
         <footer className="relative w-full border-t border-white/[0.06] px-4 sm:px-6 lg:px-8 pt-14 pb-8 overflow-hidden">
@@ -75,16 +73,9 @@ const Footer = () => {
                             </div>
                             <span className="text-base font-bold text-white tracking-tight">Jobify</span>
                         </div>
-                        <p className="text-sm text-zinc-500 leading-relaxed mb-5">
+                        <p className="text-sm text-zinc-500 leading-relaxed mb-5 mt-5">
                             India's smartest job platform — connecting ambitious talent with companies that move fast.
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                            {BADGES.map((badge) => (
-                                <span key={badge} className="inline-flex items-center rounded-full border border-white/[0.07] bg-white/[0.04] px-2.5 py-0.5 text-[11px] font-medium text-zinc-500">
-                                    {badge}
-                                </span>
-                            ))}
-                        </div>
+                        </p>                        
                     </div>
 
                     {/* Nav columns */}

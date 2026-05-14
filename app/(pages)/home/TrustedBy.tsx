@@ -4,14 +4,14 @@ import Image from "next/image";
 import Marquee from "react-fast-marquee";
 
 const companies = [
-  { src: '/logos/netflix.webp', alt: "Netflix" },
-  { src: '/logos/nvidia.webp', alt: "Nvidia" },
-  { src: '/logos/apple.webp', alt: "Apple" },
-  { src: '/logos/google.webp', alt: "Google" },
-  { src: '/logos/microsoft.webp', alt: "Microsoft" },
-  { src: '/logos/amazon.webp', alt: "Amazon" },
-  { src: '/logos/meta.webp', alt: "Meta" },
-  { src: '/logos/stripe.webp', alt: "Stripe" },
+  { src: '/netflix.webp', alt: "Netflix" },
+  { src: '/nvidia.webp', alt: "Nvidia" },
+  { src: '/apple.webp', alt: "Apple" },
+  { src: '/google.webp', alt: "Google" },
+  { src: '/microsoft.webp', alt: "Microsoft" },
+  { src: '/amazon.webp', alt: "Amazon" },
+  { src: '/meta.webp', alt: "Meta" },
+  { src: '/stripe.webp', alt: "Stripe" },
 ];
 
 const stats = [
@@ -54,7 +54,7 @@ const TrustedBy = () => {
   return (
     <section
       aria-labelledby="trusted-by-heading"
-      className="relative w-full py-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
+      className="relative w-full py-24 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#09090b]"
     >
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0 flex justify-center items-center">

@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 import Logo from '../Logo';
 import Menu from './Menu';
+import JobsSearchBar from '../JobsSearchBar';
+import Button from '../Button';
 
 const NavIcons = dynamic(() => import('./NavIcons'), { suspense: true });
 const UserProfileCard = dynamic(() => import('./UserProfileCard'), { suspense: true });
@@ -18,23 +20,69 @@ const Navbar = () => {
     const router = useRouter()
 
     return (
-        <div className={`rounded-none md:rounded-[10px] bg-black relative top-1 max-h-max`}>
+        <div className={`rounded-none md:rounded-[10px] bg-black relative max-h-max`}>
             <nav
-                className={`sticky top-0 md:top-1 left-0 bg-black px-2 md:px-5 z-10 w-full h-[55px] flex flex-row items-center justify-between rounded-xl`}                
+                className="
+    sticky
+    top-0
+    left-0
+    z-10
+    flex
+    h-[60px]
+    w-full
+    items-center
+    gap-4
+    rounded-xl
+    bg-black
+    px-2
+    md:px-5
+  "
             >
-                <Logo />
+                {/* LEFT */}
+                <div className="hidden md:flex flex-shrink-0 items-center">
+                    <Logo />
+                </div>
 
-                
+                {/* MOBILE MENU */}
+                <div className="flex lg:hidden">
+                    <Menu />
+                </div>
 
-                <div className="hidden sm:flex flex-row items-center gap-5">
+                {/* CENTER */}
+                <div className="hidden flex-1 justify-center lg:flex">
+                    <JobsSearchBar className="w-full max-w-3xl" />
+                </div>
+
+                {/* RIGHT */}
+                <div className="ml-auto hidden flex-shrink-0 items-center gap-5 sm:flex">
+
                     <Suspense fallback={<NavIconSkeleton />}>
                         <NavIcons />
                     </Suspense>
+
+                    {!user && (
+                        <div className="flex items-center gap-2 rounded-full bg-white/10 p-1">
+                            <Button
+                                onClick={() => router.push('/signin')}
+                                className="bg-black"
+                            >
+                                Sign In
+                            </Button>
+
+                            <Button
+                                onClick={() => router.push('/signup')}
+                                className="bg-white !text-black"
+                            >
+                                Sign Up
+                            </Button>
+                        </div>
+                    )}
+
                     <Suspense fallback={<UserProfileSkeleton />}>
                         <UserProfileCard />
-                    </Suspense>                    
+                    </Suspense>
                 </div>
-                <Menu />
+
             </nav>
         </div >
     );

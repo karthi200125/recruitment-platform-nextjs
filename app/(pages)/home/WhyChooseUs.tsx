@@ -8,7 +8,7 @@ const WhyChooseUs = () => {
   return (
     <section
       aria-labelledby="why-choose-us-heading"
-      className="relative w-full py-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
+      className="relative w-full py-24 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#09090b]"
     >
       {/* Ambient glow */}
       <div className="pointer-events-none absolute inset-0 flex justify-center items-center">
@@ -102,7 +102,7 @@ const WhyChooseUs = () => {
               </svg>
             </Link>
             <Link
-              href="/post-job"
+              href="/signin"
               className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-5 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-white/[0.09] hover:text-white transition-all duration-200"
             >
               Post a job

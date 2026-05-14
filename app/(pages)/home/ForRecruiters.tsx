@@ -105,14 +105,14 @@ const ForRecruiters = () => {
                         {/* Right */}
                         <div className="flex flex-col sm:flex-row items-center gap-3 flex-shrink-0">
                             <Link
-                                href="/post-job"
+                                href="/signin"
                                 className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors duration-200 shadow-lg shadow-indigo-500/20 w-full sm:w-auto justify-center"
                             >
                                 Post a Job Free
                                 <ArrowRight className="w-4 h-4" />
                             </Link>
                             <Link
-                                href="/pricing"
+                                href="/"
                                 className="inline-flex items-center gap-2 rounded-xl border border-white/[0.09] bg-white/[0.04] px-6 py-3 text-sm font-semibold text-zinc-300 hover:bg-white/[0.09] hover:text-white transition-all duration-200 w-full sm:w-auto justify-center"
                             >
                                 View Pricing

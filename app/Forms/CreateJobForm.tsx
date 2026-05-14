@@ -26,6 +26,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 interface Props {
   job?: any;
+  recruiterCompany?: any;
   isEdit?: boolean;
 }
 
@@ -41,7 +42,7 @@ function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: 
   );
 }
 
-const CreateJobForm = ({ job, isEdit = false }: Props) => {
+const CreateJobForm = ({ job, isEdit = false, recruiterCompany }: Props) => {
   const { user } = useCurrentUser();
   const router = useRouter();
   const { showErrorToast, showSuccessToast } = useCustomToast();
@@ -52,11 +53,6 @@ const CreateJobForm = ({ job, isEdit = false }: Props) => {
   const [isLoading, startTransition] = useTransition();
   const [isEasyApply, setIsEasyApply] = useState<boolean>(job?.isEasyApply ?? false);
 
-  const { data: recruiterCompany } = useQuery({
-    queryKey: ['company', user?.id],
-    queryFn: () => getCompanies(),
-    enabled: !!user?.id && user?.role === 'RECRUITER',
-  });
 
   const companyName = useMemo(() => {
     if (!user) return '';

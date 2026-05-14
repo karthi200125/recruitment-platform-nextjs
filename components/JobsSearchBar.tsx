@@ -262,10 +262,10 @@ const JobsSearchBar = ({
     return (
         <div
             ref={containerRef}
-            className={`relative w-full ${className || ''}`}
+            className={`relative min-w-0 ${className || ''}`}
         >
             {/* SEARCH BAR */}
-            <div className="flex w-full flex-col overflow-hidden rounded-full bg-white/10 p-1 shadow-[0_4px_30px_rgba(0,0,0,0.06)] transition-all duration-200 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.08)] md:flex-row md:items-center">
+            <div className="h-[50px] flex items-center w-full flex-col overflow-hidden rounded-sm md:rounded-full bg-white/10 p-1 shadow-[0_4px_30px_rgba(0,0,0,0.06)] transition-all duration-200 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.08)] md:flex-row md:items-center">
                 {/* QUERY */}
                 <div
                     className="flex min-h-[50px] flex-1 cursor-text items-center gap-3 px-4"
@@ -276,9 +276,6 @@ const JobsSearchBar = ({
                     </div>
 
                     <div className="flex flex-1 flex-col">
-                        {/* <span className="mb-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
-                            Role
-                        </span> */}
 
                         <div className="flex items-center gap-2">
                             <input
@@ -293,7 +290,7 @@ const JobsSearchBar = ({
                                         setOpenSuggestions(true);
                                     }
                                 }}
-                                className="w-full border-none bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-300"
+                                className="w-full border-none bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-500"
                             />
 
                             {loading && (
@@ -311,7 +308,7 @@ const JobsSearchBar = ({
                                         setSuggestions([]);
                                         setOpenSuggestions(false);
                                     }}
-                                    className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-400 transition hover:bg-slate-200 hover:text-slate-600"
+                                    className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-400 transition hover:bg-slate-200 hover:text-slate-500"
                                 >
                                     <ClearIcon />
                                 </button>
@@ -335,9 +332,6 @@ const JobsSearchBar = ({
                     </div>
 
                     <div className="flex flex-1 flex-col">
-                        {/* <span className="mb-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
-                            Location
-                        </span> */}
 
                         <div className="flex items-center gap-2">
                             <input
@@ -351,7 +345,7 @@ const JobsSearchBar = ({
                                         handleSearch();
                                     }
                                 }}
-                                className="w-full border-none bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-300"
+                                className="w-full border-none bg-transparent text-sm text-slate-200 outline-none placeholder:text-slate-500"
                             />
 
                             {location && (
@@ -374,7 +368,7 @@ const JobsSearchBar = ({
                 <button
                     type="button"
                     onClick={handleSearch}
-                    className="mt-2 flex h-[50px] items-center justify-center gap-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-500 transition-colors duration-200 shadow-lg shadow-indigo-500/20 px-6 text-sm font-semibold md:mt-0"
+                    className="mt-2 flex h-[50px] items-center justify-center gap-2 rounded-sm md:rounded-full bg-indigo-600 text-white hover:bg-indigo-500 transition-colors duration-200 shadow-lg shadow-indigo-500/20 px-6 text-sm font-semibold md:mt-0"
                 >
                     <SearchIcon />
                     Find Jobs

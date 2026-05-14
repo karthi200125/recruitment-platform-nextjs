@@ -4,11 +4,14 @@ import { authOptions } from "@/lib/authOptions";
 import { db } from "@/lib/db";
 import { FEATURES } from "@/types/features";
 import CreateJobClient from "./CreateJobClient";
+import { getCompanies } from "@/actions/company/getCompanies";
 
 export default async function CreateJobPage() {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) redirect("/signin");
+
+    const recruiterCompany = await getCompanies()
 
     const user = await db.user.findUnique({ where: { id: session.user.id } });
 
@@ -36,6 +39,7 @@ export default async function CreateJobPage() {
 
     return (
         <CreateJobClient
+            recruiterCompany={recruiterCompany}
             userId={user.id}
             role={user.role as "RECRUITER" | "ORGANIZATION"}
             features={features}
