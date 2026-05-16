@@ -136,8 +136,13 @@ model Job {
 enum ApplicationStatus {
   APPLIED
   VIEWED
+  UNDER_REVIEW
   SHORTLISTED
+  INTERVIEW_SCHEDULED
+  INTERVIEWED
+  HIRED
   REJECTED
+  WITHDRAWN
 }
 
 model JobApplication {

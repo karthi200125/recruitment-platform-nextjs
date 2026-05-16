@@ -1,5 +1,6 @@
 'use client'
 
+import Logo from '@/components/Logo';
 import { ArrowLeft, Briefcase, Users, Zap } from 'lucide-react';
 
 const FEATURES = [
@@ -28,12 +29,7 @@ export default function AuthLeftSide() {
             <div className="pointer-events-none absolute -bottom-40 -right-20 w-[400px] h-[400px] rounded-full bg-violet-600/15 blur-[100px]" />
 
             {/* Logo */}
-            <div className="relative flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-                    <Briefcase className="w-4 h-4 text-white" strokeWidth={2} />
-                </div>
-                <span className="text-base font-bold text-white tracking-tight">Jobify</span>
-            </div>
+            <Logo />
 
             {/* Center content */}
             <div className="relative space-y-8">

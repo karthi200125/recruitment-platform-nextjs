@@ -77,7 +77,7 @@ const SearchModal = ({ open, onClose }: { open: boolean; onClose: () => void }) 
             aria-label="Search jobs"
         >
             {/* Modal Panel */}
-            <div className="w-full max-w-sm sm:max-w-2xl lg:max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-200">
+            <div className="w-full max-w-sm sm:max-w-2xl md:max-w-3xl xl:max-w-5xl bg-white rounded-2xl shadow-2xl animate-in fade-in slide-in-from-top-4 duration-200">
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-neutral-100">

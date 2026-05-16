@@ -112,11 +112,11 @@ export default function Home() {
 
       <main className="w-full min-h-screen text-white bg-black overflow-hidden pb-10">
 
-        
+
         <HeroSection />
         <TrustedBy />
         <JobCategories />
-        
+
         <FeaturedJobs />
         <HowItWorks />
         <WhyChooseUs />

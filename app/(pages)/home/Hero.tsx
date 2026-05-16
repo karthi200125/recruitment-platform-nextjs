@@ -75,14 +75,14 @@ const HeroSection = () => {
 
       {/* Dashboard Preview */}
       <div className="relative w-[95%] md:w-[85%] mt-16 rounded-xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur">
-        {/* <Image
+        <Image
           src="/main.webp"
           alt="Browse jobs and manage applications dashboard"
           width={1600}
           height={900}
           priority
           className="w-full h-auto"
-        /> */}
+        />
 
         <div className="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent" />
       </div>

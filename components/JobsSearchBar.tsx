@@ -281,7 +281,7 @@ const JobsSearchBar = ({
             {/* SEARCH BAR */}
             <div
                 className={`flex w-full flex-col overflow-hidden rounded-2xl border p-2 shadow-[0_4px_30px_rgba(0,0,0,0.06)] transition-all duration-300 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.10)] md:h-[70px] md:flex-row md:items-center md:rounded-full ${isHomePage
-                    ? 'border-white/10 bg-black'
+                    ? 'border-white/10 bg-white/10'
                     : 'border-slate-200 bg-white/10 backdrop-blur-xl'
                     }`}
             >
@@ -440,7 +440,7 @@ const JobsSearchBar = ({
 
             {/* SUGGESTIONS */}
             {openSuggestions && suggestions.length > 0 && (
-                <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-50 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+                <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-50 overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                     {suggestions.map((job, index) => (
                         <div
                             key={job.id}
@@ -460,7 +460,7 @@ const JobsSearchBar = ({
                                 <BriefcaseIcon />
                             </div>
 
-                            <div className="min-w-0 flex-1">
+                            <div className="min-w-0 flex-1 text-start">
                                 <p className="truncate text-sm font-semibold text-slate-800">
                                     {job.jobTitle}
                                 </p>

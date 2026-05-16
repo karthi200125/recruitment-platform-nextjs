@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     siteName: "Jobify",
     images: [
       {
-        url: "/og-image.png", 
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Jobify Sign In",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   },
 
   robots: {
-    index: false, 
+    index: false,
     follow: false,
   },
 };
@@ -56,6 +56,7 @@ export const metadata: Metadata = {
 const LoginPage = () => {
   return (
     <main className="w-full min-h-screen flex bg-[#09090b]">
+
 
       {/* Left — decorative panel */}
       <section className="hidden lg:flex lg:w-[45%] xl:w-[40%] min-h-screen bg-zinc-900/50 border-r border-white/[0.06]">
