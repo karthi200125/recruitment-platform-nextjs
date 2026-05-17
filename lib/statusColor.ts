@@ -22,3 +22,4 @@ export function getStatusColor(status: ApplicationStatus | string) {
             return "bg-gray-100 text-gray-700 border border-gray-200";
     }
 }
+

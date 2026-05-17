@@ -160,22 +160,17 @@ model JobApplication {
   candidateResume    String
   candidateResumePublicId    String?
   questionAndAnswers Json?
-
-
-isApplicationViewed Boolean @default(false)
-ApplicationViewedUpdatedAt DateTime?
-
-isSelected Boolean @default(false)
-SelectedUpdatedAt DateTime?
-
-isNotIntrested Boolean @default(false)
   
   status ApplicationStatus @default(APPLIED)
 
-  
-  viewedAt     DateTime?
-  shortlistedAt DateTime?
-  rejectedAt   DateTime?
+appliedAt DateTime @default(now())
+viewedAt DateTime?
+shortlistedAt DateTime?
+interviewScheduledAt DateTime?
+interviewedAt DateTime?
+hiredAt DateTime?
+rejectedAt DateTime?
+withdrawnAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
