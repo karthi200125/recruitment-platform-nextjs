@@ -1,21 +1,41 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
 import { redirect } from "next/navigation";
+
+import { getServerSession } from "next-auth";
+
+import { authOptions } from "@/lib/authOptions";
+
 import RoleForm from "@/app/Forms/RoleForm";
 
+// ─────────────────────────────────────────────
+// ROLE PAGE
+// ─────────────────────────────────────────────
+
 export default async function RolePage() {
-    const session = await getServerSession(authOptions);
+    const session =
+        await getServerSession(
+            authOptions
+        );
+
+    // ─────────────────────────────────────────
+    // NOT LOGGED IN
+    // ─────────────────────────────────────────
 
     if (!session?.user) {
         redirect("/signin");
     }
 
-    if (session.user.role) {
-        if (session.user.role === "CANDIDATE") {
+    // ─────────────────────────────────────────
+    // ALREADY HAS ROLE
+    // ─────────────────────────────────────────
+
+    const role = session.user.role;
+
+    if (role) {
+        if (role === "CANDIDATE") {
             redirect("/jobs");
-        } else {
-            redirect("/dashboard");
         }
+
+        redirect("/dashboard");
     }
 
     return <RoleForm />;

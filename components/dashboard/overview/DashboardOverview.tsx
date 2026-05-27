@@ -1,79 +1,58 @@
-"use client";
+import CandidateOverview from "./CandidateOverviewtab";
 
-import Link from "next/link";
-
-import { ArrowRight } from "lucide-react";
-
-import {
-  ColumnDef,
-} from "@tanstack/react-table";
-
-import DashboardJobsTable from "../tables/DashboardJobsTable";
-
-interface DashboardOverviewSectionProps<
-  TData,
-  TValue,
-> {
-  title: string;
-
-  href: string;
-
-  columns: ColumnDef<TData, TValue>[];
-
-  data: TData[];
-
-  emptyTitle?: string;
-
-  emptyDescription?: string;
+interface DashboardOverviewSectionProps {
+  activeTab: string;
+  role?: any;
+  dashboardData?: any;
 }
 
-const DashboardOverviewSection = <
-  TData,
-  TValue,
->({
-  title,
-  href,
-  columns,
-  data,
-  emptyTitle = "No data found",
-  emptyDescription = "No records available.",
-}: DashboardOverviewSectionProps<
-  TData,
-  TValue
->) => {
-  return (
-    <section className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <h2 className="text-base font-bold text-slate-900">
-            {title}
-          </h2>
+const DashboardOverviewSection =
+  ({
+    activeTab,
+    role,
+    dashboardData
+  }: DashboardOverviewSectionProps) => {
 
-          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">
-            {data.length}
-          </span>
+    const isCandidate = role === "CANDIDATE";
+    const isRecruiter = role === "RECRUITER";
+    const isOrganization = role === "ORGANIZATION";
+
+    return (
+      <section className="space-y-4">
+        <div className="min-h-[500px]">
+          {/* Candidate Overview */}
+          {activeTab ===
+            "overview" &&
+            isCandidate && (
+              <CandidateOverview
+                role={role}
+                dashboardData={
+                  dashboardData
+                }
+              />
+            )}
+
+          {/* Recruiter Overview */}
+          {activeTab ===
+            "overview" &&
+            isRecruiter && (
+              <div>
+                Recruiter Overview
+              </div>
+            )}
+
+          {/* Organization Overview */}
+          {activeTab ===
+            "overview" &&
+            isOrganization && (
+              <div>
+                Organization
+                Overview
+              </div>
+            )}
         </div>
-
-        <Link
-          href={href}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 transition-colors duration-200 hover:text-indigo-700"
-        >
-          View all
-
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
-
-      {/* Table */}
-      <DashboardJobsTable
-        columns={columns}
-        data={data.slice(0, 5)}
-        emptyTitle={emptyTitle}
-        emptyDescription={emptyDescription}
-      />
-    </section>
-  );
-};
+      </section>
+    );
+  };
 
 export default DashboardOverviewSection;

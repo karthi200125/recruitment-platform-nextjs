@@ -99,7 +99,7 @@ export default function CurrentSubscription({
                                 Free Plan
                             </p>
                             <p className="text-xs text-slate-400 leading-relaxed">
-                                You're on the free plan. Upgrade to unlock AI matching,
+                                You&apos;re on the free plan. Upgrade to unlock AI matching,
                                 unlimited applications, priority visibility, and more.
                             </p>
                         </div>

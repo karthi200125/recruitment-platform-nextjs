@@ -1,7 +1,7 @@
 'use client'
 
 import Image from "next/image";
-import moment from "moment";
+import { format } from "date-fns";
 import noProfile from "@/public/noProfile.webp";
 
 interface ChatListProps {
@@ -11,7 +11,7 @@ interface ChatListProps {
 
 export const ChatList = ({ chatUser, selectedChatUserId }: ChatListProps) => {
     const isSelected = chatUser?.id === selectedChatUserId;
-    const timeAgo = moment(chatUser?.updatedAt).format("MMM D");
+    const timeAgo = format(new Date(chatUser?.updatedAt), "dd MMM yyyy");
     const hasUnread = chatUser?.isSeen === false;
 
     return (

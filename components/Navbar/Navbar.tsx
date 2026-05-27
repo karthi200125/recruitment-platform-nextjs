@@ -71,7 +71,7 @@ const SearchModal = ({ open, onClose }: { open: boolean; onClose: () => void }) 
         <div
             ref={overlayRef}
             onClick={handleBackdrop}
-            className="fixed inset-0 z-[999] flex items-start justify-center px-4 pt-[80px] sm:pt-[100px] bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[999] flex items-start justify-center px-4 pt-[80px] sm:pt-[100px] bg-black/60 backdrop-blur-sm rounded-lg"
             role="dialog"
             aria-modal="true"
             aria-label="Search jobs"

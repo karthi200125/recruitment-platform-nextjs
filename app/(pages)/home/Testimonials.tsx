@@ -1,5 +1,3 @@
-'use client';
-
 import { testimonialsdata } from '@/lib/data/testimonial-data'
 
 const INITIALS_COLORS = [

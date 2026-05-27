@@ -12,7 +12,7 @@ import FormError from "@/components/ui/FormError";
 import { Progress } from "@/components/ui/progress";
 import { useCustomToast } from "@/lib/CustomToast";
 import { UserProjectSchema } from "@/lib/SchemaTypes";
-import { useUpload } from "@/lib/Uploadfile";
+// import { useUpload } from "@/lib/Uploadfile";
 import bg_gray from '@/public/backgray.jpg';
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
@@ -35,7 +35,7 @@ export function UserProjectForm({ isEdit, project }: UserProjectProps) {
     const [file, setFile] = useState<File | null>(null);
     const [showImage, setShowImage] = useState<string | null>(project?.proImage || null);
     const { showErrorToast, showSuccessToast } = useCustomToast();
-    const { per, UploadFile, downloadUrl } = useUpload({ file });
+    // const { per, UploadFile, downloadUrl } = useUpload({ file });
 
     const form = useForm<z.infer<typeof UserProjectSchema>>({
         resolver: zodResolver(UserProjectSchema),
@@ -46,29 +46,29 @@ export function UserProjectForm({ isEdit, project }: UserProjectProps) {
         },
     });
 
-    const handleImageUpload = useCallback((e: any) => {
-        const selectedFile = e.target.files?.[0];
-        if (selectedFile) {
-            setFile(selectedFile);
-            const newImage = URL.createObjectURL(selectedFile);
-            if (newImage !== showImage) {
-                setShowImage(newImage);
-            }
-        }
-    }, [showImage]);
+    // const handleImageUpload = useCallback((e: any) => {
+    //     const selectedFile = e.target.files?.[0];
+    //     if (selectedFile) {
+    //         setFile(selectedFile);
+    //         const newImage = URL.createObjectURL(selectedFile);
+    //         if (newImage !== showImage) {
+    //             setShowImage(newImage);
+    //         }
+    //     }
+    // }, [showImage]);
 
-    useEffect(() => {
-        UploadFile();
-    }, [file])
+    // useEffect(() => {
+    //     // UploadFile();
+    // }, [file])
 
 
     const onSubmit = (values: z.infer<typeof UserProjectSchema>) => {
         startTransition(() => {
             const userId = user?.id
             const proId = project?.id
-            const proImage = downloadUrl
+            // const proImage = downloadUrl
 
-            userProjectAction(values, userId, isEdit, proId, proImage)
+            userProjectAction(values, userId, isEdit, proId, '')
                 .then((data) => {
                     if (data?.success) {
                         showSuccessToast(data?.success)
@@ -121,7 +121,7 @@ export function UserProjectForm({ isEdit, project }: UserProjectProps) {
                         accept="image/*"
                         className="hidden"
                         id="imageupload"
-                        onChange={handleImageUpload}
+                        // onChange={handleImageUpload}
                     />
                     <label
                         htmlFor="imageupload"
@@ -133,12 +133,12 @@ export function UserProjectForm({ isEdit, project }: UserProjectProps) {
                         </div>
                     </label>
                 </div>
-                {per !== null && (
+                {/* {per !== null && (
                     <div className="space-y-3">
                         <h3>{downloadUrl ? "Completed" : "Uploading..."}</h3>
                         <Progress value={Number(per)} className="w-full" />
                     </div>
-                )}
+                )} */}
 
                 <FormError message={err} />
                 <Button isLoading={isLoading} className="!w-full">

@@ -1,5 +1,3 @@
-'use client';
-
 import { featuresdata } from "@/lib/data/why-choose-us-data";
 import Link from "next/link";
 

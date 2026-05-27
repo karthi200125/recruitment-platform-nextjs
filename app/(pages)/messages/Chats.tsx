@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Fragment, useEffect, useRef } from "react";
-import moment from "moment";
+import { format } from "date-fns";
 
 import noProfile from "@/public/noProfile.webp";
 import noImage from "@/public/noImage.webp";
@@ -70,9 +70,7 @@ export const Chats = ({
       }`}
     >
       {messages.map((msg) => {
-        const messageDate = moment(
-          msg.createdAt
-        ).format("MMMM D, YYYY");
+        const messageDate = format(new Date(msg.createdAt), "dd MMM yyyy");
 
         const showDateSeparator =
           messageDate !== lastDate;
@@ -200,10 +198,8 @@ export const Chats = ({
                       ? "text-right"
                       : "text-left"
                   }`}
-                >
-                  {moment(msg.createdAt).format(
-                    "h:mm A"
-                  )}
+                >                  
+                  {format(new Date(msg.createdAt), "hh:mm a")}
                 </p>
               </div>
             </div>

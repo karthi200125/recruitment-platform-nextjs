@@ -1,58 +1,165 @@
 "use server";
 
 import crypto from "crypto";
+
 import bcrypt from "bcryptjs";
+
+import * as z from "zod";
+
 import { db } from "@/lib/db";
-import { z } from "zod";
+
 import { rateLimit } from "@/lib/rateLimit";
 
-const schema = z.object({
-    token: z.string(),
-    password: z.string().min(6),
+// ─────────────────────────────────────────────
+// PASSWORD SCHEMA
+// ─────────────────────────────────────────────
+
+const ResetPasswordSchema = z.object({
+    token: z.string().min(1),
+
+    password: z
+        .string()
+        .min(
+            8,
+            "Password must be at least 8 characters"
+        )
+        .regex(
+            /[A-Z]/,
+            "Password must contain at least one uppercase letter"
+        )
+        .regex(
+            /[0-9]/,
+            "Password must contain at least one number"
+        ),
 });
 
-export const resetPassword = async (token: string, password: string) => {
+// ─────────────────────────────────────────────
+// RESPONSE TYPE
+// ─────────────────────────────────────────────
+
+type ResetPasswordResponse = {
+    success: boolean;
+    error?: string;
+};
+
+// ─────────────────────────────────────────────
+// RESET PASSWORD
+// ─────────────────────────────────────────────
+
+export const resetPassword = async (
+    token: string,
+    password: string
+): Promise<ResetPasswordResponse> => {
     try {
-        // ✅ RATE LIMIT (per token)
-        await rateLimit(`reset-password:${token}`);
-    } catch {
-        return { success: false, error: "Too many attempts. Try later." };
-    }
+        // ───────────────────────────────────────
+        // RATE LIMIT
+        // ───────────────────────────────────────
 
-    const parsed = schema.safeParse({ token, password });
+        await rateLimit(
+            `reset-password:${token}`
+        );
 
-    if (!parsed.success) {
-        return { success: false, error: "Invalid input" };
-    }
+        // ───────────────────────────────────────
+        // VALIDATE INPUT
+        // ───────────────────────────────────────
 
-    const hashedToken = crypto
-        .createHash("sha256")
-        .update(token)
-        .digest("hex");
+        const validatedFields =
+            ResetPasswordSchema.safeParse({
+                token,
+                password,
+            });
 
-    const user = await db.user.findFirst({
-        where: {
-            resetPasswordToken: hashedToken,
-            resetPasswordExpires: {
-                gt: new Date(),
+        if (!validatedFields.success) {
+            return {
+                success: false,
+                error: "Invalid input",
+            };
+        }
+
+        // ───────────────────────────────────────
+        // HASH TOKEN
+        // ───────────────────────────────────────
+
+        const hashedToken =
+            crypto
+                .createHash("sha256")
+                .update(token)
+                .digest("hex");
+
+        // ───────────────────────────────────────
+        // FIND USER
+        // ───────────────────────────────────────
+
+        const user =
+            await db.user.findFirst({
+                where: {
+                    resetPasswordToken:
+                        hashedToken,
+
+                    resetPasswordExpires: {
+                        gt: new Date(),
+                    },
+                },
+
+                select: {
+                    id: true,
+                },
+            });
+
+        // ───────────────────────────────────────
+        // INVALID TOKEN
+        // ───────────────────────────────────────
+
+        if (!user) {
+            return {
+                success: false,
+                error:
+                    "Reset link expired or invalid",
+            };
+        }
+
+        // ───────────────────────────────────────
+        // HASH PASSWORD
+        // ───────────────────────────────────────
+
+        const hashedPassword =
+            await bcrypt.hash(password, 12);
+
+        // ───────────────────────────────────────
+        // UPDATE USER
+        // ───────────────────────────────────────
+
+        await db.user.update({
+            where: {
+                id: user.id,
             },
-        },
-    });
 
-    if (!user) {
-        return { success: false, error: "Token expired or invalid" };
+            data: {
+                password: hashedPassword,
+
+                resetPasswordToken: null,
+
+                resetPasswordExpires: null,
+            },
+        });
+
+        // ───────────────────────────────────────
+        // SUCCESS
+        // ───────────────────────────────────────
+
+        return {
+            success: true,
+        };
+    } catch (error) {
+        console.error(
+            "[RESET_PASSWORD_ERROR]",
+            error
+        );
+
+        return {
+            success: false,
+            error:
+                "Something went wrong",
+        };
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    await db.user.update({
-        where: { id: user.id },
-        data: {
-            password: hashedPassword,
-            resetPasswordToken: null,
-            resetPasswordExpires: null,
-        },
-    });
-
-    return { success: true };
 };

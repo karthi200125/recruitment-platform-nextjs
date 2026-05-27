@@ -1,101 +1,247 @@
 import { db } from "@/lib/db";
-import { NextAuthOptions } from "next-auth";
+import { LoginSchema } from "@/lib/SchemaTypes";
+
+import bcrypt from "bcryptjs";
+
+import type { NextAuthOptions } from "next-auth";
+
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import bcrypt from "bcryptjs";
-import { LoginSchema } from "@/lib/SchemaTypes";
 
 export const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
-            name: "credentials",
+            name: "Credentials",
+
             credentials: {
-                email: { label: "Email", type: "email" },
-                password: { label: "Password", type: "password" },
+                email: {
+                    label: "Email",
+                    type: "email",
+                },
+
+                password: {
+                    label: "Password",
+                    type: "password",
+                },
             },
 
             async authorize(credentials) {
-                const parsed = LoginSchema.safeParse({
-                    email: credentials?.email,
-                    password: credentials?.password,
-                });
+                try {
+                    const validatedFields =
+                        LoginSchema.safeParse(credentials);
 
-                if (!parsed.success) return null;
+                    if (!validatedFields.success) {
+                        return null;
+                    }
 
-                const { email, password } = parsed.data;
+                    const { email, password } =
+                        validatedFields.data;
 
-                const user = await db.user.findUnique({
-                    where: { email },
-                    select: {
-                        id: true,
-                        username: true,
-                        email: true,
-                        password: true,
-                        role: true,
-                        isPro: true,
-                        profileImage: true,
-                    },
-                });
+                    const user =
+                        await db.user.findUnique({
+                            where: {
+                                email,
+                            },
 
-                if (!user || !user.password) return null;
+                            select: {
+                                id: true,
+                                username: true,
+                                email: true,
+                                password: true,
+                                role: true,
+                                isPro: true,
+                                profileImage: true,
+                            },
+                        });
 
-                const isValid = await bcrypt.compare(password, user.password);
-                if (!isValid) return null;
+                    if (!user || !user.password) {
+                        return null;
+                    }
 
-                return {
-                    id: user.id,
-                    username: user.username,
-                    email: user.email,
-                    role: user.role ?? null,
-                    isPro: user.isPro,
-                    profileImage: user.profileImage ?? null,
-                };
+                    const isPasswordValid =
+                        await bcrypt.compare(
+                            password,
+                            user.password
+                        );
+
+                    if (!isPasswordValid) {
+                        return null;
+                    }
+
+                    // ✅ IMPORTANT
+                    // NextAuth expects string id
+                    return {
+                        id: String(user.id),
+                        email: user.email,
+                        username: user.username,
+                        role: user.role,
+                        isPro: user.isPro,
+                        profileImage: user.profileImage ?? null,
+                    };
+                } catch (error) {
+                    console.error(
+                        "AUTHORIZATION_ERROR",
+                        error
+                    );
+
+                    return null;
+                }
             },
         }),
 
         GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            clientId:
+                process.env.GOOGLE_CLIENT_ID ??
+                "",
+
+            clientSecret:
+                process.env
+                    .GOOGLE_CLIENT_SECRET ??
+                "",
         }),
     ],
 
-    secret: process.env.NEXTAUTH_SECRET,
-
     session: {
         strategy: "jwt",
-        maxAge: 30 * 24 * 60 * 60,
+
+        maxAge:
+            30 * 24 * 60 * 60,
     },
 
-    callbacks: {
-        async jwt({ token, user }) {
-            if (user) {
-                token.user = user;
-            }
+    jwt: {
+        maxAge:
+            30 * 24 * 60 * 60,
+    },
 
-            // 🔥 ALWAYS fetch latest role from DB
-            if (token.email) {
-                const dbUser = await db.user.findUnique({
-                    where: { email: token.email },
-                });
+    secret:
+        process.env
+            .NEXTAUTH_SECRET,
+
+    callbacks: {
+        // ✅ GOOGLE DB SYNC
+        async signIn({
+            user,
+            account,
+        }) {
+            try {
+                if (
+                    account?.provider ===
+                    "google"
+                ) {
+                    if (!user.email) {
+                        return false;
+                    }
+
+                    const existingUser =
+                        await db.user.findUnique({
+                            where: {
+                                email:
+                                    user.email,
+                            },
+                        });
+
+                    // CREATE USER IF NOT EXISTS
+                    if (!existingUser) {
+                        await db.user.create({
+                            data: {
+                                email: user.email,
+                                username: user.name ?? "Google User",
+                                profileImage: user.image,
+                            },
+                        });
+                    }
+                }
+
+                return true;
+            } catch (error) {
+                console.error(
+                    "GOOGLE_SIGNIN_ERROR",
+                    error
+                );
+
+                return false;
+            }
+        },
+
+        async jwt({
+            token,
+            user,
+            trigger,
+        }) {
+            // FIRST LOGIN
+            if (user?.email) {
+                const dbUser =
+                    await db.user.findUnique({
+                        where: {
+                            email: user.email,
+                        },
+
+                        select: {
+                            id: true,
+                            username: true,
+                            email: true,
+                            role: true,
+                            isPro: true,
+                            profileImage: true,
+                        },
+                    });
 
                 if (dbUser) {
-                    token.user = {
-                        id: dbUser.id,
-                        email: dbUser.email,
-                        username: dbUser.username,
-                        role: dbUser.role,
-                        isPro: dbUser.isPro,
-                        profileImage: dbUser.profileImage,
-                        userImage: dbUser.userImage,
-                    };
+                    token.id = String(dbUser.id);
+                    token.email = dbUser.email;
+                    token.username = dbUser.username;
+                    token.role = dbUser.role;
+                    token.isPro = dbUser.isPro;
+                    token.profileImage = dbUser.profileImage;
+                }
+            }
+
+            // SESSION UPDATE
+            if (
+                trigger === "update" &&
+                token.email
+            ) {
+                const dbUser =
+                    await db.user.findUnique({
+                        where: {
+                            email: token.email,
+                        },
+
+                        select: {
+                            id: true,
+                            username: true,
+                            email: true,
+                            role: true,
+                            isPro: true,
+                            profileImage: true,
+                        },
+                    });
+
+                if (dbUser) {
+                    token.id = String(dbUser.id);
+                    token.username = dbUser.username;
+                    token.role = dbUser.role;
+                    token.isPro = dbUser.isPro;
+                    token.profileImage = dbUser.profileImage;
                 }
             }
 
             return token;
         },
 
-        async session({ session, token }) {
-            session.user = token.user as any;
+        async session({
+            session,
+            token,
+        }) {
+            if (session.user) {
+                session.user.id = token.id as string;
+                session.user.email = token.email as string;
+                session.user.username = token.username as string;
+                session.user.role = token.role as string;
+                session.user.isPro = token.isPro as boolean;
+                session.user.profileImage = token.profileImage as | string | null;
+            }
+
             return session;
         },
     },
@@ -103,4 +249,7 @@ export const authOptions: NextAuthOptions = {
     pages: {
         signIn: "/signin",
     },
+
+    debug:
+        process.env.NODE_ENV === "development",
 };

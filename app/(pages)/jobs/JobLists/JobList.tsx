@@ -1,7 +1,5 @@
-'use client';
-
 import Image from 'next/image';
-import moment from 'moment';
+import { formatDistanceToNow } from "date-fns";
 import { MapPin, Clock, Briefcase, Users } from 'lucide-react';
 import { JobWithCompany } from '@/actions/job/getFilterAllJobs';
 
@@ -66,7 +64,7 @@ const JobList = ({ job, selectedJob, isHover, border }: Props) => {
             )}
             <span className="flex items-center gap-1 text-[11px] text-slate-400">
               <Clock className="w-2.5 h-2.5" strokeWidth={2} />
-              {moment(job.createdAt).fromNow()}
+              {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
             </span>
           </div>
 

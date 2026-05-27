@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Briefcase, Users, Zap, ArrowRight, BarChart3, MessageSquare, ShieldCheck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { benefits } from '@/lib/data/for-recruiter-data'
 
 const LOGOS = ["TechCorp", "InnovateX", "CloudNet", "ScaleUp", "DesignHub"];

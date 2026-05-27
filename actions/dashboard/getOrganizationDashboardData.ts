@@ -1,58 +1,243 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { unstable_cache } from "next/cache";
 
-import { dashboardJobInclude } from "@/lib/dashboard-includes";
+import { subDays } from "date-fns";
+
+import { db } from "@/lib/db";
+import { calculateGrowth } from "./calculateGrowth";
+
+
+
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+
+interface Props {
+    companyId: number;
+
+    jobsPage?: number;
+
+    applicantsPage?: number;
+
+    hiredPage?: number;
+
+    limit?: number;
+}
+
+// ─────────────────────────────────────────────
+// Action
+// ─────────────────────────────────────────────
 
 export const getOrganizationDashboardData =
-    async (userId: number) => {
-        try {
-            if (!userId) {
-                return {
-                    success: false,
-                    error: "Unauthorized",
-                };
-            }
+    unstable_cache(
+        async ({
+            companyId,
 
-            // Company
-            const company =
-                await db.company.findFirst({
-                    where: {
-                        userId,
-                    },
-                });
+            jobsPage = 1,
 
-            if (!company) {
-                return {
-                    success: false,
-                    error: "Company not found",
-                };
-            }
+            applicantsPage = 1,
 
+            hiredPage = 1,
+
+            limit = 10,
+        }: Props) => {
+            // Dates
+            const now = new Date();
+
+            const current30Days =
+                subDays(now, 30);
+
+            const previous30Days =
+                subDays(now, 60);
+
+            // Pagination
+            const jobsSkip =
+                (jobsPage - 1) * limit;
+
+            const applicantsSkip =
+                (applicantsPage - 1) *
+                limit;
+
+            const hiredSkip =
+                (hiredPage - 1) * limit;
+
+            // KPI Counts
             const [
-                postedJobs,
+                currentJobsCount,
+                previousJobsCount,
 
-                jobsCount,
-                applicantsCount,
+                currentApplicantsCount,
+                previousApplicantsCount,
 
-                // Placeholder until recruiter system built
-                recruitersCount,
+                currentRecruitersCount,
+                previousRecruitersCount,
 
-                // Placeholder until employees system built
-                employeesCount,
+                currentHiredCount,
+                previousHiredCount,
             ] = await Promise.all([
-                // Posted Jobs
+                // Jobs Current
+                db.job.count({
+                    where: {
+                        companyId,
+
+                        createdAt: {
+                            gte: current30Days,
+                        },
+                    },
+                }),
+
+                // Jobs Previous
+                db.job.count({
+                    where: {
+                        companyId,
+
+                        createdAt: {
+                            gte: previous30Days,
+
+                            lt: current30Days,
+                        },
+                    },
+                }),
+
+                // Applicants Current
+                db.jobApplication.count({
+                    where: {
+                        job: {
+                            companyId,
+                        },
+
+                        createdAt: {
+                            gte: current30Days,
+                        },
+                    },
+                }),
+
+                // Applicants Previous
+                db.jobApplication.count({
+                    where: {
+                        job: {
+                            companyId,
+                        },
+
+                        createdAt: {
+                            gte: previous30Days,
+
+                            lt: current30Days,
+                        },
+                    },
+                }),
+
+                // Recruiters Current
+                db.user.count({
+                    where: {
+                        role: "RECRUITER",
+
+                        companyId,
+
+                        createdAt: {
+                            gte: current30Days,
+                        },
+                    },
+                }),
+
+                // Recruiters Previous
+                db.user.count({
+                    where: {
+                        role: "RECRUITER",
+
+                        companyId,
+
+                        createdAt: {
+                            gte: previous30Days,
+
+                            lt: current30Days,
+                        },
+                    },
+                }),
+
+                // Hired Current
+                db.jobApplication.count({
+                    where: {
+                        job: {
+                            companyId,
+                        },
+
+                        status: "HIRED",
+
+                        createdAt: {
+                            gte: current30Days,
+                        },
+                    },
+                }),
+
+                // Hired Previous
+                db.jobApplication.count({
+                    where: {
+                        job: {
+                            companyId,
+                        },
+
+                        status: "HIRED",
+
+                        createdAt: {
+                            gte: previous30Days,
+
+                            lt: current30Days,
+                        },
+                    },
+                }),
+            ]);
+
+            // Growth
+            const jobsGrowth =
+                calculateGrowth(
+                    currentJobsCount,
+                    previousJobsCount
+                );
+
+            const applicantsGrowth =
+                calculateGrowth(
+                    currentApplicantsCount,
+                    previousApplicantsCount
+                );
+
+            const recruitersGrowth =
+                calculateGrowth(
+                    currentRecruitersCount,
+                    previousRecruitersCount
+                );
+
+            const hiredGrowth =
+                calculateGrowth(
+                    currentHiredCount,
+                    previousHiredCount
+                );
+
+            // Tables Data
+            const [
+                jobs,
+                jobsTotal,
+
+                applicants,
+                applicantsTotal,
+
+                hiredCandidates,
+                hiredCandidatesTotal,
+            ] = await Promise.all([
+                // Jobs
                 db.job.findMany({
                     where: {
-                        companyId: company.id,
+                        companyId,
                     },
 
                     include: {
-                        ...dashboardJobInclude,
+                        company: true,
 
-                        jobApplications: {
+                        _count: {
                             select: {
-                                id: true,
+                                jobApplications:
+                                    true,
                             },
                         },
                     },
@@ -61,69 +246,221 @@ export const getOrganizationDashboardData =
                         createdAt: "desc",
                     },
 
-                    take: 10,
+                    skip: jobsSkip,
+
+                    take: limit,
                 }),
 
-                // Jobs Count
                 db.job.count({
                     where: {
-                        companyId: company.id,
+                        companyId,
                     },
                 }),
 
                 // Applicants
+                db.jobApplication.findMany({
+                    where: {
+                        job: {
+                            companyId,
+                        },
+                    },
+
+                    include: {
+                        user: true,
+
+                        job: true,
+                    },
+
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+
+                    skip: applicantsSkip,
+
+                    take: limit,
+                }),
+
                 db.jobApplication.count({
                     where: {
                         job: {
-                            companyId: company.id,
+                            companyId,
                         },
                     },
                 }),
 
-                // Placeholder
-                Promise.resolve(0),
+                // Hired
+                db.jobApplication.findMany({
+                    where: {
+                        job: {
+                            companyId,
+                        },
 
-                // Placeholder
-                Promise.resolve(0),
+                        status: "HIRED",
+                    },
+
+                    include: {
+                        user: true,
+
+                        job: true,
+                    },
+
+                    orderBy: {
+                        updatedAt: "desc",
+                    },
+
+                    skip: hiredSkip,
+
+                    take: limit,
+                }),
+
+                db.jobApplication.count({
+                    where: {
+                        job: {
+                            companyId,
+                        },
+
+                        status: "HIRED",
+                    },
+                }),
             ]);
 
+            // Overview Data
+            const recentApplicants =
+                applicants.slice(0, 5);
+
+            const recentActivity =
+                applicants.slice(0, 5);
+
+            // Final Return
             return {
-                success: true,
+                // KPI Stats
+                stats: {
+                    jobsCount: {
+                        count:
+                            currentJobsCount,
 
-                data: {
-                    company,
+                        growth:
+                            jobsGrowth.growth,
 
-                    postedJobs,
+                        isPositive:
+                            jobsGrowth.isPositive,
 
-                    analytics: {
-                        companyHiringTrend: [],
-                        recruitersPerformance: [],
+                        chartData: [],
                     },
 
-                    counts: {
-                        jobs: jobsCount,
+                    totalApplicationsCount:
+                    {
+                        count:
+                            currentApplicantsCount,
 
-                        recruiters:
-                            recruitersCount,
+                        growth:
+                            applicantsGrowth.growth,
 
-                        employees:
-                            employeesCount,
+                        isPositive:
+                            applicantsGrowth.isPositive,
 
-                        applicants:
-                            applicantsCount,
+                        chartData: [],
+                    },
+
+                    recruitersCount: {
+                        count:
+                            currentRecruitersCount,
+
+                        growth:
+                            recruitersGrowth.growth,
+
+                        isPositive:
+                            recruitersGrowth.isPositive,
+
+                        chartData: [],
+                    },
+
+                    hiredCandidatesCount:
+                    {
+                        count:
+                            currentHiredCount,
+
+                        growth:
+                            hiredGrowth.growth,
+
+                        isPositive:
+                            hiredGrowth.isPositive,
+
+                        chartData: [],
                     },
                 },
-            };
-        } catch (error) {
-            console.error(
-                "GET_ORGANIZATION_DASHBOARD_DATA_ERROR",
-                error
-            );
 
-            return {
-                success: false,
-                error:
-                    "Failed to fetch organization dashboard data",
+                // Charts
+                charts: {
+                    companyHiringChart:
+                        [],
+
+                    recruitersPerformanceChart:
+                        [],
+                },
+
+                // Overview
+                recentApplicants,
+
+                recentActivity,
+
+                // Jobs Tab
+                jobs: {
+                    data: jobs,
+
+                    total: jobsTotal,
+
+                    page: jobsPage,
+
+                    totalPages:
+                        Math.ceil(
+                            jobsTotal /
+                            limit
+                        ),
+                },
+
+                // Applicants Tab
+                applicants: {
+                    data: applicants,
+
+                    total:
+                        applicantsTotal,
+
+                    page:
+                        applicantsPage,
+
+                    totalPages:
+                        Math.ceil(
+                            applicantsTotal /
+                            limit
+                        ),
+                },
+
+                // Hired Tab
+                hiredCandidates: {
+                    data: hiredCandidates,
+
+                    total:
+                        hiredCandidatesTotal,
+
+                    page: hiredPage,
+
+                    totalPages:
+                        Math.ceil(
+                            hiredCandidatesTotal /
+                            limit
+                        ),
+                },
             };
+        },
+
+        ["organization-dashboard-data"],
+
+        {
+            revalidate: 60,
+
+            tags: [
+                "organization-dashboard",
+            ],
         }
-    };
+    );

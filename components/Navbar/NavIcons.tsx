@@ -34,7 +34,7 @@ const NavIcons = () => {
         queryFn: async () => {
             if (!user?.id) return 0;
 
-            return await getUnreadMessagesCount(user.id);
+            return await getUnreadMessagesCount(Number(user.id));
         },
 
         enabled: Boolean(user?.id),

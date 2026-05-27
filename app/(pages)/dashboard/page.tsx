@@ -4,226 +4,254 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "next-auth";
 
-import { Prisma, Role } from "@prisma/client";
+import { Role } from "@prisma/client";
 
 import { authOptions } from "@/lib/authOptions";
 
-import { getUserById } from "@/actions/auth/getUserById";
+import { db } from "@/lib/db";
 
+import DashboardClient from "@/components/dashboard/DashboardClient";
+import { getRecruiterDashboardData } from "@/actions/dashboard/getRecruiterDashboardData";
+import { getOrganizationDashboardData } from "@/actions/dashboard/getOrganizationDashboardData";
 import { getCandidateDashboardData } from "@/actions/dashboard/getCandidateDashboardData";
 
-import { getRecruiterDashboardData } from "@/actions/dashboard/getRecruiterDashboardData";
-
-import { getOrganizationDashboardData } from "@/actions/dashboard/getOrganizationDashboardData";
-
-import DashboardClient from "./DashboardClient";
-
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
-
-type UserWithRelations = Prisma.UserGetPayload<{
-  include: {
-    postedJobs: {
-      include: {
-        company: true;
-      };
-    };
-  };
-}>;
 
 // ─────────────────────────────────────────────
 // Metadata
 // ─────────────────────────────────────────────
 
 export const metadata: Metadata = {
-  title: "Dashboard | Job Portal",
+    title: "Dashboard | Job Portal",
 
-  description:
-    "Manage your jobs, applications, and profile",
+    description:
+        "Manage your jobs, applications, and profile",
 
-  robots: {
-    index: false,
-    follow: false,
-  },
+    robots: {
+        index: false,
+        follow: false,
+    },
 };
 
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+
 interface DashboardPageProps {
-  searchParams?: Record<
-    string,
-    string | string[] | undefined
-  >;
+    searchParams?: {
+        tab?: string;
+
+        appliedPage?: string;
+
+        savedPage?: string;
+
+        interviewsPage?: string;
+
+        profileViewsPage?: string;
+
+        postedJobsPage?: string;
+
+        applicantsPage?: string;
+
+        hiredPage?: string;
+
+        jobsPage?: string;
+    };
 }
+
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+
+const getPageNumber = (
+    value?: string
+) => {
+    const page = Number(value);
+
+    return Number.isNaN(page) ||
+        page <= 0
+        ? 1
+        : page;
+};
 
 // ─────────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────────
 
 const DashboardPage = async ({
-  searchParams,
+    searchParams,
 }: DashboardPageProps) => {
-  // Session
-  const session =
-    await getServerSession(authOptions);
+    // Session
+    const session =
+        await getServerSession(
+            authOptions
+        );
 
-  if (!session?.user?.id) {
-    redirect("/signin");
-  }
-
-  // User ID
-  const userId = Number(session.user.id);
-
-  if (!userId) {
-    redirect("/signin");
-  }
-
-
-  const user = session.user 
-
-  // Role
-  const role = (user.role ??
-    "CANDIDATE") as Role;
-
-  // ─────────────────────────────────────────
-  // Dashboard Data
-  // ─────────────────────────────────────────
-
-  let candidateDashboardData = null;
-
-  let recruiterDashboardData = null;
-
-  let organizationDashboardData =
-    null;
-
-  // ─────────────────────────────────────────
-  // Candidate Dashboard
-  // ─────────────────────────────────────────
-
-  if (role === "CANDIDATE") {
-    const dashboardRes =
-      await getCandidateDashboardData(
-        userId
-      );
-
-    if (
-      dashboardRes.success &&
-      dashboardRes.data
-    ) {
-      candidateDashboardData =
-        dashboardRes.data;
-    } else {
-      candidateDashboardData = {
-        applications: [],
-
-        savedJobs: [],
-
-        analytics: {
-          applicationTrend: [],
-          interviewTrend: [],
-        },
-
-        counts: {
-          applied: 0,
-          saved: 0,
-          interviews: 0,
-          profileViews: 0,
-        },
-      };
+    if (!session?.user?.id) {
+        redirect("/signin");
     }
-  }
 
-  // ─────────────────────────────────────────
-  // Recruiter Dashboard
-  // ─────────────────────────────────────────
+    // User
+    const user = session.user;
 
-  if (role === "RECRUITER") {
-    const dashboardRes =
-      await getRecruiterDashboardData(
-        userId
-      );
+    const userId = Number(user.id);
 
-    if (
-      dashboardRes.success &&
-      dashboardRes.data
-    ) {
-      recruiterDashboardData =
-        dashboardRes.data;
-    } else {
-      recruiterDashboardData = {
-        postedJobs: [],
-
-        analytics: {
-          hiringTrend: [],
-          applicantsTrend: [],
-        },
-
-        counts: {
-          postedJobs: 0,
-          applicants: 0,
-          shortlisted: 0,
-          interviews: 0,
-        },
-      };
+    if (!userId) {
+        redirect("/signin");
     }
-  }
 
-  // ─────────────────────────────────────────
-  // Organization Dashboard
-  // ─────────────────────────────────────────
+    // Role
+    const role = (user.role ??
+        "CANDIDATE") as Role;
 
-  if (role === "ORGANIZATION") {
-    const dashboardRes =
-      await getOrganizationDashboardData(
-        userId
-      );
+    // ─────────────────────────────────────────
+    // Pagination
+    // ─────────────────────────────────────────
 
-    if (
-      dashboardRes.success &&
-      dashboardRes.data
-    ) {
-      organizationDashboardData =
-        dashboardRes.data;
-    } else {
-      organizationDashboardData = {
-        company: null,
+    const appliedPage =
+        getPageNumber(
+            searchParams?.appliedPage
+        );
 
-        postedJobs: [],
+    const savedPage =
+        getPageNumber(
+            searchParams?.savedPage
+        );
 
-        analytics: {
-          companyHiringTrend: [],
-          recruitersPerformance: [],
-        },
+    const interviewsPage =
+        getPageNumber(
+            searchParams?.interviewsPage
+        );
 
-        counts: {
-          jobs: 0,
-          recruiters: 0,
-          employees: 0,
-          applicants: 0,
-        },
-      };
+    const profileViewsPage =
+        getPageNumber(
+            searchParams?.profileViewsPage
+        );
+
+    const postedJobsPage =
+        getPageNumber(
+            searchParams?.postedJobsPage
+        );
+
+    const applicantsPage =
+        getPageNumber(
+            searchParams?.applicantsPage
+        );
+
+    const hiredPage =
+        getPageNumber(
+            searchParams?.hiredPage
+        );
+
+    const jobsPage =
+        getPageNumber(
+            searchParams?.jobsPage
+        );
+
+    // ─────────────────────────────────────────
+    // Dashboard Data
+    // ─────────────────────────────────────────
+
+    let dashboardData = null;
+
+    // Candidate
+    if (role === "CANDIDATE") {
+        dashboardData =
+            await getCandidateDashboardData(
+                {
+                    userId,
+
+                    appliedPage,
+
+                    savedPage,
+
+                    interviewsPage,
+
+                    profileViewsPage,
+
+                    limit: 10,
+                }
+            );
     }
-  }
 
-  // ─────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────
+    // Recruiter
+    if (role === "RECRUITER") {
+        dashboardData =
+            await getRecruiterDashboardData(
+                {
+                    userId,
 
-  return (
-    <DashboardClient
-      user={user}
-      role={role}
-      candidateDashboardData={
-        candidateDashboardData
-      }
-      recruiterDashboardData={
-        recruiterDashboardData
-      }
-      organizationDashboardData={
-        organizationDashboardData
-      }
-      searchParams={searchParams}
-    />
-  );
+                    postedJobsPage,
+
+                    applicantsPage,
+
+                    interviewsPage,
+
+                    hiredPage,
+
+                    limit: 10,
+                }
+            );
+    }
+
+    // Organization
+    if (role === "ORGANIZATION") {
+        const company =
+            await db.company.findFirst({
+                where: {
+                    userId,
+                },
+
+                select: {
+                    id: true,
+                },
+            });
+
+        if (!company) {
+            redirect(
+                "/dashboard/create-company"
+            );
+        }
+
+        dashboardData =
+            await getOrganizationDashboardData(
+                {
+                    companyId:
+                        company.id,
+
+                    jobsPage,
+
+                    applicantsPage,
+
+                    hiredPage,
+
+                    limit: 10,
+                }
+            );
+    }
+
+    // ─────────────────────────────────────────
+    // Render
+    // ─────────────────────────────────────────
+
+    return (
+        <DashboardClient
+            user={{
+                id: userId,
+
+                role,
+
+                username:
+                    user.username,
+
+                userImage:
+                    user.profileImage,
+            }}
+            role={role}
+            dashboardData={
+                dashboardData
+            }
+        />
+    );
 };
 
 export default DashboardPage;

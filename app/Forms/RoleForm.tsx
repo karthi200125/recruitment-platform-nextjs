@@ -1,11 +1,11 @@
 'use client';
 
-import { useMutation } from '@tanstack/react-query';
 import { selectRole } from '@/actions/user/selectRole';
+import { useMutation } from '@tanstack/react-query';
+import { ArrowRight, Briefcase, Building2, CheckCircle2, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Briefcase, Users, Building2, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { signIn } from 'next-auth/react';
+import { useSession } from "next-auth/react";
 
 type Role = "CANDIDATE" | "RECRUITER" | "ORGANIZATION";
 
@@ -79,6 +79,8 @@ export default function RoleForm() {
     const router = useRouter();
     const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
+    const { update } = useSession();
+
     const mutation = useMutation({
         mutationFn: async (role: Role) => {
             const res = await selectRole(role);
@@ -86,17 +88,9 @@ export default function RoleForm() {
             return role;
         },
         onSuccess: async (role) => {
-            // 🔥 CRITICAL: refresh session
-            await signIn("credentials", { redirect: false });
-
-            // redirect
-            if (role === "CANDIDATE") {
-                router.push("/jobs");
-            } else {
-                router.push("/dashboard");
-            }
-
+            await update();
             router.refresh();
+            router.push("/dashboard");
         },
         onError: (error: Error) => {
             console.error('[ROLE_SELECT_ERROR]', error.message);

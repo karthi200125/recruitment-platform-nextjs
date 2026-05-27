@@ -3,9 +3,10 @@
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useState } from 'react';
 
-const ReactQuill = dynamic(() => import('react-quill'), {
-    ssr: false,
-});
+const ReactQuill = dynamic(
+  () => import("react-quill"),
+  { ssr: false }
+);
 
 interface JobDescProps {
     onJobDesc: (content: string) => void;

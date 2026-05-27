@@ -1,28 +1,22 @@
 'use client';
 
-import { memo, useCallback, useState } from 'react';
+import {  useCallback, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import Loader from '@/components/Loader/Loader';
 
-
 const GoogleAuth = () => {
     const pathname = usePathname();
     const [isLoading, setIsLoading] = useState(false);
 
-    const onClick = useCallback(async () => {
-        // ✅ FIX: Don't use try/finally for loading state — signIn('google')
-        // triggers a full redirect. finally runs only on thrown errors, not
-        // after a successful redirect. Set loading, then let the redirect take over.
+    const onClick = useCallback(async () => {        
         setIsLoading(true);
 
         try {
             await signIn('google', {
                 callbackUrl: pathname === '/signin' ? '/dashboard' : '/welcome',
-            });
-            // If signIn resolves without redirecting (e.g. popup mode or error),
-            // reset loading state.
+            });            
             setIsLoading(false);
         } catch (error) {
             console.error('Google sign-in failed:', error);
@@ -54,4 +48,4 @@ const GoogleAuth = () => {
     );
 };
 
-export default memo(GoogleAuth);
+export default GoogleAuth;

@@ -1,5 +1,3 @@
-// access control logic related to subscription status and plan details
-
 import { db } from "@/lib/db";
 
 export async function getUserWithSubscription(userId: number) {

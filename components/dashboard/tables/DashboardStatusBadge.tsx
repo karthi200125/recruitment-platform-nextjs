@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+
 import { ApplicationStatus } from "@prisma/client";
 
 import {
@@ -8,6 +9,7 @@ import {
 
 interface DashboardStatusBadgeProps {
   status: ApplicationStatus;
+
   className?: string;
 }
 

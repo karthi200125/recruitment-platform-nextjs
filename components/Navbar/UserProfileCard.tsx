@@ -95,13 +95,13 @@ const UserProfileCard = () => {
                 <button
                     onClick={() => router.push(`/userProfile/${user.id}`)}
                     aria-label="Open profile menu"
-                    className="relative w-9 h-9 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-indigo-400 focus-visible:ring-indigo-400 focus-visible:outline-none transition-all duration-200 flex-shrink-0"
+                    className="relative w-9 h-9 rounded-full ring-2 ring-transparent hover:ring-indigo-400 focus-visible:ring-indigo-400 focus-visible:outline-none transition-all duration-200 flex-shrink-0"
                 >
                     <Image
                         src={user.profileImage || noProfile}
                         alt={user.username || 'Profile'}
                         fill
-                        className="object-cover"
+                        className="object-cover rounded-full"
                     />
                     {user.isPro && (
                         <span className="absolute -bottom-px -right-px w-3.5 h-3.5 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center">

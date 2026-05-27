@@ -1,51 +1,140 @@
 'use server';
 
-import { RegisterSchema } from '@/lib/SchemaTypes';
-import { db } from '@/lib/db';
-import bcrypt from 'bcryptjs';
-import * as z from 'zod';
+import bcrypt from "bcryptjs";
+
+import * as z from "zod";
+
+import { db } from "@/lib/db";
+
+import { RegisterSchema } from "@/lib/SchemaTypes";
+
+// ─────────────────────────────────────────────
+// REGISTER
+// ─────────────────────────────────────────────
 
 export const register = async (
     values: z.infer<typeof RegisterSchema>
 ) => {
     try {
-        const validatedFields = RegisterSchema.safeParse(values);
+        // ───────────────────────────────────────
+        // VALIDATE INPUT
+        // ───────────────────────────────────────
+
+        const validatedFields =
+            RegisterSchema.safeParse(values);
 
         if (!validatedFields.success) {
-            return { error: "Invalid fields" };
+            return {
+                success: false,
+                error: "Invalid fields",
+            };
         }
 
-        const { username, email, password } = validatedFields.data;
+        // ───────────────────────────────────────
+        // NORMALIZE DATA
+        // ───────────────────────────────────────
 
-        const existingUser = await db.user.findFirst({
-            where: {
-                OR: [{ email }, { username }],
-            },
-        });
+        const email =
+            validatedFields.data.email
+                .trim()
+                .toLowerCase();
 
-        if (existingUser) {
-            return { error: "User already exists" };
+        const username =
+            validatedFields.data.username
+                .trim();
+
+        const password =
+            validatedFields.data.password;
+
+        // ───────────────────────────────────────
+        // CHECK EMAIL
+        // ───────────────────────────────────────
+
+        const existingEmail =
+            await db.user.findUnique({
+                where: {
+                    email,
+                },
+
+                select: {
+                    id: true,
+                },
+            });
+
+        if (existingEmail) {
+            return {
+                success: false,
+                error:
+                    "Email already exists",
+            };
         }
 
-        const hashedPassword = await bcrypt.hash(password, 12);
+        // ───────────────────────────────────────
+        // CHECK USERNAME
+        // ───────────────────────────────────────
 
-        const newUser = await db.user.create({
-            data: {
-                username,
-                email,
-                password: hashedPassword,                
-            },
-        });
+        const existingUsername =
+            await db.user.findUnique({
+                where: {
+                    username,
+                },
+
+                select: {
+                    id: true,
+                },
+            });
+
+        if (existingUsername) {
+            return {
+                success: false,
+                error:
+                    "Username already exists",
+            };
+        }
+
+        // ───────────────────────────────────────
+        // HASH PASSWORD
+        // ───────────────────────────────────────
+
+        const hashedPassword =
+            await bcrypt.hash(password, 12);
+
+        // ───────────────────────────────────────
+        // CREATE USER
+        // ───────────────────────────────────────
+
+        const user =
+            await db.user.create({
+                data: {
+                    username,
+                    email,
+                    password: hashedPassword,
+                },
+
+                select: {
+                    id: true,
+                    email: true,
+                },
+            });
 
         return {
-            success: "User created",
+            success: true,
+
             data: {
-                id: newUser.id,
-                email: newUser.email,
+                id: String(user.id),
+                email: user.email,
             },
         };
     } catch (error) {
-        console.error("Registration error:", error);
-        return { error: "Registration failed" };
+        console.error(
+            "REGISTER_ERROR",
+            error
+        );
+
+        return {
+            success: false,
+            error:
+                "Something went wrong",
+        };
     }
 };

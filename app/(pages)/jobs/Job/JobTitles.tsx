@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from "react";
-import moment from "moment";
+import { format , formatDistanceToNow } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -96,8 +96,9 @@ const JobTitles: React.FC<JobTitlesProps> = ({ user, job, company, isPending, sa
             </span>
           )}
           <span className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2} />
-            {moment(job.createdAt).fromNow()}
+            <Clock className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2} />            
+            {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
+            
           </span>
           <span className="flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2} />

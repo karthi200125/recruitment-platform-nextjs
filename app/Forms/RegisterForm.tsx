@@ -1,38 +1,36 @@
 'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import Link from "next/link";
+import { FaLock, FaLockOpen } from "react-icons/fa";
 import { register } from "@/actions/auth/Register";
 import { RegisterSchema } from "@/lib/SchemaTypes";
-
 import Button from "@/components/Button";
 import FormError from "@/components/ui/FormError";
 import { Input } from "@/components/ui/input";
-
-import {
-    Form,
+import {    Form,
     FormControl,
     FormField,
     FormItem,
     FormMessage,
 } from "@/components/ui/form";
 
-import { FaLock, FaLockOpen } from "react-icons/fa";
-import Link from "next/link";
-
 const RegisterForm = () => {
     const router = useRouter();
-
-    const [showPass, setShowPass] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [isPending, startTransition] = useTransition();
 
-    const form = useForm<z.infer<typeof RegisterSchema>>({
-        resolver: zodResolver(RegisterSchema),
+    const form = useForm<
+        z.infer<typeof RegisterSchema>
+    >({
+        resolver:
+            zodResolver(RegisterSchema),
+
         defaultValues: {
             username: "",
             email: "",
@@ -40,87 +38,145 @@ const RegisterForm = () => {
         },
     });
 
-    const onSubmit = (values: z.infer<typeof RegisterSchema>) => {
+    const onSubmit = (
+        values: z.infer<typeof RegisterSchema>
+    ) => {
         setError("");
 
         startTransition(async () => {
-            const result = await register(values);
+            try {
+                const result =
+                    await register(values);
 
-            if (result?.error) {
-                setError(result.error);
-                return;
+                if (!result.success) {
+                    setError(
+                        result.error ??
+                        "Registration failed"
+                    );
+
+                    return;
+                }
+
+                router.push("/signin");
+            } catch (error) {
+                setError(
+                    "Something went wrong"
+                );
             }
-
-            router.push("/selectrole");
         });
     };
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
-
-                <FormField control={form.control} name="username"
+            <form
+                onSubmit={form.handleSubmit(
+                    onSubmit
+                )}
+                className="space-y-4 w-full"
+            >
+                <FormField
+                    control={form.control}
+                    name="username"
                     render={({ field }) => (
                         <FormItem>
                             <FormControl>
                                 <Input
                                     {...field}
-                                    placeholder="Enter Username"
+                                    placeholder="Username"
+                                    disabled={isPending}
+                                    autoComplete="username"
                                     className="bg-white/[0.02] border border-white/10 text-white"
                                 />
                             </FormControl>
+
                             <FormMessage />
                         </FormItem>
-                    )} />
+                    )}
+                />
 
-                <FormField control={form.control} name="email"
+                <FormField
+                    control={form.control}
+                    name="email"
                     render={({ field }) => (
                         <FormItem>
                             <FormControl>
                                 <Input
                                     {...field}
                                     type="email"
-                                    placeholder="Enter Email"
+                                    placeholder="Email"
+                                    disabled={isPending}
+                                    autoComplete="email"
                                     className="bg-white/[0.02] border border-white/10 text-white"
                                 />
                             </FormControl>
+
                             <FormMessage />
                         </FormItem>
-                    )} />
+                    )}
+                />
 
-                <FormField control={form.control} name="password"
+                <FormField
+                    control={form.control}
+                    name="password"
                     render={({ field }) => (
                         <FormItem>
                             <FormControl>
                                 <div className="relative">
-                                    <Input {...field}
-                                        type={showPass ? "text" : "password"}
-                                        placeholder="Enter Password"
+                                    <Input
+                                        {...field}
+                                        type={
+                                            showPassword
+                                                ? "text"
+                                                : "password"
+                                        }
+                                        placeholder="Password"
+                                        disabled={isPending}
+                                        autoComplete="new-password"
                                         className="bg-white/[0.02] border border-white/10 text-white"
                                     />
-                                    <button type="button"
-                                        onClick={() => setShowPass((p) => !p)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50">
-                                        {showPass ? <FaLockOpen /> : <FaLock />}
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setShowPassword(
+                                                (prev) => !prev
+                                            )
+                                        }
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50"
+                                    >
+                                        {showPassword ? (
+                                            <FaLockOpen />
+                                        ) : (
+                                            <FaLock />
+                                        )}
                                     </button>
                                 </div>
                             </FormControl>
+
                             <FormMessage />
                         </FormItem>
-                    )} />
-
-                <Link
-                    href="/forgot-password"
-                    className="text-sm text-gray-500 hover:text-blue-500 transition text-end mt-5"
-                >
-                    Forgot password?
-                </Link>
+                    )}
+                />
 
                 <FormError message={error} />
 
-                <Button type="submit" isLoading={isPending} className="w-full">
+                <Button
+                    type="submit"
+                    isLoading={isPending}
+                    className="w-full"
+                >
                     Register
                 </Button>
+
+                <p className="text-sm text-center text-white/60">
+                    Already have an account?{" "}
+                    <Link
+                        href="/signin"
+                        className="text-blue-500 hover:text-blue-400"
+                    >
+                        Sign in
+                    </Link>
+                </p>
             </form>
         </Form>
     );

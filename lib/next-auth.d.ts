@@ -3,34 +3,29 @@ import { DefaultSession } from "next-auth";
 declare module "next-auth" {
     interface Session {
         user: {
-            id: number; // ✅ Change to string if your Prisma schema uses cuid()/uuid()
+            id: string;
             username: string;
-            email: string;
-            role: string;
+            role: string | null;
             isPro: boolean;
-            profileImage?: string | null;
+            profileImage: string | null;
         } & DefaultSession["user"];
     }
 
     interface User {
-        id: number;
+        id: string;
         username: string;
-        email: string;
-        role: string;
+        role: string | null;
         isPro: boolean;
-        profileImage?: string | null;
+        profileImage: string | null;
     }
 }
 
 declare module "next-auth/jwt" {
     interface JWT {
-        user?: {
-            id: number;
-            username: string;
-            email: string;
-            role: string;
-            isPro: boolean;
-            profileImage?: string | null;
-        };
+        id: string;
+        username: string;
+        role: string | null;
+        isPro: boolean;
+        profileImage: string | null;
     }
 }
