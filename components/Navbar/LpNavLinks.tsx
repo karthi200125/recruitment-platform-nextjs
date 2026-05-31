@@ -1,5 +1,3 @@
-"use client"
-
 import { LpNavCompanies, LpNavJobs, LpNavServices } from '../../data'
 
 import {

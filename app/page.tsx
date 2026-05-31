@@ -197,7 +197,7 @@ export default function HomePage() {
         <WhyChooseUs />
         <ForRecruiters />
         <Testimonials />
-        {/* <Pricing /> */}
+        <Pricing />
         <Newsletter />
       </main>
 

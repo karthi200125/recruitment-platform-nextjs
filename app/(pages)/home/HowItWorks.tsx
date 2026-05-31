@@ -1,21 +1,20 @@
-'use client';
+"use client";
 
-import { memo, useMemo, useState } from 'react';
+import { memo, useMemo, useState } from "react";
 
 import {
   jobSeekerStepsdata,
   recruiterStepsdata,
-} from '@/lib/data/how-it-works-data';
+} from "@/lib/data/how-it-works-data";
 
 type Step = {
   id: number;
   title: string;
   description: string;
   icon: React.ElementType;
-  detail: string;
 };
 
-type TabKey = 'seekers' | 'recruiters';
+type TabKey = "seekers" | "recruiters";
 
 const TAB_META: Record<
   TabKey,
@@ -23,76 +22,81 @@ const TAB_META: Record<
     label: string;
     steps: Step[];
     accent: string;
-    iconBg: string;
-    connector: string;
+    iconColor: string;
+    lineColor: string;
+    activeTab: string;
   }
 > = {
   seekers: {
-    label: 'For Job Seekers',
+    label: "For Job Seekers",
     steps: jobSeekerStepsdata,
-    accent: 'from-indigo-500/20 to-violet-500/5',
-    iconBg: 'bg-indigo-500/15 text-indigo-400',
-    connector: 'bg-indigo-500/20',
+    accent: "from-indigo-500/10",
+    iconColor: "text-indigo-300",
+    lineColor: "bg-indigo-500/15",
+    activeTab:
+      "bg-indigo-500/15 text-white border border-indigo-500/20",
   },
 
   recruiters: {
-    label: 'For Recruiters',
+    label: "For Recruiters",
     steps: recruiterStepsdata,
-    accent: 'from-emerald-500/20 to-teal-500/5',
-    iconBg: 'bg-emerald-500/15 text-emerald-400',
-    connector: 'bg-emerald-500/20',
+    accent: "from-emerald-500/10",
+    iconColor: "text-emerald-300",
+    lineColor: "bg-emerald-500/15",
+    activeTab:
+      "bg-emerald-500/15 text-white border border-emerald-500/20",
   },
 };
 
-const StepCard = memo(function StepCard({
+const StepItem = memo(function StepItem({
   step,
   isLast,
-  iconBg,
-  connector,
+  iconColor,
+  lineColor,
 }: {
   step: Step;
   isLast: boolean;
-  iconBg: string;
-  connector: string;
+  iconColor: string;
+  lineColor: string;
 }) {
   const Icon = step.icon;
 
   return (
-    <li className="relative flex flex-col sm:flex-row md:flex-col items-start gap-5 sm:gap-6 md:gap-0">
+    <li className="relative flex flex-col items-start">
 
+      {/* CONNECTOR */}
       {!isLast && (
         <div
-          className={`hidden md:block absolute top-5 left-[calc(50%+28px)] right-0 h-px ${connector} -z-0`}
+          className={`
+                        absolute left-5 top-14 hidden h-px w-full md:block
+                        ${lineColor}
+                    `}
         />
       )}
 
-      <div className="relative flex-shrink-0 flex flex-col items-center md:items-start">
-        <div className="flex items-center gap-3 md:flex-col md:items-start md:gap-0">
-
-          <span className="absolute -top-2 -left-2 w-5 h-5 rounded-full bg-zinc-800 border border-white/[0.08] flex items-center justify-center text-[10px] font-bold text-zinc-500 z-10">
-            {step.id}
-          </span>
-
-          <div
-            className={`relative z-10 w-11 h-11 flex items-center justify-center rounded-xl ${iconBg} transition-colors duration-300`}
-          >
-            <Icon className="w-5 h-5" strokeWidth={1.75} />
-          </div>
-        </div>
+      {/* ICON */}
+      <div className="relative z-10 flex h-11 w-11 items-center justify-center rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl">
+        <Icon
+          className={`h-5 w-5 ${iconColor}`}
+          strokeWidth={1.75}
+        />
       </div>
 
-      <div className="md:mt-5 flex flex-col gap-1.5 flex-1">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="text-base font-semibold text-white">
-            {step.title}
-          </h3>
+      {/* CONTENT */}
+      <div className="mt-6 max-w-sm">
 
-          <span className="text-[11px] font-medium text-zinc-600 border border-white/[0.06] bg-white/[0.03] rounded-full px-2 py-0.5">
-            {step.detail}
-          </span>
-        </div>
+        {/* STEP NUMBER */}
+        <span className="text-xs font-medium uppercase tracking-[0.18em] text-white/30">
+          Step {step.id}
+        </span>
 
-        <p className="text-sm text-zinc-500 leading-relaxed">
+        {/* TITLE */}
+        <h3 className="mt-3 text-xl font-semibold tracking-tight text-white">
+          {step.title}
+        </h3>
+
+        {/* DESCRIPTION */}
+        <p className="mt-4 text-sm leading-7 text-white/50">
           {step.description}
         </p>
       </div>
@@ -100,119 +104,109 @@ const StepCard = memo(function StepCard({
   );
 });
 
-StepCard.displayName = 'StepCard';
+StepItem.displayName = "StepItem";
 
-const ProofStats = memo(function ProofStats() {
-  return (
-    <div className="mt-8 flex flex-wrap items-center justify-center gap-6 sm:gap-10">
-      {[
-        { value: '50K+', label: 'people hired' },
-        { value: '< 1 week', label: 'avg. time to first interview' },
-        { value: '98%', label: 'satisfaction rate' },
-      ].map(({ value, label }) => (
-        <div key={label} className="text-center">
-          <p className="text-lg font-bold text-white tracking-tight">
-            {value}
-          </p>
-
-          <p className="text-xs text-zinc-600 uppercase tracking-wider mt-0.5">
-            {label}
-          </p>
-        </div>
-      ))}
-    </div>
-  );
-});
-
-ProofStats.displayName = 'ProofStats';
 
 const HowItWorks = () => {
-  const [active, setActive] = useState<TabKey>('seekers');
+  const [active, setActive] =
+    useState<TabKey>("seekers");
 
-  const meta = useMemo(() => TAB_META[active], [active]);
+  const meta = useMemo(
+    () => TAB_META[active],
+    [active]
+  );
 
   return (
     <section
       aria-labelledby="how-it-works-heading"
-      className="relative w-full py-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
+      className="relative overflow-hidden py-28"
     >
-      {/* Ambient glow */}
-      <div className="pointer-events-none absolute inset-0 flex justify-center items-center">
-        <div className="w-[700px] h-[350px] rounded-full bg-indigo-600/7 blur-[120px]" />
-      </div>
+      {/* BACKGROUND */}
+      <div className="absolute inset-0 -z-20 bg-black" />
 
-      <div className="relative max-w-5xl mx-auto">
+      {/* TOP GLOW */}
+      <div className="absolute inset-x-0 top-0 -z-10 h-[320px] bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.16),transparent_72%)]" />
 
-        {/* Eyebrow */}
-        <div className="flex justify-center mb-5">
-          <span className="inline-flex items-center gap-2 rounded-full border border-indigo-500/25 bg-indigo-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-indigo-300">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-            Simple by design
-          </span>
+      {/* SIDE GLOW */}
+      <div className="absolute left-1/2 top-1/2 -z-10 h-[320px] w-[320px] -translate-x-1/2 rounded-full bg-indigo-500/10 blur-3xl" />
+
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+
+        {/* EYEBROW */}
+        <div className="mb-6 flex justify-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-5 py-2 backdrop-blur-xl">
+            <div className="h-2 w-2 rounded-full bg-indigo-400" />
+
+            <span className="text-xs font-medium uppercase tracking-[0.18em] text-white/60">
+              Simple by design
+            </span>
+          </div>
         </div>
 
-        {/* Heading */}
-        <div className="text-center mb-10">
+        {/* HEADING */}
+        <div className="mx-auto max-w-3xl text-center">
           <h2
             id="how-it-works-heading"
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-[1.1] mb-4"
+            className="text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-white sm:text-5xl lg:text-6xl"
           >
-            Up and running in{' '}
-            <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-              three steps
+            Everything you need
+            <span className="block bg-gradient-to-r from-indigo-400 via-violet-400 to-blue-400 bg-clip-text text-transparent">
+              to get hired faster
             </span>
           </h2>
 
-          <p className="text-zinc-400 text-base max-w-md mx-auto leading-relaxed">
-            Whether you&apos;re hunting for a job or hiring your next teammate
-            — the process is fast, simple, and built for results.
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-white/60 sm:text-lg">
+            Whether you&apos;re applying for your next role
+            or hiring top talent, the process is designed to
+            feel fast, seamless, and effortless.
           </p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex justify-center mb-10">
-          <div className="flex items-center gap-1 rounded-xl border border-white/[0.07] bg-white/[0.03] p-1.5">
-
+        {/* TABS */}
+        <div className="mt-14 flex justify-center">
+          <div className="inline-flex rounded-2xl border border-white/[0.08] bg-white/[0.03] p-1.5 backdrop-blur-xl">
             {(Object.entries(TAB_META) as [
               TabKey,
               typeof meta
-            ][]).map(([key, m]) => (
+            ][]).map(([key, item]) => (
               <button
                 key={key}
                 onClick={() => setActive(key)}
                 aria-pressed={active === key}
-                className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${active === key
-                    ? key === 'seekers'
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                      : 'bg-emerald-700 text-white shadow-lg shadow-emerald-500/20'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]'
-                  }`}
+                className={`
+                                    rounded-xl px-6 py-3 text-sm font-medium
+                                    transition-all duration-300
+
+                                    ${active === key
+                    ? item.activeTab
+                    : "text-white/45 hover:text-white/80"
+                  }
+                                `}
               >
-                {m.label}
+                {item.label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Steps */}
-        <div
-          className={`rounded-2xl border border-white/[0.07] bg-gradient-to-br ${meta.accent} p-8 sm:p-10`}
-        >
-          <ol className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-6 relative">
-            {meta.steps.map((step, i) => (
-              <StepCard
+        {/* STEPS */}
+        <div className="relative mt-24">
+          <ol className="grid grid-cols-1 gap-y-16 md:grid-cols-3 md:gap-x-12">
+            {meta.steps.map((step, index) => (
+              <StepItem
                 key={step.id}
                 step={step}
-                isLast={i === meta.steps.length - 1}
-                iconBg={meta.iconBg}
-                connector={meta.connector}
+                isLast={
+                  index ===
+                  meta.steps.length - 1
+                }
+                iconColor={meta.iconColor}
+                lineColor={meta.lineColor}
               />
             ))}
           </ol>
         </div>
 
-        {/* Stats */}
-        <ProofStats />
       </div>
     </section>
   );

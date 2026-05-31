@@ -1,13 +1,15 @@
-'use client';
+"use client";
 
-import { memo } from 'react';
-import Image, { StaticImageData } from 'next/image';
-import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
-import { ArrowRight } from 'lucide-react';
+import { memo } from "react";
+import Image, { StaticImageData } from "next/image";
+import Link from "next/link";
 
-import { getFeaturedJobs } from '@/actions/job/getFeaturedJobs';
-import noImage from '@/public/noImage.webp';
+import { useQuery } from "@tanstack/react-query";
+import { ArrowRight } from "lucide-react";
+
+import { getFeaturedJobs } from "@/actions/job/getFeaturedJobs";
+
+import noImage from "@/public/noImage.webp";
 
 interface Company {
     companyName?: string;
@@ -24,70 +26,75 @@ interface Job {
     company?: Company | null;
 }
 
-const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '');
+const stripHtml = (html: string) =>
+    html.replace(/<[^>]*>/g, "");
 
-const formatSalary = (salary: number | string): string => {
-    const num = typeof salary === 'string' ? parseFloat(salary) : salary;
+const formatSalary = (
+    salary: number | string
+): string => {
+    const num =
+        typeof salary === "string"
+            ? parseFloat(salary)
+            : salary;
 
-    if (Number.isNaN(num)) return String(salary);
+    if (Number.isNaN(num)) {
+        return String(salary);
+    }
 
-    return `₹${num.toLocaleString('en-IN')} / yr`;
+    return `₹${num.toLocaleString("en-IN")} / yr`;
 };
 
 const MODE_STYLES: Record<string, string> = {
-    remote:
-        'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-    hybrid:
-        'bg-violet-500/10 text-violet-400 border border-violet-500/20',
-    onsite:
-        'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+    remote: "text-emerald-300",
+    hybrid: "text-violet-300",
+    onsite: "text-amber-300",
 };
 
 const SkeletonCard = memo(() => (
+    <div className="flex flex-col rounded-[28px] border border-white/[0.08] bg-white/[0.03] p-7 animate-pulse">
+        <div className="mb-6 flex items-start justify-between">
+            <div className="h-14 w-14 rounded-2xl bg-white/[0.05]" />
 
-    <div className="flex flex-col rounded-2xl border border-white/[0.07] bg-zinc-900/50 p-6 animate-pulse">
-        <div className="flex items-start justify-between mb-5">
-            <div className="w-12 h-12 rounded-xl bg-white/[0.05]" />
-            <div className="w-16 h-6 rounded-full bg-white/[0.05]" />
+            <div className="h-5 w-16 rounded-full bg-white/[0.05]" />
         </div>
 
-        ```
-        <div className="space-y-2 mb-4">
-            <div className="h-4 w-3/4 rounded-lg bg-white/[0.05]" />
-            <div className="h-3 w-1/2 rounded-lg bg-white/[0.05]" />
+        <div className="mb-5 space-y-3">
+            <div className="h-5 w-3/4 rounded-lg bg-white/[0.05]" />
+
+            <div className="h-4 w-1/3 rounded-lg bg-white/[0.05]" />
         </div>
 
-        <div className="space-y-1.5 mb-5 flex-1">
+        <div className="mb-6 space-y-2">
             <div className="h-3 w-full rounded bg-white/[0.05]" />
+
             <div className="h-3 w-5/6 rounded bg-white/[0.05]" />
+
             <div className="h-3 w-4/6 rounded bg-white/[0.05]" />
         </div>
 
-        <div className="flex gap-2 mb-5">
-            <div className="h-6 w-14 rounded-lg bg-white/[0.05]" />
-            <div className="h-6 w-14 rounded-lg bg-white/[0.05]" />
-            <div className="h-6 w-14 rounded-lg bg-white/[0.05]" />
+        <div className="mb-7 flex gap-2">
+            <div className="h-7 w-16 rounded-xl bg-white/[0.05]" />
+
+            <div className="h-7 w-16 rounded-xl bg-white/[0.05]" />
+
+            <div className="h-7 w-16 rounded-xl bg-white/[0.05]" />
         </div>
 
-        <div className="h-px bg-white/[0.05] mb-4" />
-
-        <div className="flex items-center justify-between">
+        <div className="mt-auto flex items-center justify-between border-t border-white/[0.05] pt-5">
             <div className="h-4 w-24 rounded bg-white/[0.05]" />
-            <div className="h-4 w-16 rounded bg-white/[0.05]" />
-        </div>
-        ```
 
+            <div className="h-4 w-20 rounded bg-white/[0.05]" />
+        </div>
     </div>
 ));
 
-SkeletonCard.displayName = 'SkeletonCard';
+SkeletonCard.displayName = "SkeletonCard";
 
 const EmptyState = memo(() => (
-
-    <div className="col-span-full flex flex-col items-center gap-4 py-24 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/[0.07] flex items-center justify-center">
+    <div className="col-span-full flex flex-col items-center py-28 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-white/[0.08] bg-white/[0.03]">
             <svg
-                className="w-6 h-6 text-zinc-700"
+                className="h-7 w-7 text-zinc-700"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -97,28 +104,24 @@ const EmptyState = memo(() => (
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={1.5}
-                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5"
                 />
             </svg>
         </div>
 
-        ```
-        <p className="text-zinc-600 text-sm">
-            No featured jobs right now. Check back soon.
+        <p className="mt-5 text-sm text-zinc-500">
+            No featured jobs available right now.
         </p>
-        ```
-
     </div>
 ));
 
-EmptyState.displayName = 'EmptyState';
+EmptyState.displayName = "EmptyState";
 
 const ErrorState = memo(() => (
-
-    <div className="col-span-full flex flex-col items-center gap-4 py-24 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-red-500/5 border border-red-500/20 flex items-center justify-center">
+    <div className="col-span-full flex flex-col items-center py-28 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-3xl border border-red-500/15 bg-red-500/5">
             <svg
-                className="w-6 h-6 text-red-400/50"
+                className="h-7 w-7 text-red-400/60"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -128,113 +131,204 @@ const ErrorState = memo(() => (
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={1.5}
-                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                    d="M12 9v2m0 4h.01"
                 />
             </svg>
         </div>
 
-        ```
-        <p className="text-zinc-600 text-sm">
-            Failed to load jobs. Please try again later.
+        <p className="mt-5 text-sm text-zinc-500">
+            Failed to load featured jobs.
         </p>
-        ```
-
     </div>
 ));
 
-ErrorState.displayName = 'ErrorState';
+ErrorState.displayName = "ErrorState";
 
-const JobCard = memo(({ job }: { job: Job }) => {
-    const imageSrc: string | StaticImageData =
-        job.company?.companyImage || noImage;
+const JobCard = memo(
+    ({
+        job,
+        featured,
+    }: {
+        job: Job;
+        featured?: boolean;
+    }) => {
+        const imageSrc:
+            | string
+            | StaticImageData =
+            job.company?.companyImage ||
+            noImage;
 
-    const modeLower = job.mode.toLowerCase();
+        const modeLower =
+            job.mode.toLowerCase();
 
-    const badgeClass =
-        MODE_STYLES[modeLower] ??
-        'bg-white/[0.05] text-zinc-500 border border-white/[0.07]';
+        const badgeClass =
+            MODE_STYLES[modeLower] ??
+            "text-zinc-400";
 
-    return (<article className="group flex flex-col rounded-2xl border bg-white/[0.04] p-6 hover:border-indigo-500/35 hover:-translate-y-1 hover:bg-zinc-900/80 hover:shadow-xl hover:shadow-indigo-500/[0.08] transition-all duration-300 cursor-pointer">
+        return (
+            <article
+                className={`
+                    group relative flex h-full flex-col overflow-hidden rounded-[30px]
+                    border border-white/[0.08]
+                    bg-white/[0.03]
+                    p-7
+                    backdrop-blur-xl
+                    transition-all duration-300
+                    hover:-translate-y-1
+                    hover:border-white/[0.14]
+                    hover:bg-white/[0.05]
 
-        ```
-        {/* Top */}
-        <div className="flex items-start justify-between mb-5">
-            <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-white/[0.08] bg-white/[0.04] flex-shrink-0">
-                <Image
-                    src={imageSrc}
-                    alt={job.company?.companyName ?? 'Company logo'}
-                    fill
-                    sizes="48px"
-                    className="object-cover"
-                />
-            </div>
-
-            <span
-                className={`text-[11px] font-semibold px-2.5 py-1 rounded-full capitalize tracking-wide ${badgeClass}`}
+                    ${
+                        featured
+                            ? "sm:col-span-2"
+                            : ""
+                    }
+                `}
             >
-                {job.mode}
-            </span>
-        </div>
+                {/* TOP HAIRLINE */}
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-        {/* Title */}
-        <div className="mb-3 space-y-0.5">
-            <h3 className="text-white font-semibold text-[15px] leading-snug capitalize line-clamp-2 group-hover:text-indigo-300 transition-colors duration-200">
-                {job.jobTitle}
-            </h3>
-
-            {job.company?.companyName && (
-                <p className="text-zinc-600 text-xs font-medium capitalize">
-                    {job.company.companyName}
-                </p>
-            )}
-        </div>
-
-        {/* Description */}
-        <p className="text-zinc-500 text-[13px] leading-relaxed line-clamp-3 mb-5 flex-1 group-hover:text-zinc-400 transition-colors duration-300">
-            {stripHtml(job.jobDesc ?? 'No description provided.')}
-        </p>
-
-        {/* Skills */}
-        {job.skills?.length ? (
-            <ul className="flex flex-wrap gap-1.5 mb-5">
-                {job.skills.slice(0, 4).map((skill) => (
-                    <li
-                        key={`${job.id}-${skill}`}
-                        className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-white/[0.04] text-zinc-500 border border-white/[0.07] hover:bg-white/[0.08] hover:text-zinc-300 transition-colors duration-150"
-                    >
-                        {skill}
-                    </li>
-                ))}
-
-                {job.skills.length > 4 && (
-                    <li className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-white/[0.04] text-zinc-600 border border-white/[0.07]">
-                        +{job.skills.length - 4}
-                    </li>
+                {/* FEATURED GLOW */}
+                {featured && (
+                    <div className="absolute inset-0 -z-10 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 )}
-            </ul>
-        ) : null}
 
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-4 border-t border-white/[0.06]">
-            <span className="text-white font-semibold text-sm tabular-nums">
-                {formatSalary(job.salary)}
-            </span>
+                {/* TOP */}
+                <div className="mb-7 flex items-start justify-between">
+                    <div className="relative h-14 w-14 overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03]">
+                        <Image
+                            src={imageSrc}
+                            alt={
+                                job.company
+                                    ?.companyName ??
+                                "Company logo"
+                            }
+                            fill
+                            sizes="56px"
+                            className="object-cover"
+                        />
+                    </div>
 
-            <Link
-                href="/jobs"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors duration-150 group/link"
-                aria-label={`View ${job.jobTitle} job`}
-            >
-                View Role
+                    <div
+                        className={`inline-flex items-center gap-2 text-xs font-medium capitalize ${badgeClass}`}
+                    >
+                        <span
+                            className={`h-2 w-2 rounded-full ${
+                                modeLower ===
+                                "remote"
+                                    ? "bg-emerald-400"
+                                    : modeLower ===
+                                      "hybrid"
+                                    ? "bg-violet-400"
+                                    : "bg-amber-400"
+                            }`}
+                        />
 
-                <ArrowRight className="w-3.5 h-3.5 translate-x-0 group-hover/link:translate-x-0.5 transition-transform duration-150" />
-            </Link>
-        </div>
-    </article>
-    )
-});
+                        {job.mode}
+                    </div>
+                </div>
 
-JobCard.displayName = 'JobCard';
+                {/* CONTENT */}
+                <div className="flex flex-1 flex-col">
+
+                    {/* TITLE */}
+                    <div className="mb-5">
+                        <h3
+                            className={`
+                                font-semibold tracking-tight text-white transition-colors duration-300
+                                group-hover:text-indigo-300
+
+                                ${
+                                    featured
+                                        ? "text-2xl"
+                                        : "text-lg"
+                                }
+                            `}
+                        >
+                            {job.jobTitle}
+                        </h3>
+
+                        {job.company
+                            ?.companyName && (
+                            <p className="mt-2 text-sm font-medium text-white/40">
+                                {
+                                    job.company
+                                        .companyName
+                                }
+                            </p>
+                        )}
+                    </div>
+
+                    {/* DESCRIPTION */}
+                    <p
+                        className={`
+                            flex-1 text-sm leading-7 text-white/50 transition-colors duration-300
+                            group-hover:text-white/60
+
+                            ${
+                                featured
+                                    ? "max-w-2xl line-clamp-3"
+                                    : "line-clamp-2"
+                            }
+                        `}
+                    >
+                        {stripHtml(
+                            job.jobDesc ??
+                                "No description provided."
+                        )}
+                    </p>
+
+                    {/* SKILLS */}
+                    {job.skills?.length ? (
+                        <ul className="mt-6 flex flex-wrap gap-2">
+                            {job.skills
+                                .slice(0, 3)
+                                .map((skill) => (
+                                    <li
+                                        key={`${job.id}-${skill}`}
+                                        className="rounded-xl bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/50"
+                                    >
+                                        {skill}
+                                    </li>
+                                ))}
+
+                            {job.skills.length >
+                                3 && (
+                                <li className="rounded-xl bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/40">
+                                    +
+                                    {job.skills
+                                        .length -
+                                        3}
+                                </li>
+                            )}
+                        </ul>
+                    ) : null}
+
+                    {/* FOOTER */}
+                    <div className="mt-8 flex items-center justify-between border-t border-white/[0.05] pt-5">
+                        <span className="text-base font-semibold tracking-tight text-white">
+                            {formatSalary(
+                                job.salary
+                            )}
+                        </span>
+
+                        <Link
+                            href="/jobs"
+                            className="group/link inline-flex items-center gap-2 text-sm font-medium text-indigo-300 transition-colors duration-300 hover:text-indigo-200"
+                            aria-label={`View ${job.jobTitle} job`}
+                        >
+                            View role
+
+                            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/link:translate-x-1" />
+                        </Link>
+                    </div>
+                </div>
+            </article>
+        );
+    }
+);
+
+JobCard.displayName = "JobCard";
 
 const FeaturedJobs = () => {
     const {
@@ -242,11 +336,15 @@ const FeaturedJobs = () => {
         isPending,
         isError,
     } = useQuery({
-        queryKey: ['featured-jobs'],
+        queryKey: ["featured-jobs"],
         queryFn: async () => {
-            const res = await getFeaturedJobs();
+            const res =
+                await getFeaturedJobs();
+
             if (!res.success) {
-                throw new Error(res.error);
+                throw new Error(
+                    res.error
+                );
             }
 
             return res.data;
@@ -258,75 +356,123 @@ const FeaturedJobs = () => {
         retry: 2,
     });
 
-    return (<section
-        aria-labelledby="featured-jobs-heading"
-        className="relative w-full bg-[#09090b] py-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
-    >
-        {/* Ambient glow */} <div className="pointer-events-none absolute inset-0 flex justify-center items-center"> <div className="w-[700px] h-[350px] rounded-full bg-indigo-600/7 blur-[120px]" /> </div>
+    const featuredJobs = jobs.slice(
+        0,
+        3
+    );
 
-        < div className="relative max-w-6xl mx-auto space-y-12" >
+    return (
+        <section
+            aria-labelledby="featured-jobs-heading"
+            className="relative overflow-hidden bg-[#09090B] py-28"
+        >
+            {/* BACKGROUND */}
+            <div className="absolute inset-0 -z-20 bg-black" />
 
-            {/* Header */}
-            < div className="max-w-xl mx-auto text-center space-y-4" >
-                <div className="flex justify-center">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-indigo-500/25 bg-indigo-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-indigo-300">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                        Now Hiring
-                    </span>
+            {/* TOP GLOW */}
+            <div className="absolute inset-x-0 top-0 -z-10 h-[350px] bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.18),transparent_72%)]" />
+
+            {/* SIDE GLOW */}
+            <div className="absolute right-0 top-1/3 -z-10 h-[300px] w-[300px] rounded-full bg-indigo-500/10 blur-3xl" />
+
+            <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+                {/* HEADER */}
+                <div className="mx-auto max-w-3xl text-center">
+
+                    {/* EYEBROW */}
+                    <div className="mb-6 flex justify-center">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-5 py-2 backdrop-blur-xl">
+                            <div className="h-2 w-2 rounded-full bg-indigo-400" />
+
+                            <span className="text-xs font-medium uppercase tracking-[0.18em] text-white/60">
+                                Now Hiring
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* HEADING */}
+                    <h2
+                        id="featured-jobs-heading"
+                        className="text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-white sm:text-5xl lg:text-6xl"
+                    >
+                        Find your next
+                        <span className="block bg-gradient-to-r from-indigo-400 via-violet-400 to-blue-400 bg-clip-text text-transparent">
+                            big opportunity
+                        </span>
+                    </h2>
+
+                    {/* DESCRIPTION */}
+                    <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-white/60 sm:text-lg">
+                        Curated opportunities from
+                        fast-growing startups and
+                        industry-leading companies.
+                    </p>
                 </div>
 
-                <h2
-                    id="featured-jobs-heading"
-                    className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-[1.1]"
-                >
-                    Featured{' '}
-                    <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-                        job openings
-                    </span>
-                </h2>
-
-                <p className="text-zinc-400 text-base leading-relaxed">
-                    Verified opportunities from top employers — updated daily.
-                </p>
-            </div >
-
-            {/* Jobs Grid */}
-            < div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4" >
-                {
-                    isPending ? (
-                        Array.from({ length: 6 }).map((_, i) => (
-                            <SkeletonCard key={i} />
+                {/* GRID */}
+                <div className="mt-20 grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    {isPending ? (
+                        Array.from({
+                            length: 3,
+                        }).map((_, i) => (
+                            <SkeletonCard
+                                key={i}
+                            />
                         ))
                     ) : isError ? (
                         <ErrorState />
-                    ) : jobs.length === 0 ? (
+                    ) : featuredJobs.length ===
+                      0 ? (
                         <EmptyState />
                     ) : (
-                        jobs.map((job) => (
-                            <JobCard key={job.id} job={job} />
-                        ))
+                        featuredJobs.map(
+                            (
+                                job,
+                                index
+                            ) => (
+                                <JobCard
+                                    key={job.id}
+                                    job={job}
+                                    featured={
+                                        index === 0
+                                    }
+                                />
+                            )
+                        )
                     )}
-            </div >
+                </div>
 
-            {/* CTA */}
-            {
-                !isPending && !isError && jobs.length > 0 && (
-                    <div className="flex justify-center pt-2">
-                        <Link
-                            href="/jobs"
-                            className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-6 py-3 text-sm font-semibold text-zinc-300 hover:bg-white/[0.08] hover:text-white hover:border-white/20 transition-all duration-200"
-                        >
-                            Browse all jobs
+                {/* CTA */}
+                {!isPending &&
+                    !isError &&
+                    featuredJobs.length >
+                        0 && (
+                        <div className="mt-14 flex justify-center">
+                            <Link
+                                href="/jobs"
+                                className="
+                                    inline-flex items-center gap-2 rounded-2xl
+                                    border border-white/[0.08]
+                                    bg-white/[0.03]
+                                    px-7 py-3.5
+                                    text-sm font-medium text-white/70
+                                    backdrop-blur-xl
+                                    transition-all duration-300
+                                    hover:border-white/[0.14]
+                                    hover:bg-white/[0.06]
+                                    hover:text-white
+                                "
+                            >
+                                Browse all jobs
 
-                            <ArrowRight className="w-4 h-4" />
-                        </Link>
-                    </div>
-                )
-            }
-        </div >
-    </section >
-
-    )
+                                <ArrowRight className="h-4 w-4" />
+                            </Link>
+                        </div>
+                    )}
+            </div>
+        </section>
+    );
 };
 
 export default memo(FeaturedJobs);

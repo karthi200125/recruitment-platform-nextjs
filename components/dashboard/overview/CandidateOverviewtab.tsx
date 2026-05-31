@@ -1,6 +1,4 @@
 "use client";
-
-
 import { Role } from "@prisma/client";
 import DashboardStats from "../cards/DashboardStats";
 import DashboardStatusChart from "../charts/DashboardStatusChart ";
@@ -10,57 +8,24 @@ import ProfileViewsCard from "../cards/ProfileViewCard";
 import RecentApplicationsCard from "../cards/RecentApplicationsCard";
 import RecentActivityCard from "../cards/RecentActivityCard";
 
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
-
 interface CandidateOverviewTabProps {
     role: Role;
 
     dashboardData: any;
 }
 
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
-
 const CandidateOverview = ({
     role,
     dashboardData,
 }: CandidateOverviewTabProps) => {
-    // ─────────────────────────────────────────
-    // Stats
-    // ─────────────────────────────────────────
-    const stats = dashboardData?.stats ?? {};
-    // ─────────────────────────────────────────
-    // Charts
-    // ─────────────────────────────────────────
 
     const applicationStatusChart = dashboardData?.charts?.applicationStatusChart ?? [];
     const applicationActivityChart = dashboardData?.charts?.applicationActivityChart ?? [];
-
-    // ─────────────────────────────────────────
-    // Profile Completion
-    // ─────────────────────────────────────────
-
-    const profileCompletion =
-        dashboardData?.profileCompletion;
-
-    // ─────────────────────────────────────────
-    // Recent Activity
-    // ─────────────────────────────────────────
-
+    const profileCompletion = dashboardData?.profileCompletion;
     const recentActivity = dashboardData?.recentActivity ?? [];
-
-    // ─────────────────────────────────────────
-    // Recent Applications
-    // ─────────────────────────────────────────
-
     const recentApplications = dashboardData?.recentApplications ?? [];
 
-    // ─────────────────────────────────────────
-    // Render
-    // ─────────────────────────────────────────
+    console.log('dashboard data' ,dashboardData)
 
     return (
         <div className="space-y-6">
@@ -74,19 +39,13 @@ const CandidateOverview = ({
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
                 {/* Status Chart */}
                 <div className="xl:col-span-4">
-                    <div className="h-[320px] overflow-hidden rounded-[24px] border border-slate-200 bg-white">
+                    <div className="h-[320px] rounded-[24px] border border-slate-200 bg-white">
                         <DashboardStatusChart
                             title="Application Status"
-                            total={
-                                stats
-                                    ?.appliedJobs
-                                    ?.count ??
-                                0
-                            }
-                            data={
-                                applicationStatusChart
-                            }
+                            total={dashboardData?.stats?.appliedJobs?.count ?? 0}
+                            data={applicationStatusChart}
                         />
+
                     </div>
                 </div>
 

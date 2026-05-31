@@ -41,6 +41,7 @@
     "date-fns": "^4.2.1",
     "dompurify": "^3.2.4",
     "embla-carousel-react": "^8.2.0",
+    "framer-motion": "^12.40.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.427.0",
     "meilisearch": "^0.58.0",

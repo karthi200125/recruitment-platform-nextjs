@@ -59,14 +59,14 @@ export const testimonialsdata: Testimonial[] = [
             "Reduced our time-to-hire by 40%. The candidate quality is consistently high and the messaging tools are seamless.",
         rating: 5,
     },
-    {
-        id: 6,
-        name: "Ananya Nair",
-        role: "Data Analyst",
-        company: "InsightCo",
-        image: "/avatars/user6.jpg",
-        content:
-            "As a fresher, I was worried about standing out. This platform gave me visibility I never had on other job boards.",
-        rating: 5,
-    },
+    // {
+    //     id: 6,
+    //     name: "Ananya Nair",
+    //     role: "Data Analyst",
+    //     company: "InsightCo",
+    //     image: "/avatars/user6.jpg",
+    //     content:
+    //         "As a fresher, I was worried about standing out. This platform gave me visibility I never had on other job boards.",
+    //     rating: 5,
+    // },
 ];

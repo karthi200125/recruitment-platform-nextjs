@@ -8,37 +8,55 @@ import {
     UserCog,
     Users,
 } from "lucide-react";
+
 import { Role } from "@prisma/client";
+
 import { DashboardStatItem } from "@/types/dashboard";
+
+// ─────────────────────────────────────────────
+// Config
+// ─────────────────────────────────────────────
 
 export const DASHBOARD_STATS_CONFIG: Record<
     Role,
     DashboardStatItem[]
 > = {
+    // ─────────────────────────────────────────
+    // Candidate
+    // ─────────────────────────────────────────
+
     CANDIDATE: [
         {
-            key: "appliedJobsCount",
+            key: "appliedJobs",
+
             label: "Applied Jobs",
+
             icon: BriefcaseBusiness,
-            href: "/dashboard?tab=applied",
-            trend: "12.5%",
-            iconBg: "bg-emerald-50",
-            iconColor: "text-emerald-600",
+
+            href:
+                "/dashboard?tab=applied",
+
+            iconBg:
+                "bg-emerald-50",
+
+            iconColor:
+                "text-emerald-600",
+
             chartColor: "#16a34a",
         },
 
         {
-            key: "savedJobsCount",
+            key: "savedJobs",
 
             label: "Saved Jobs",
 
             icon: Bookmark,
 
-            href: "/dashboard?tab=saved",
+            href:
+                "/dashboard?tab=saved",
 
-            trend: "8.1%",
-
-            iconBg: "bg-violet-50",
+            iconBg:
+                "bg-violet-50",
 
             iconColor:
                 "text-violet-600",
@@ -47,51 +65,65 @@ export const DASHBOARD_STATS_CONFIG: Record<
         },
 
         {
-            key: "interviewsCount",
+            key: "interviews",
 
             label: "Interviews",
 
+            href:
+                "/dashboard?tab=interviews",
+
             icon: Clock3,
 
-            trend: "20%",
+            iconBg:
+                "bg-sky-50",
 
-            iconBg: "bg-sky-50",
-
-            iconColor: "text-sky-600",
+            iconColor:
+                "text-sky-600",
 
             chartColor: "#2563eb",
         },
 
         {
-            key: "profileViewsCount",
+            key: "profileViews",
 
-            label: "Profile Views",
+            label:
+                "Profile Views",
 
             icon: Eye,
 
-            href: "/dashboard?tab=profileViews",
+            href:
+                "/dashboard?tab=profileViews",
 
-            trend: "-5.2%",
+            iconBg:
+                "bg-rose-50",
 
-            iconBg: "bg-rose-50",
-
-            iconColor: "text-rose-600",
+            iconColor:
+                "text-rose-600",
 
             chartColor: "#dc2626",
         },
     ],
+
+    // ─────────────────────────────────────────
+    // Recruiter
+    // ─────────────────────────────────────────
 
     RECRUITER: [
         {
-            key: "postedJobsCount",
+            key:
+                "postedJobsCount",
 
-            label: "Posted Jobs",
+            label:
+                "Posted Jobs",
 
-            icon: BriefcaseBusiness,
+            icon:
+                BriefcaseBusiness,
 
-            trend: "12.5%",
+            href:
+                "/dashboard?tab=postedJobs",
 
-            iconBg: "bg-emerald-50",
+            iconBg:
+                "bg-emerald-50",
 
             iconColor:
                 "text-emerald-600",
@@ -100,15 +132,19 @@ export const DASHBOARD_STATS_CONFIG: Record<
         },
 
         {
-            key: "totalApplicationsCount",
+            key:
+                "totalApplicationsCount",
 
-            label: "Applicants",
+            label:
+                "Applicants",
 
             icon: Users,
 
-            trend: "8.1%",
+            href:
+                "/dashboard?tab=applicants",
 
-            iconBg: "bg-violet-50",
+            iconBg:
+                "bg-violet-50",
 
             iconColor:
                 "text-violet-600",
@@ -117,49 +153,65 @@ export const DASHBOARD_STATS_CONFIG: Record<
         },
 
         {
-            key: "hiredCandidatesCount",
+            key:
+                "interviewsCount",
 
-            label: "Hired",
+            label:
+                "Interviews",
 
-            icon: BadgeCheck,
+            href:
+                "/dashboard?tab=interviews",
 
-            trend: "20%",
+            icon: Clock3,
 
-            iconBg: "bg-sky-50",
+            iconBg:
+                "bg-sky-50",
 
-            iconColor: "text-sky-600",
+            iconColor:
+                "text-sky-600",
 
             chartColor: "#2563eb",
         },
 
         {
-            key: "interviewsCount",
+            key:
+                "hiredCandidatesCount",
 
-            label: "Interviews",
+            label: "Hired",
 
-            icon: Clock3,
+            href:
+                "/dashboard?tab=hired",
 
-            trend: "-5.2%",
+            icon:
+                BadgeCheck,
 
-            iconBg: "bg-rose-50",
+            iconBg:
+                "bg-rose-50",
 
-            iconColor: "text-rose-600",
+            iconColor:
+                "text-rose-600",
 
             chartColor: "#dc2626",
         },
     ],
 
+    // ─────────────────────────────────────────
+    // Organization
+    // ─────────────────────────────────────────
+
     ORGANIZATION: [
         {
-            key: "totalJobsCount",
+            key: "jobsCount",
 
-            label: "Active Jobs",
+            label: "Jobs",
 
             icon: Building2,
 
-            trend: "12.5%",
+            href:
+                "/dashboard?tab=jobs",
 
-            iconBg: "bg-emerald-50",
+            iconBg:
+                "bg-emerald-50",
 
             iconColor:
                 "text-emerald-600",
@@ -168,15 +220,19 @@ export const DASHBOARD_STATS_CONFIG: Record<
         },
 
         {
-            key: "totalApplicantsCount",
+            key:
+                "totalApplicationsCount",
 
-            label: "Applicants",
+            label:
+                "Applicants",
 
             icon: Users,
 
-            trend: "8.1%",
+            href:
+                "/dashboard?tab=applicants",
 
-            iconBg: "bg-violet-50",
+            iconBg:
+                "bg-violet-50",
 
             iconColor:
                 "text-violet-600",
@@ -185,33 +241,40 @@ export const DASHBOARD_STATS_CONFIG: Record<
         },
 
         {
-            key: "activeJobsCount",
+            key:
+                "recruitersCount",
 
-            label: "Active Jobs",
+            label:
+                "Recruiters",
 
             icon: UserCog,
 
-            trend: "20%",
+            iconBg:
+                "bg-sky-50",
 
-            iconBg: "bg-sky-50",
-
-            iconColor: "text-sky-600",
+            iconColor:
+                "text-sky-600",
 
             chartColor: "#2563eb",
         },
 
         {
-            key: "hiredCandidatesCount",
+            key:
+                "hiredCandidatesCount",
 
             label: "Hired",
 
-            icon: BadgeCheck,
+            href:
+                "/dashboard?tab=hired",
 
-            trend: "-5.2%",
+            icon:
+                BadgeCheck,
 
-            iconBg: "bg-rose-50",
+            iconBg:
+                "bg-rose-50",
 
-            iconColor: "text-rose-600",
+            iconColor:
+                "text-rose-600",
 
             chartColor: "#dc2626",
         },

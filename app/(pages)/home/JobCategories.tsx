@@ -2,108 +2,168 @@ import { categoriesdata } from "@/lib/data/catagories-data";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-
 const JobCategories = () => {
-    const totalJobs = categoriesdata.reduce((sum, c) => sum + c.count, 0);
+    const totalJobs = categoriesdata.reduce(
+        (sum, c) => sum + c.count,
+        0
+    );
 
     return (
         <section
             aria-labelledby="job-categories-heading"
-            className="relative w-full py-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
+            className="relative overflow-hidden py-28"
         >
-            {/* Ambient glow */}
-            <div className="pointer-events-none absolute inset-0 flex justify-center items-center">
-                <div className="w-[700px] h-[350px] rounded-full bg-indigo-600/7 blur-[120px]" />
-            </div>
+            {/* BACKGROUND */}
+            <div className="absolute inset-0 -z-20 bg-black" />
 
-            <div className="relative max-w-6xl mx-auto">
+            {/* TOP GLOW */}
+            <div className="absolute inset-x-0 top-0 -z-10 h-[320px] bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.18),transparent_72%)]" />
 
-                {/* Eyebrow */}
-                <div className="flex justify-center mb-5">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-indigo-500/25 bg-indigo-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-indigo-300">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                        {totalJobs.toLocaleString()}+ open roles
-                    </span>
+            {/* SIDE GLOW */}
+            <div className="absolute left-0 top-1/2 -z-10 h-[260px] w-[260px] rounded-full bg-indigo-500/10 blur-3xl" />
+
+            <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+                {/* EYEBROW */}
+                <div className="mb-6 flex justify-center">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-5 py-2 backdrop-blur-xl">
+                        <div className="h-2 w-2 rounded-full bg-indigo-400" />
+
+                        <span className="text-xs font-medium uppercase tracking-[0.18em] text-white/60">
+                            {totalJobs.toLocaleString()}+ open roles
+                        </span>
+                    </div>
                 </div>
 
-                {/* Heading */}
-                <div className="text-center mb-14">
+                {/* HEADING */}
+                <div className="mx-auto max-w-3xl text-center">
                     <h2
                         id="job-categories-heading"
-                        className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-[1.1] mb-4"
+                        className="text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-white sm:text-5xl lg:text-6xl"
                     >
-                        Find work in your{" "}
-                        <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
+                        Find work in your
+                        <span className="block bg-gradient-to-r from-indigo-400 via-violet-400 to-blue-400 bg-clip-text text-transparent">
                             field of expertise
                         </span>
                     </h2>
-                    <p className="text-zinc-400 text-base max-w-md mx-auto leading-relaxed">
-                        Explore thousands of opportunities across the most in-demand tech roles, curated and verified daily.
+
+                    <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-white/60 sm:text-lg">
+                        Explore verified opportunities across the most
+                        in-demand career paths and discover roles that match
+                        your skills and ambitions.
                     </p>
                 </div>
 
-                {/* Grid */}
-                <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {categoriesdata.map((category) => {
+                {/* GRID */}
+                <ul className="mt-20 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {categoriesdata.map((category, index) => {
                         const Icon = category.icon;
 
+                        const featured =
+                            index === 0 || index === 4;
+
                         return (
-                            <li key={category.id}>
+                            <li
+                                key={category.id}
+                                className={
+                                    featured
+                                        ? "sm:col-span-2"
+                                        : ""
+                                }
+                            >
                                 <Link
                                     href={`/jobs/${category.slug}`}
                                     aria-label={`Browse ${category.name} jobs`}
-                                    className={`group relative flex flex-col h-full rounded-2xl border border-white/[0.07] bg-zinc-900/50 p-6 transition-all duration-300 ${category.accent} hover:-translate-y-1 hover:bg-zinc-900/80 overflow-hidden`}
+                                    className={`
+                                        group relative flex h-full flex-col overflow-hidden rounded-[28px]
+                                        border border-white/[0.08]
+                                        bg-white/[0.03]
+                                        p-7
+                                        backdrop-blur-xl
+                                        transition-all duration-300
+                                        hover:border-white/[0.14]
+                                        hover:bg-white/[0.05]
+                                        hover:-translate-y-1
+                                    `}
                                 >
-                                    {/* Top hairline on hover */}
-                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                                    {/* TOP HAIRLINE */}
+                                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-                                    {/* Top row — icon + count */}
-                                    <div className="flex items-start justify-between mb-5">
-                                        <div className={`w-11 h-11 flex items-center justify-center rounded-xl ${category.iconBg} transition-colors duration-300`}>
-                                            <Icon className="w-5 h-5" strokeWidth={1.75} />
+                                    {/* ICON */}
+                                    <div
+                                        className={`
+                                            mb-7 flex h-12 w-12 items-center justify-center rounded-2xl
+                                            border border-white/[0.06]
+                                            bg-white/[0.03]
+                                            text-white/80
+                                            transition-all duration-300
+                                            group-hover:bg-white/[0.05]
+                                        `}
+                                    >
+                                        <Icon
+                                            className="h-5 w-5"
+                                            strokeWidth={1.75}
+                                        />
+                                    </div>
+
+                                    {/* CONTENT */}
+                                    <div className="flex flex-1 flex-col">
+
+                                        {/* TITLE */}
+                                        <h3 className="text-xl font-semibold tracking-tight text-white transition-colors duration-300">
+                                            {category.name}
+                                        </h3>
+
+                                        {/* JOB COUNT */}
+                                        <p className="mt-2 text-sm font-medium text-indigo-300/80">
+                                            {category.count.toLocaleString()} open roles
+                                        </p>
+
+                                        {/* DESCRIPTION */}
+                                        <p className="mt-5 max-w-md text-sm leading-7 text-white/50 transition-colors duration-300 group-hover:text-white/60">
+                                            {category.description}
+                                        </p>
+
+                                        {/* CTA */}
+                                        <div className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-white/60 transition-all duration-300 group-hover:text-white">
+                                            Explore careers
+
+                                            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                                         </div>
-                                        <span className="text-xs font-semibold text-zinc-600 border border-white/[0.06] bg-black rounded-full px-2.5 py-1">
-                                            {category.count.toLocaleString()} jobs
-                                        </span>
                                     </div>
 
-                                    {/* Tag */}
-                                    <span className="inline-flex w-max mb-3 text-[11px] font-medium text-zinc-500 border border-white/[0.05] bg-white/[0.03] rounded-full px-2.5 py-0.5">
-                                        {category.tag}
-                                    </span>
-
-                                    {/* Title */}
-                                    <h3 className="text-base font-semibold text-white mb-2 group-hover:text-zinc-100 transition-colors duration-200">
-                                        {category.name}
-                                    </h3>
-
-                                    {/* Description */}
-                                    <p className="text-sm text-zinc-500 leading-relaxed flex-1 group-hover:text-zinc-400 transition-colors duration-300">
-                                        {category.description}
-                                    </p>
-
-                                    {/* CTA */}
-                                    <div className="mt-5 flex items-center gap-1.5 text-xs font-semibold text-zinc-600 group-hover:text-zinc-300 transition-all duration-300">
-                                        Browse roles
-                                        <ArrowRight className="w-3.5 h-3.5 translate-x-0 group-hover:translate-x-0.5 transition-transform duration-300" />
-                                    </div>
+                                    {/* FEATURED GLOW */}
+                                    {featured && (
+                                        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                                    )}
                                 </Link>
                             </li>
                         );
                     })}
                 </ul>
 
-                {/* Bottom CTA */}
-                <div className="mt-10 text-center">
+                {/* BOTTOM CTA */}
+                <div className="mt-14 flex justify-center">
                     <Link
                         href="/jobs"
-                        className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-6 py-3 text-sm font-semibold text-zinc-300 hover:bg-white/[0.08] hover:text-white hover:border-white/20 transition-all duration-200"
+                        className="
+                            inline-flex items-center gap-2 rounded-2xl
+                            border border-white/[0.08]
+                            bg-white/[0.03]
+                            px-7 py-3.5
+                            text-sm font-medium text-white/70
+                            backdrop-blur-xl
+                            transition-all duration-300
+                            hover:border-white/[0.14]
+                            hover:bg-white/[0.06]
+                            hover:text-white
+                        "
                     >
-                        View all categories
-                        <ArrowRight className="w-4 h-4" />
+                        Explore all career paths
+
+                        <ArrowRight className="h-4 w-4" />
                     </Link>
                 </div>
-
             </div>
         </section>
     );

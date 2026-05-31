@@ -47,7 +47,10 @@ model User {
   experiences     Experience[]
   projects        Project[]
     
-  ProfileViews    Int[]
+  profileViewsReceived ProfileView[] @relation("ProfileUserViews")
+
+  profileViewsGiven ProfileView[] @relation("ViewerUserViews")
+
   employees       Int[]
   verifyEmps      Int[]
 
@@ -67,6 +70,22 @@ model User {
  
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+}
+
+model ProfileView {
+  id Int @id @default(autoincrement())
+
+  profileUserId Int
+  viewerUserId Int?
+
+  profileUser User @relation("ProfileUserViews", fields: [profileUserId], references: [id], onDelete: Cascade)
+
+  viewer User? @relation("ViewerUserViews", fields: [viewerUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([profileUserId])
+  @@index([viewerUserId])
 }
 
 model Follow {

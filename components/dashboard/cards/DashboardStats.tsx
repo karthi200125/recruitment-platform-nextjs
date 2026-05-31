@@ -1,5 +1,3 @@
-"use client";
-
 import {
     DashboardStatsProps,
     DashboardAnalyticsData,
@@ -19,31 +17,15 @@ const DashboardStats = ({
     return (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {config.map((item) => {
-                const stat =
-                    stats[
-                    item.key
-                    ] as DashboardAnalyticsData;
-
+                const stat = stats[item.key] as DashboardAnalyticsData;
                 return (
                     <DashboardStatCard
                         key={item.key}
                         item={item}
-                        value={
-                            stat?.count ??
-                            0
-                        }
-                        growth={
-                            stat?.growth ??
-                            0
-                        }
-                        isPositive={
-                            stat?.isPositive ??
-                            false
-                        }
-                        chartData={
-                            stat?.chartData ??
-                            []
-                        }
+                        value={stat?.count ?? 0}
+                        growth={stat?.growth ?? 0}
+                        isPositive={stat?.isPositive ?? false}
+                        chartData={stat?.chartData ?? []}
                     />
                 );
             })}
