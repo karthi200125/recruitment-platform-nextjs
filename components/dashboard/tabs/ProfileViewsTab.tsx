@@ -1,4 +1,3 @@
-"use client";
 
 import DashboardDataTable from "@/components/dashboard/tables/DashboardDataTable";
 import { profileViewsColumns } from "../tables/columns/profileViewsColumns";

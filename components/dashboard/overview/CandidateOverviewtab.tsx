@@ -1,4 +1,3 @@
-"use client";
 import { Role } from "@prisma/client";
 import DashboardStats from "../cards/DashboardStats";
 import DashboardStatusChart from "../charts/DashboardStatusChart ";
@@ -24,8 +23,7 @@ const CandidateOverview = ({
     const profileCompletion = dashboardData?.profileCompletion;
     const recentActivity = dashboardData?.recentActivity ?? [];
     const recentApplications = dashboardData?.recentApplications ?? [];
-
-    console.log('dashboard data' ,dashboardData)
+    
 
     return (
         <div className="space-y-6">

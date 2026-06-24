@@ -9,8 +9,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { CiSearch } from "react-icons/ci";
-import { debounce } from '@/lib/debounce';
+import { Search } from "lucide-react";
+import { debounce } from '@/hooks/useDebounce';
 
 interface SelectProps {
     field: {
@@ -78,7 +78,7 @@ const CustomSelect: React.FC<SelectProps> = ({
             </SelectTrigger>
             <SelectContent>
                 <div className="w-full flex items-center gap-2 border-b border-gray-300 px-2">
-                    <CiSearch size={20} />
+                    <Search size={20} />
                     <input
                         type="text"
                         placeholder="Search..."

@@ -1,6 +1,6 @@
 'use client'
 
-import Store from "@/app/Redux/Store";
+import Store from '@/store/Store';
 import {
     QueryClient,
     QueryClientProvider

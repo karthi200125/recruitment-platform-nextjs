@@ -1,4 +1,4 @@
-import { LpNavCompanies, LpNavJobs, LpNavServices } from '../../data'
+import { LpNavCompanies, LpNavJobs, LpNavServices } from '../../lib/data/lp-nav-links-data'
 
 import {
     NavigationMenu,

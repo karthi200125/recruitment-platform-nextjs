@@ -5,7 +5,7 @@ import { ApplicationStatus } from "@prisma/client";
 import {
   getApplicationStatusLabel,
   getApplicationStatusStyle,
-} from "@/lib/application-status";
+} from "@/lib/dashboard/application-status";
 
 interface DashboardStatusBadgeProps {
   status: ApplicationStatus;

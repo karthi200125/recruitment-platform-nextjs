@@ -9,17 +9,16 @@ import {
 import { signOut } from 'next-auth/react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useMemo, useState } from 'react';
+import { useState } from 'react';
 
-import { BsFillBuildingsFill } from 'react-icons/bs';
-import { FaCrown } from 'react-icons/fa';
-import { RiMenu3Line } from 'react-icons/ri';
+import { Building2, Crown, MenuIcon } from 'lucide-react';
 
-import noAvatar from '../../public/noProfile.webp';
+import noAvatar from '@/public/noProfile.webp';
 
-import Icon from '../Icon';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { useProfileCardItems } from './UserProfileCard';
+import Icon from '../Icon';
+import CtaButton from '../ui/CtaButton';
+import { getProfileMenuItems } from './profile-menu-items';
 
 type MenuItem = {
     id: number;
@@ -29,8 +28,9 @@ type MenuItem = {
     icon: React.ReactNode;
 };
 
+
 const Menu = () => {
-    const { user, isLoading } = useCurrentUser();
+    const { user } = useCurrentUser();
 
     const router = useRouter();
     const pathname = usePathname();
@@ -43,45 +43,34 @@ const Menu = () => {
             title: 'Companies',
             href: '/companies',
             visible: true,
-            icon: <BsFillBuildingsFill size={20} />,
+            icon: <Building2 size={20} />,
         },
     ];
 
-    const profileItems = useProfileCardItems(user);
+    const items = getProfileMenuItems(user);
 
     const menuItems: MenuItem[] = [
         ...extraItems,
-        ...profileItems,
+        ...items,
     ];
 
-    const basePath = useMemo(() => {
-        return pathname.startsWith('/userProfile')
+    const basePath =
+        pathname.startsWith('/userProfile')
             ? pathname.split('/').slice(0, 3).join('/')
             : pathname.split('/').slice(0, 2).join('/');
-    }, [pathname]);
 
-    const handleNavigate = useCallback(
-        async (item: MenuItem) => {
-            setOpen(false);
+    const handleNavigate = async (item: MenuItem) => {
+        setOpen(false);
 
-            if (item.title === 'Sign Out') {
-                await signOut({
-                    callbackUrl: '/signin',
-                });
+        if (item.title === 'Sign Out') {
+            await signOut({
+                callbackUrl: '/signin',
+            });
+            return;
+        }
 
-                return;
-            }
-
-            router.push(item.href);
-        },
-        [router]
-    );
-
-    // if (isLoading) {
-    //     return (
-    //         <div className="h-10 w-10 animate-pulse rounded-xl bg-white/10" />
-    //     );
-    // }
+        router.push(item.href);
+    };
 
     return (
         <div className="flex items-center justify-center md:hidden">
@@ -93,7 +82,7 @@ const Menu = () => {
                         aria-label="Open menu"
                         className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white transition-all duration-200 hover:bg-white/[0.08] active:scale-95"
                     >
-                        <RiMenu3Line size={22} />
+                        <MenuIcon className="h-5 w-5" />
                     </button>
                 </SheetTrigger>
 
@@ -130,25 +119,33 @@ const Menu = () => {
                         ) : (
                             <div className="space-y-3">
 
-                                <button
-                                    onClick={() => {
-                                        setOpen(false);
-                                        router.push('/signin');
-                                    }}
-                                    className="w-full rounded-xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200"
+                                <CtaButton
+                                    href="/signin"
+                                    variant="secondary"
+                                    className="
+                                                    h-10
+                                                    rounded-xl
+                                                    px-4
+                                                    text-xs
+                                                    font-semibold
+                                                "
                                 >
                                     Sign In
-                                </button>
+                                </CtaButton>
 
-                                <button
-                                    onClick={() => {
-                                        setOpen(false);
-                                        router.push('/signup');
-                                    }}
-                                    className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
+                                <CtaButton
+                                    href="/signup"
+                                    variant="primary"
+                                    className="
+                                                    h-10
+                                                    rounded-xl
+                                                    px-4
+                                                    text-xs
+                                                    font-semibold
+                                                "
                                 >
                                     Create Account
-                                </button>
+                                </CtaButton>
                             </div>
                         )}
                     </div>
@@ -176,7 +173,7 @@ const Menu = () => {
                                     className="flex w-full items-center gap-3 rounded-2xl border border-indigo-500/20 bg-indigo-500/10 px-4 py-3 text-sm font-medium text-indigo-300 transition hover:bg-indigo-500/15"
                                 >
                                     <Icon
-                                        icon={<FaCrown size={18} />}
+                                        icon={<Crown size={18} />}
                                         title="Upgrade Premium"
                                     />
                                 </button>

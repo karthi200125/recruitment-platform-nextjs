@@ -1,7 +1,7 @@
 'use client'
 
 import GoogleAuth from '@/app/(auth)/GoogleAuth';
-import LoginForm from '@/app/Forms/LoginForm';
+import LoginForm from '@/components/forms/LoginForm';
 import Link from 'next/link';
 
 export default function SigninRightSide() {

@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { toggleFollow } from "@/actions/user/toggleFollow";
+import { toggleFollow } from "@/actions/user/toggle-follow";
 import { isFollowing } from "@/actions/user/isFollowing";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 

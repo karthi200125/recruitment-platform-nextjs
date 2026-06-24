@@ -1,7 +1,7 @@
 'use client'
 
 import GoogleAuth from '@/app/(auth)/GoogleAuth';
-import RegisterForm from '@/app/Forms/RegisterForm';
+import RegisterForm from '@/components/forms/RegisterForm';
 import Link from 'next/link';
 
 export default function SignUpRightSide() {

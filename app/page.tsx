@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import dynamic from 'next/dynamic';
 
-import HeroSection from './(pages)/home/Hero';
-import TrustedBy from './(pages)/home/TrustedBy';
-import JobCategories from './(pages)/home/JobCategories';
+import HeroSection from './(public)/home/Hero';
+import TrustedBy from './(public)/home/TrustedBy';
+import JobCategories from './(public)/home/JobCategories';
 
 const SectionSkeleton = () => (
   <div className="w-full max-w-6xl mx-auto px-4 py-20 animate-pulse">
@@ -26,56 +26,56 @@ const FooterSkeleton = () => (
 /* -------------------------------------------------------------------------- */
 
 const FeaturedJobs = dynamic(
-  () => import('./(pages)/home/FeaturedJobs'),
+  () => import('./(public)/home/FeaturedJobs'),
   {
     loading: () => <SectionSkeleton />,
   }
 );
 
 const HowItWorks = dynamic(
-  () => import('./(pages)/home/HowItWorks'),
+  () => import('./(public)/home/HowItWorks'),
   {
     loading: () => <SectionSkeleton />,
   }
 );
 
 const WhyChooseUs = dynamic(
-  () => import('./(pages)/home/WhyChooseUs'),
+  () => import('./(public)/home/WhyChooseUs'),
   {
     loading: () => <SectionSkeleton />,
   }
 );
 
 const ForRecruiters = dynamic(
-  () => import('./(pages)/home/ForRecruiters'),
+  () => import('./(public)/home/ForRecruiters'),
   {
     loading: () => <SectionSkeleton />,
   }
 );
 
 const Testimonials = dynamic(
-  () => import('./(pages)/home/Testimonials'),
+  () => import('./(public)/home/Testimonials'),
   {
     loading: () => <SectionSkeleton />,
   }
 );
 
 const Newsletter = dynamic(
-  () => import('./(pages)/home/Newsletter'),
+  () => import('./(public)/home/Newsletter'),
   {
     loading: () => <SectionSkeleton />,
   }
 );
 
 const Pricing = dynamic(
-  () => import('./(pages)/home/Pricing'),
+  () => import('./(public)/home/Pricing'),
   {
     loading: () => <SectionSkeleton />,
   }
 );
 
 const Footer = dynamic(
-  () => import('./(pages)/home/Footer'),
+  () => import('./(public)/home/Footer'),
   {
     loading: () => <FooterSkeleton />,
   }

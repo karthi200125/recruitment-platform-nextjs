@@ -1,11 +1,12 @@
-import { getAllJobs } from '@/actions/job/getAllJobs';
-import { getAllUsers } from '@/actions/user/getAllUsers';
+
+import { getJobs } from '@/actions/job/get-jobs';
+import { getAllUsers } from '@/actions/user/get-all-users';
 import type { MetadataRoute } from 'next';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = process.env.NEXT_PUBLIC_URL;
 
-    const jobs = await getAllJobs();
+    const jobs = await getJobs();
     const users = await getAllUsers();
 
     const staticPages = [

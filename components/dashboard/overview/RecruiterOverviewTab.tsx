@@ -1,4 +1,3 @@
-"use client";
 
 import DashboardActivityChart from "@/components/dashboard/charts/DashboardActivityChart";
 import RecentActivityCard from "@/components/dashboard/cards/RecentActivityCard";

@@ -1,5 +1,3 @@
-"use client";
-
 import AppliedJobsTab from "@/components/dashboard/tabs/AppliedJobsTab";
 import SavedJobsTab from "@/components/dashboard/tabs/SavedJobsTab";
 import InterviewsTab from "@/components/dashboard/tabs/InterviewsTab";

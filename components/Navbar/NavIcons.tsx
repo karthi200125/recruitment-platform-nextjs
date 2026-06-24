@@ -1,85 +1,92 @@
 'use client';
 
-
-import { getUnreadMessagesCount } from '@/actions/message/getUnreadMessagesCount ';
-import Icon from '@/components/Icon';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
-
-import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { usePathname } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import {
+    Building2,
+    BriefcaseBusiness,
+    LayoutDashboard,
+    MessageSquareMore,
+} from 'lucide-react';
 
-import { BsFillBuildingsFill } from 'react-icons/bs';
-import { FaSuitcase } from 'react-icons/fa';
-import { MdDashboard } from 'react-icons/md';
-import { RiMessage3Fill } from 'react-icons/ri';
+import Icon from '@/components/Icon';
+
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { getUnreadMessagesCount } from '@/actions/message/get-unread-messages-count ';
 
 interface NavItem {
-    id: number;
-    icon: React.ReactNode;
-    title: string;
-    href: string;
-    count?: number;
-    isCount?: boolean;
-    protected?: boolean;
+    readonly id: number;
+    readonly icon: React.ReactNode;
+    readonly title: string;
+    readonly href: string;
+    readonly count?: number;
 }
 
 const NavIcons = () => {
     const pathname = usePathname();
-
     const { user } = useCurrentUser();
 
     const { data: unreadMessagesCount = 0 } = useQuery({
         queryKey: ['unread-messages-count', user?.id],
 
-        queryFn: async () => {
-            if (!user?.id) return 0;
-
-            return await getUnreadMessagesCount(Number(user.id));
-        },
+        queryFn: () =>
+            user?.id
+                ? getUnreadMessagesCount(Number(user.id))
+                : Promise.resolve(0),
 
         enabled: Boolean(user?.id),
 
-        staleTime: 1000 * 60,
-        gcTime: 1000 * 60 * 5,
+        staleTime: 60 * 1000,
+        gcTime: 5 * 60 * 1000,
 
         refetchOnWindowFocus: false,
     });
 
-    const navItems: NavItem[] = [
-        {
-            id: 1,
-            icon: <BsFillBuildingsFill size={20} />,
-            title: 'Companies',
-            href: '/companies',
-        },
-
-        {
-            id: 2,
-            icon: <FaSuitcase size={20} />,
-            title: 'Jobs',
-            href: '/jobs',
-        },
-
-        ...(user
-            ? [
-                {
-                    id: 3,
-                    icon: <RiMessage3Fill size={20} />,
-                    title: 'Messages',
-                    href: '/messages',
-                    count: unreadMessagesCount,
-                    isCount: true,
-                },
-
-                {
-                    id: 4,
-                    icon: <MdDashboard size={20} />,
-                    title: 'Dashboard',
-                    href: '/dashboard',
-                },
-            ]
-            : []),
-    ];
+    const navItems = useMemo<ReadonlyArray<NavItem>>(
+        () => [
+            {
+                id: 1,
+                icon: <Building2 className="h-5 w-5" strokeWidth={2} />,
+                title: 'Companies',
+                href: '/companies',
+            },
+            {
+                id: 2,
+                icon: <BriefcaseBusiness className="h-5 w-5" strokeWidth={2} />,
+                title: 'Jobs',
+                href: '/jobs',
+            },
+            ...(user
+                ? [
+                    {
+                        id: 3,
+                        icon: (
+                            <MessageSquareMore
+                                className="h-5 w-5"
+                                strokeWidth={2}
+                            />
+                        ),
+                        title: 'Messages',
+                        href: '/messages',
+                        count: unreadMessagesCount,
+                    },
+                    {
+                        id: 4,
+                        icon: (
+                            <LayoutDashboard
+                                className="h-5 w-5"
+                                strokeWidth={2}
+                            />
+                        ),
+                        title: 'Dashboard',
+                        href: '/dashboard',
+                    },
+                ]
+                : []),
+        ],
+        [user, unreadMessagesCount]
+    );
 
     return (
         <div className="flex items-center gap-3">
@@ -96,15 +103,11 @@ const NavIcons = () => {
                         title={item.title}
                         count={item.count}
                         isHover
-                        tooltipbg="white"
-                        className={`
-                     transition-all duration-200
-                     
-                     ${isActive
-                                ? '!bg-white/10 !text-white'
-                                : '!text-neutral-500 hover:!bg-white/10 hover:!text-white'
-                            }
-                  `}
+                        tooltipBg="white"
+                        className={`transition-all duration-200 ${isActive
+                            ? '!bg-white/10 !text-white'
+                            : '!text-neutral-500 hover:!bg-white/10 hover:!text-white'
+                            }`}
                     />
                 );
             })}

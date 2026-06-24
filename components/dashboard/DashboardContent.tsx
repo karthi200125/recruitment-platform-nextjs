@@ -1,17 +1,8 @@
-// components/dashboard/content/DashboardContent.tsx
-
-"use client";
-
 import { Role } from "@prisma/client";
 
 import CandidateDashboardContent from "@/components/dashboard/content/CandidateDashboardContent";
 import RecruiterDashboardContent from "./content/RecruiterDashboardContent";
 import OrganizationDashboardContent from "./content/OrganizationDashboardContent";
-
-
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
 
 interface DashboardContentProps {
     activeTab: string;
@@ -20,10 +11,6 @@ interface DashboardContentProps {
 
     dashboardData: any;
 }
-
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
 
 const DashboardContent = ({
     activeTab,

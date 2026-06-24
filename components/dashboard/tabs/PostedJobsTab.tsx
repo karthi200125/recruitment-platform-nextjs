@@ -1,4 +1,3 @@
-"use client";
 
 import DashboardDataTable from "@/components/dashboard/tables/DashboardDataTable";
 import { postedJobsColumns } from "../tables/columns/postedJobsColumns";

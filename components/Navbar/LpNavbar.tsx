@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Button from '../Button'
 import Logo from '../Logo'
 import { LpNavLinks } from './LpNavLinks'
+import CtaButton from '../ui/CtaButton'
 
 const LpNavbar = () => {
 
@@ -50,7 +51,7 @@ const LpNavbar = () => {
                     mx-auto flex h-[72px]
                     w-[95%] max-w-7xl
                     items-center justify-between
-                    rounded-2xl px-5 lg:px-7
+                    rounded-2xl px-2
                     transition-all duration-500
 
                     ${scrolled
@@ -79,42 +80,20 @@ const LpNavbar = () => {
                 {/* RIGHT */}
                 <div className='flex items-center gap-2'>
 
-                    <Button
-                        onClick={() =>
-                            router.push('/signin')
-                        }
-                        className='
-                            h-10 rounded-full
-                            border border-white/[0.08]
-                            bg-white/[0.03]
-                            px-5
-                            text-sm font-medium
-                            text-white/80
-                            backdrop-blur-xl
-                            transition-all duration-300
-                            hover:bg-white/[0.06]
-                            hover:text-white
-                        '
+                    <CtaButton
+                        href="/signin"
+                        variant="primary"
+                        size='default'
                     >
                         Sign In
-                    </Button>
+                    </CtaButton>
 
-                    <Button
-                        onClick={() =>
-                            router.push('/signup')
-                        }
-                        className='
-                            h-10 rounded-full
-                            !text-black
-                            bg-white
-                            px-5
-                            text-sm font-medium                            
-                            transition-all duration-300
-                            hover:bg-white/90
-                        '
+                    <CtaButton
+                        href="/signup"
+                        variant="secondary"
                     >
                         Sign Up
-                    </Button>
+                    </CtaButton>
 
                 </div>
             </div>

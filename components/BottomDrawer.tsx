@@ -6,7 +6,7 @@ import {
     DrawerContent,
     DrawerTrigger
 } from "@/components/ui/drawer";
-import { IoClose } from "react-icons/io5";
+import { X } from "lucide-react";
 import Icon from "./Icon";
 
 interface BottomDrawerProps {
@@ -27,7 +27,7 @@ const BottomDrawer = ({ children, body, className }: BottomDrawerProps) => {
                 <DrawerContent className="h-[90%] w-full">
                     <div className="absolute top-2 right-3">
                         <DrawerClose>
-                            <Icon icon={<IoClose size={20} />} isHover />
+                            <Icon icon={<X size={20} />} isHover />
                         </DrawerClose>
                     </div>
 

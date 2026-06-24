@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/upload";
+import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/upload/upload";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
+import { authOptions } from "@/lib/auth/authOptions";
 
 type UploadType =
   | "profile"

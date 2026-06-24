@@ -1,11 +1,10 @@
-"use client";
+
 
 import InterviewsTab from "@/components/dashboard/tabs/InterviewsTab";
 import RecruiterOverviewTab from "../overview/RecruiterOverviewTab";
 import HiredCandidatesTab from "../tabs/HiredCandidatesTab";
 import ApplicantsTab from "../tabs/ApplicantsTab";
 import PostedJobsTab from "../tabs/PostedJobsTab";
-
 
 // ─────────────────────────────────────────────
 // Types

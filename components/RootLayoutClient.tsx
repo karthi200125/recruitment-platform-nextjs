@@ -1,8 +1,8 @@
 'use client'
 
 import { usePathname } from "next/navigation";
-import Navbar from "@/components/Navbar/Navbar";
-import LpNavbar from "@/components/Navbar/LpNavbar";
+import Navbar from "@/components/navbar/Navbar";
+import LpNavbar from "@/components/navbar/LpNavbar";
 
 interface RootLayoutClientProps {
   children: React.ReactNode;

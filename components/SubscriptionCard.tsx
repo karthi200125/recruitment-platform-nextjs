@@ -1,6 +1,6 @@
 'use client';
 
-import { createCheckoutSession } from "@/actions/stripe";
+import { createCheckoutSession } from "@/actions/subscription/stripe";
 import { PLANS } from "@/lib/data/subscription-plans";
 import { useTransition } from "react";
 

@@ -1,53 +1,57 @@
-'use client'
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { BadgeCheck, Crown, Medal } from "lucide-react";
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { MdVerified } from "react-icons/md";
-import { PiCrownFill, PiMedalFill } from 'react-icons/pi';
-
-interface BatchProps {
-    type?: 'premium' | 'RECRUITER' | 'CANDIDATE' | 'ORGANIZATION';
+interface BadgeProps {
+    type?: "premium" | "RECRUITER" | "CANDIDATE" | "ORGANIZATION";
 }
 
-const Batch = ({ type }: BatchProps) => {
-    let icon;
-    let clr;
-    let title;
+const badgeConfig = {
+    premium: {
+        icon: <Crown className="h-5 w-5 text-amber-500" />,
+        title: "Premium Member",
+    },
+    RECRUITER: {
+        icon: <Medal className="h-5 w-5 text-emerald-500" />,
+        title: "Recruiter",
+    },
+    CANDIDATE: {
+        icon: <Medal className="h-5 w-5 text-blue-500" />,
+        title: "Candidate",
+    },
+    ORGANIZATION: {
+        icon: <BadgeCheck className="h-5 w-5 text-sky-500" />,
+        title: "Verified Organization",
+    },
+} as const;
 
-    switch (type) {
-        case 'premium':
-            icon = <PiCrownFill size={22} className="text-yellow-300" />;
-            clr = "pro";
-            title = "Premium Member"
-            break;
-        case 'RECRUITER':
-            icon = <PiMedalFill size={25} className="text-green-400" />;
-            clr = "bg-green-400";
-            title = "recruiter"
-            break;
-        case 'CANDIDATE':
-            icon = <PiMedalFill size={25} className="text-blue-400" />;
-            clr = "bg-blue-400";
-            title = "candidate"
-            break;
-        case 'ORGANIZATION':
-            icon = <MdVerified size={25} className="text-blue-500" />;
-            clr = "bg-blue-400";
-            title = "verified"
-            break;
-        default:
-            icon = null;
-            clr = "";
+const Badge = ({ type }: BadgeProps) => {
+    if (!type || !badgeConfig[type]) {
+        return null;
     }
+
+    const { icon, title } = badgeConfig[type];
 
     return (
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <div className={`flexcenter cursor-pointer`}>
+                    <div
+                        className="flex items-center justify-center cursor-pointer"
+                        aria-label={title}
+                    >
                         {icon}
                     </div>
                 </TooltipTrigger>
-                <TooltipContent className='bg-black text-white text-xs px-3 rounded-[5px] py-2'>
+
+                <TooltipContent
+                    side="top"
+                    className="rounded-md bg-black px-3 py-2 text-xs text-white"
+                >
                     <p>{title}</p>
                 </TooltipContent>
             </Tooltip>
@@ -55,4 +59,4 @@ const Batch = ({ type }: BatchProps) => {
     );
 };
 
-export default Batch;
+export default Badge;

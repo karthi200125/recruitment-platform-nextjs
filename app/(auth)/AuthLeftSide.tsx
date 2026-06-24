@@ -1,5 +1,3 @@
-'use client'
-
 import Logo from '@/components/Logo';
 import { ArrowLeft, Briefcase, Users, Zap } from 'lucide-react';
 

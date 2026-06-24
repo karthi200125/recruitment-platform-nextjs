@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { toggleSavedJob } from "@/actions/user/toggleSavedJob";
+import { toggleSavedJob } from "@/actions/user/toggle-saved-job";
 import { isSaved } from "@/actions/user/isSaved";
 
 interface SaveJobButtonProps {

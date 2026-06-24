@@ -3,7 +3,7 @@
 
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
+import { authOptions } from "@/lib/auth/authOptions";
 import { EasyApplyUser } from "@/types/easyApply";
 
 

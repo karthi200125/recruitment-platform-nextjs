@@ -6,19 +6,19 @@ import {
     HoverCardTrigger,
 } from '@/components/ui/hover-card';
 
+import { signOut } from 'next-auth/react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { signOut } from 'next-auth/react';
 import { useCallback, useMemo } from 'react';
 
 import {
-    User, Briefcase, LayoutDashboard, MessageSquare,
-    Plus, ClipboardList, Users, Crown, LogOut,
-    ChevronRight, BadgeCheck,
+    ChevronRight,
+    Crown
 } from 'lucide-react';
 
-import noProfile from '../../public/noProfile.webp';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import noProfile from '../../public/noProfile.webp';
+import { getProfileMenuItems } from './profile-menu-items';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,37 +31,13 @@ interface NavItem {
     danger?: boolean;
 }
 
-// ─── Nav items hook ───────────────────────────────────────────────────────────
-
-export const useProfileCardItems = (user: any): NavItem[] => {
-    return useMemo(() => {
-        if (!user) return [];
-        const isOrg = user.role === 'ORGANIZATION';
-        const isRec = user.role === 'RECRUITER';
-        const isCan = user.role === 'CANDIDATE';
-
-        return [
-            { id: 1, title: 'Profile', icon: User, href: `/userProfile/${user.id}`, visible: true },
-            { id: 2, title: 'Jobs', icon: Briefcase, href: '/jobs', visible: isRec || isCan },
-            { id: 3, title: 'Dashboard', icon: LayoutDashboard, href: '/dashboard', visible: true },
-            { id: 4, title: 'Messages', icon: MessageSquare, href: '/messages', visible: true },
-            { id: 5, title: 'Post a Job', icon: Plus, href: '/createJob', visible: isRec || isOrg },
-            { id: 6, title: 'Job Status', icon: ClipboardList, href: '/dashboard/jobStatus', visible: isRec || isCan },
-            { id: 7, title: 'Employees', icon: Users, href: '/dashboard/employees', visible: isOrg },
-            { id: 8, title: 'Subscriptions', icon: Crown, href: '/subscriptions', visible: true },
-            { id: 9, title: 'Sign Out', icon: LogOut, href: '/signin', visible: true, danger: true },
-        ];
-    }, [user]);
-};
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 const UserProfileCard = () => {
     const { user, isLoading } = useCurrentUser();
     const router = useRouter();
     const pathname = usePathname();
 
-    const items = useProfileCardItems(user);
+    const items = getProfileMenuItems(user);
 
     const basePath = useMemo(() => {
         return pathname.startsWith('/userProfile')

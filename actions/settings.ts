@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth";
 
 import { db } from "@/lib/db";
-import { authOptions } from "@/lib/authOptions";
+import { authOptions } from "@/lib/auth/authOptions";
 
 
 // =========================
