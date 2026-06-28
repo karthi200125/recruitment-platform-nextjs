@@ -9,7 +9,6 @@ interface ActionResponse<T> {
   error?: string;
 }
 
-// ✅ Strong Prisma type (UPDATED with relations)
 export type ProfileUser = Prisma.UserGetPayload<{
   include: {
     jobApplications: true;
@@ -23,7 +22,6 @@ export type ProfileUser = Prisma.UserGetPayload<{
     experiences: true;
     projects: true;
 
-    // ✅ ADD THESE (important)
     followers: {
       select: { id: true };
     };

@@ -1,33 +1,33 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTransition, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useDispatch } from "react-redux";
 import { usePathname, useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { useDispatch } from "react-redux";
 import * as z from "zod";
 
-import { UserInfoSchema } from "@/lib/SchemaTypes";
 import { getCompanies } from "@/actions/company/get-companies";
 import { UserUpdate } from "@/actions/user/update-user";
+import { UserInfoSchema } from "@/lib/SchemaTypes";
 
 import Button from "@/components/Button";
 import CustomFormField from "@/components/CustomFormField";
 import { Form } from "@/components/ui/form";
 import FormError from "@/components/ui/FormError";
 
-import { useCustomToast } from "@/lib/CustomToast";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useCustomToast } from "@/lib/CustomToast";
 
 import { closeModal } from "@/store/ModalSlice";
 import UserAbout from "./UserAbout";
 
-import { ProfileUser } from "@/types/userProfile";
+import { UserProfile } from "@/types";
 
 /* ──────────────────────────────────────────────── */
 interface Props {
-    profileUser?: ProfileUser;
+    profileUser?: UserProfile | null
     currentStep?: number;
     onNext?: (value: number) => void;
 }

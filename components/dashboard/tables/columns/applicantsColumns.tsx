@@ -1,24 +1,15 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-
 import { format } from "date-fns";
-
 import {
     ApplicationStatus,
 } from "@prisma/client";
-
 import DashboardStatusBadge from "@/components/dashboard/tables/DashboardStatusBadge";
-
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
 
 interface ApplicantUser {
     username?: string | null;
-
     email?: string | null;
-
     userImage?: string | null;
 }
 

@@ -1,16 +1,9 @@
 'use server';
 
 import * as z from "zod";
-
 import { getServerSession } from "next-auth";
-
 import { authOptions } from "@/lib/auth/authOptions";
-
 import { db } from "@/lib/db";
-
-// ─────────────────────────────────────────────
-// ROLE SCHEMA
-// ─────────────────────────────────────────────
 
 const RoleSchema = z.enum([
     "CANDIDATE",
@@ -18,26 +11,16 @@ const RoleSchema = z.enum([
     "ORGANIZATION",
 ]);
 
-// ─────────────────────────────────────────────
-// RESPONSE TYPE
-// ─────────────────────────────────────────────
 
 type ActionResponse = {
     success: boolean;
     error?: string;
 };
 
-// ─────────────────────────────────────────────
-// SELECT ROLE
-// ─────────────────────────────────────────────
-
 export const selectRole = async (
     role: z.infer<typeof RoleSchema>
 ): Promise<ActionResponse> => {
-    try {
-        // ───────────────────────────────────────
-        // VALIDATE ROLE
-        // ───────────────────────────────────────
+    try {        
 
         const validatedRole =
             RoleSchema.safeParse(role);
@@ -48,11 +31,7 @@ export const selectRole = async (
                 error: "Invalid role",
             };
         }
-
-        // ───────────────────────────────────────
-        // SESSION
-        // ───────────────────────────────────────
-
+        
         const session =
             await getServerSession(
                 authOptions
@@ -64,17 +43,11 @@ export const selectRole = async (
                 error: "Unauthorized",
             };
         }
-
-        // ───────────────────────────────────────
-        // CHECK USER
-        // ───────────────────────────────────────
-
+        
         const existingUser =
             await db.user.findUnique({
                 where: {
-                    id: Number(
-                        session.user.id
-                    ),
+                    id: session.user.id,
                 },
 
                 select: {

@@ -6,11 +6,11 @@ import ProfileCompletionCard from "../cards/ProfileCompletionCard";
 import ProfileViewsCard from "../cards/ProfileViewCard";
 import RecentApplicationsCard from "../cards/RecentApplicationsCard";
 import RecentActivityCard from "../cards/RecentActivityCard";
+import { DashboardData } from "@/types/dashboard";
 
 interface CandidateOverviewTabProps {
     role: Role;
-
-    dashboardData: any;
+    dashboardData: DashboardData;
 }
 
 const CandidateOverview = ({

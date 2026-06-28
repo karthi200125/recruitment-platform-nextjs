@@ -9,6 +9,13 @@ const apiCache: { [key: string]: any } = {
     statesTime: 0,
 };
 
+interface Country {
+    name: string;    
+}
+interface State {
+    name: string;    
+}
+
 const CACHE_DURATION = 1000 * 60 * 60; 
 
 export const getCountries = async () => {
@@ -16,7 +23,7 @@ export const getCountries = async () => {
         if (apiCache.countries && Date.now() - apiCache.countriesTime < CACHE_DURATION) {
             return apiCache.countries;
         }
-
+        
         const url = `${baseUrl}/countries`;
 
         const response = await fetch(url, {
@@ -45,7 +52,7 @@ export const getStates = async () => {
         }
 
         const countries = await getCountries();
-        const country = countries.find((c: any) => c.name.toLowerCase() === 'india')
+        const country = countries.find((c: Country) => c.name.toLowerCase() === 'india')
 
         const url = `${baseUrl}/countries/${country.iso2}/states`;
 
@@ -70,14 +77,14 @@ export const getStates = async () => {
 export const getCities = async (state: string) => {
     try {
         const states = await getStates();
-        const stateO = states.find((s: any) => s.name.toLowerCase() === state.toLowerCase());
+        const stateO = states.find((s: State) => s.name.toLowerCase() === state.toLowerCase());
 
         if (!stateO) {
             return [];
         }
 
         const countries = await getCountries();
-        const country = countries.find((c: any) => c.name.toLowerCase() === 'india')
+        const country = countries.find((c: Country) => c.name.toLowerCase() === 'india')
 
         if (!country) {
             return [];
@@ -94,7 +101,7 @@ export const getCities = async (state: string) => {
         });
 
         const data = await response.json();
-        return data.map((d: any) => d.name);
+        return data.map((d: State) => d.name);
     } catch (err) {
         console.error('Error fetching cities:', err);
         return [];

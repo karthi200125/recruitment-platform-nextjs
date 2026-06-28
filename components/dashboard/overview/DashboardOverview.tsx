@@ -1,9 +1,11 @@
+import { DashboardData } from "@/types/dashboard";
 import CandidateOverview from "./CandidateOverviewtab";
+import { Role } from "@prisma/client";
 
 interface DashboardOverviewSectionProps {
   activeTab: string;
-  role?: any;
-  dashboardData?: any;
+  role?: Role;
+  dashboardData?: DashboardData;
 }
 
 const DashboardOverviewSection =

@@ -10,19 +10,18 @@ import CustomFormField from "@/components/CustomFormField";
 import { Form } from "@/components/ui/form";
 import FormError from '@/components/ui/FormError';
 import FormSuccess from '@/components/ui/FormSuccess';
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { CompanySchema } from "@/lib/SchemaTypes";
+import { Company } from "@/types";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from 'react';
-import { useSelector } from "react-redux";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface CompanyFormProps {
-    company?: any,
+    company?: Company,
     isPending?: boolean;
 }
 
 const CompanyForm = ({ company, isPending }: CompanyFormProps) => {
-
 
     const { user } = useCurrentUser()
     const [err, setErr] = useState("");

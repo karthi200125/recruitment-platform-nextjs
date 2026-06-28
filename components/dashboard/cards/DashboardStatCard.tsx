@@ -11,14 +11,17 @@ import {
     ResponsiveContainer,
 } from "recharts";
 
+import type {
+    DashboardAnalyticsData,
+    DashboardStatItem,
+} from "@/types/dashboard";
+
 interface DashboardStatCardProps {
-    item: any;
-    value: number;
-    growth: number;
-    isPositive: boolean;
-    chartData: {
-        value: number;
-    }[];
+    item: DashboardStatItem;
+    value: DashboardAnalyticsData["count"];
+    growth: DashboardAnalyticsData["growth"];
+    isPositive: DashboardAnalyticsData["isPositive"];
+    chartData: DashboardAnalyticsData["chartData"];
 }
 
 export default function DashboardStatCard({
@@ -60,15 +63,11 @@ export default function DashboardStatCard({
                         width="100%"
                         height="100%"
                     >
-                        <AreaChart
-                            data={chartData}
-                        >
+                        <AreaChart data={chartData}>
                             <Area
                                 type="monotone"
                                 dataKey="value"
-                                stroke={
-                                    item.chartColor
-                                }
+                                stroke={item.chartColor}
                                 strokeWidth={2.5}
                                 fillOpacity={0}
                             />

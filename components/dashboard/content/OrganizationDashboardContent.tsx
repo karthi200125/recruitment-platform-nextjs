@@ -5,22 +5,13 @@ import ApplicantsTab from "@/components/dashboard/tabs/ApplicantsTab";
 import HiredCandidatesTab from "@/components/dashboard/tabs/HiredCandidatesTab";
 import OrganizationOverviewTab from "../overview/OrganizationOverviewTab";
 import OrganizationJobsTab from "../tabs/OrganizationJobsTab";
-
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
+import { DashboardData } from "@/types/dashboard";
 
 interface OrganizationDashboardContentProps {
     activeTab: string;
-
     role: "ORGANIZATION";
-
-    dashboardData: any;
+    dashboardData: DashboardData;
 }
-
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
 
 const OrganizationDashboardContent = ({
     activeTab,

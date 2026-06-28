@@ -1,45 +1,50 @@
-'use client'
+'use client';
 
+import { ReactNode } from "react";
 import {
     Drawer,
     DrawerClose,
     DrawerContent,
-    DrawerTrigger
+    DrawerTrigger,
 } from "@/components/ui/drawer";
 import { X } from "lucide-react";
+
 import Icon from "./Icon";
 
 interface BottomDrawerProps {
-    children: React.ReactNode;
-    body?: any;
-    className?: any;
+    children: ReactNode;
+    body?: ReactNode;
+    className?: string;
 }
 
-const BottomDrawer = ({ children, body, className }: BottomDrawerProps) => {
+const BottomDrawer = ({
+    children,
+    body,
+    className,
+}: BottomDrawerProps) => {
     return (
-        <div className="!w-full md:hidden relative">
-            <Drawer >
+        <div className="relative !w-full md:hidden">
+            <Drawer>
                 <DrawerTrigger asChild className="w-full">
                     <button className="w-full">
                         {children}
                     </button>
                 </DrawerTrigger>
+
                 <DrawerContent className="h-[90%] w-full">
-                    <div className="absolute top-2 right-3">
+                    <div className="absolute right-3 top-2">
                         <DrawerClose>
                             <Icon icon={<X size={20} />} isHover />
                         </DrawerClose>
                     </div>
 
-                    <div className={`w-full h-full overflow-y-auto ${className}`}>
+                    <div className={`h-full w-full overflow-y-auto ${className ?? ""}`}>
                         {body}
                     </div>
-
                 </DrawerContent>
             </Drawer>
         </div>
+    );
+};
 
-    )
-}
-
-export default BottomDrawer
+export default BottomDrawer;

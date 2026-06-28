@@ -15,12 +15,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-
 import { cn } from "@/lib/utils";
-
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
 
 interface DashboardDataTableProps<
     TData,
@@ -30,19 +25,11 @@ interface DashboardDataTableProps<
         TData,
         TValue
     >[];
-
     data: TData[];
-
     emptyTitle?: string;
-
     emptyDescription?: string;
-
     className?: string;
 }
-
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
 
 const DashboardDataTable = <
     TData,
@@ -60,7 +47,6 @@ const DashboardDataTable = <
     const table = useReactTable({
         data,
         columns,
-
         getCoreRowModel:
             getCoreRowModel(),
     });

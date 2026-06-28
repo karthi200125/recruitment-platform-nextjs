@@ -1,27 +1,29 @@
+import { CompanyWithJobs } from "@/types";
+
 import JobList from "../../jobs/JobLists/JobList";
 
-interface Company {
-    jobs?: any[];
+interface CompanyJobProfileProps {
+    company?: CompanyWithJobs | null;
 }
 
 const CompanyJobProfile = ({
     company,
-}: {
-    company?: Company | null;
-}) => {
+}: CompanyJobProfileProps) => {
     const jobs = company?.jobs ?? [];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-2 md:p-5 border rounded-[10px]">
-
+        <div className="grid grid-cols-1 gap-5 rounded-[10px] border p-2 md:grid-cols-2 md:p-5">
             {jobs.length === 0 && (
-                <p className="text-neutral-500 text-sm">
+                <p className="text-sm text-neutral-500">
                     No Jobs yet!
                 </p>
             )}
 
             {jobs.map((job) => (
-                <div key={job.id} className="border rounded-md p-5">
+                <div
+                    key={job.id}
+                    className="rounded-md border p-5"
+                >
                     <JobList job={job} />
                 </div>
             ))}

@@ -10,8 +10,9 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { closeModal, openModal } from "@/store/ModalSlice";
-import React, { memo, useCallback, useMemo, ReactNode, ReactElement } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store/Store";
+import React, { ReactElement, ReactNode, useCallback, useMemo } from "react";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 interface ModelProps {
     modalId: string;
@@ -24,8 +25,8 @@ interface ModelProps {
 }
 
 const Model = ({ modalId, children, className, title, desc, bodyContent, triggerCls }: ModelProps) => {
-    const dispatch = useDispatch();
-    const isOpen = useSelector((state: any) => state.modal.modals[modalId] || false);
+    const dispatch = useDispatch<AppDispatch>();
+    const isOpen = useSelector((state: RootState) => state.modal.modals[modalId], shallowEqual);
 
     const handleClose = useCallback(() => {
         dispatch(closeModal(modalId));
@@ -48,17 +49,26 @@ const Model = ({ modalId, children, className, title, desc, bodyContent, trigger
                     {children}
                 </button>
             </DialogTrigger>
-            <DialogContent className={`${className} max-h-screen md:max-h-[90vh] overflow-y-auto`}>
-                <DialogHeader className="borderb pb-3 sticky top-0 left-0 bg-white">
-                    {title && <DialogTitle className="capitalize">{title}</DialogTitle>}
-                    {desc && <DialogDescription>{desc}</DialogDescription>}
-                </DialogHeader>
+            <DialogContent className={`${className} max-h-screen md:max-h-[90vh] overflow-y-auto rounded-2xl shadow-xl ring-1 ring-slate-900/5 bg-white`}>
+                {title &&
+                    <DialogHeader className="borderb pb-3 sticky top-0 left-0 bg-white">
+                        <h2
+                            id={`${title}-title`}
+                            className="text-lg font-bold text-slate-900"
+                        >
+                            {title}
+                        </h2>
+                        <p className="mt-1 text-xs text-slate-500">{desc}</p>
+                        {/* {title && <DialogTitle className="capitalize">{title}</DialogTitle>}
+                    {desc && <DialogDescription>{desc}</DialogDescription>} */}
+                    </DialogHeader>
+                }
                 <div className="w-full max-h-max px-1 pb-6">
                     {clonedBodyContent}
                 </div>
             </DialogContent>
-        </Dialog>
+        </Dialog >
     );
 };
 
-export default memo(Model);
+export default Model;

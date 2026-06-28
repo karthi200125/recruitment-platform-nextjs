@@ -1,11 +1,10 @@
 'use client';
 
-import FilterNavbar from '@/components/FilterNavbar';
-import JobLists from './JobLists/JobLists';
-import JobDetails from './Job/JobDetails';
 import { JobWithCompany } from '@/actions/job/get-filter-all-jobs';
+import FilterNavbar from '@/components/FilterNavbar';
 import { Briefcase } from 'lucide-react';
-import JobsSearchBar from '@/components/JobsSearchBar';
+import JobDetails from './Job/JobDetails';
+import JobLists from './JobLists/JobLists';
 
 interface Props {
   jobs: JobWithCompany[];
@@ -14,7 +13,7 @@ interface Props {
   onSelectedJob: (id: number) => void;
   count: number;
   currentPage: number;
-  safeSearchParams: any;
+  safeSearchParams: Record<string, string | string[] | undefined>;
 }
 
 function NoJobSelected() {

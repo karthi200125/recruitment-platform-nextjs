@@ -26,7 +26,7 @@ const EmployeesPage = async () => {
         redirect('/login');
     }
 
-    const userId = Number(session.user.id);
+    const userId = session.user.id;
 
     
     const user = await db.user.findUnique({

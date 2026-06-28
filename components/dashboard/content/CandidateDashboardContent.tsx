@@ -3,20 +3,13 @@ import SavedJobsTab from "@/components/dashboard/tabs/SavedJobsTab";
 import InterviewsTab from "@/components/dashboard/tabs/InterviewsTab";
 import ProfileViewsTab from "@/components/dashboard/tabs/ProfileViewsTab";
 import CandidateOverview from "../overview/CandidateOverviewtab";
-
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
+import { DashboardData } from "@/types/dashboard";
 
 interface CandidateDashboardContentProps {
     activeTab: string;
     role: "CANDIDATE";
-    dashboardData: any;
+    dashboardData: DashboardData;
 }
-
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
 
 const CandidateDashboardContent = ({
     activeTab,

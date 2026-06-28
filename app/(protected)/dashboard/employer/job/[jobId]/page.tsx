@@ -20,7 +20,7 @@ export default async function EmployerJobPage({ params, searchParams }: Props) {
         redirect("/signin");
     }
 
-    const userId = Number(session.user.id);
+    const userId = session.user.id;
     const jobId = Number(params.jobId);
 
     const job = await db.job.findFirst({

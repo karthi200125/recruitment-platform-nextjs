@@ -9,22 +9,24 @@ import Button from "@/components/Button";
 import CustomFormField from "@/components/CustomFormField";
 import { Form } from "@/components/ui/form";
 import FormError from "@/components/ui/FormError";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCustomToast } from "@/lib/CustomToast";
+import { education_levels, fields_of_study } from "@/lib/data/lp-nav-links-data";
 import { UserEducationSchema } from "@/lib/SchemaTypes";
+import { closeModal } from "@/store/ModalSlice";
+import { Education } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useParams, usePathname } from "next/navigation";
 import { useState, useTransition } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { closeModal } from "@/store/ModalSlice";
-import { education_levels, fields_of_study } from "@/lib/data/lp-nav-links-data";
+import { useDispatch } from "react-redux";
 
 interface EducationProps {
-    education?: any,
+    education?: Education,
     edit?: boolean,
 }
 
 export function UserEducationForm({ education, edit }: EducationProps) {
-    const user = useSelector((state: any) => state.user.user);
+    const { user } = useCurrentUser();
     const [isLoading, startTransition] = useTransition();
     const [err, setErr] = useState("")
     const { showSuccessToast } = useCustomToast()
@@ -49,7 +51,7 @@ export function UserEducationForm({ education, edit }: EducationProps) {
 
     const onSubmit = (values: z.infer<typeof UserEducationSchema>) => {
         startTransition(() => {
-            const userId = user?.id
+            const userId = Number(user?.id)
             const eduId = education?.id
             const isEdit = edit ? true : false
 

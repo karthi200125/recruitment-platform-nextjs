@@ -1,7 +1,7 @@
-'use server';
+"use server";
 
-import { db } from '@/lib/db';
-import { meiliClient } from '@/lib/meilisearch';
+import { db } from "@/lib/db";
+import { meiliClient } from "@/lib/meilisearch";
 
 export async function indexJobs() {
     try {
@@ -11,7 +11,7 @@ export async function indexJobs() {
             },
         });
 
-        const formattedJobs = jobs.map((job: any) => ({
+        const formattedJobs = jobs.map((job) => ({
             id: job.id,
 
             // Searchable
@@ -38,18 +38,15 @@ export async function indexJobs() {
             createdAt: job.createdAt,
         }));
 
-        const index = meiliClient.index('jobs');
-
-        await index.addDocuments(formattedJobs);
-
-        console.log('Jobs indexed successfully');
+        await meiliClient
+            .index("jobs")
+            .addDocuments(formattedJobs);
 
         return {
             success: true,
         };
-
     } catch (error) {
-        console.error(error);
+        console.error("[INDEX_JOBS]", error);
 
         return {
             success: false,

@@ -1,17 +1,40 @@
-'use server'
+'use server';
 
-import { db } from "@/lib/db"
+import { Prisma } from "@prisma/client";
 
-export const getUserProjects = async (userId: any) => {
-    try {
-        const getEducations = await db.project.findMany({
-            where: {
-                userId
-            }
-        })
+import { db } from "@/lib/db";
 
-        return { success: "", data: getEducations }
-    } catch (err) {
-        return { error: "get User Educations failed" }
+type GetUserProjectsResult =
+    | {
+        success: string;
+        data: Prisma.ProjectGetPayload<{}>[];
     }
-}
+    | {
+        error: string;
+    };
+
+export const getUserProjects = async (
+    userId: number
+): Promise<GetUserProjectsResult> => {
+    try {
+        const projects = await db.project.findMany({
+            where: {
+                userId,
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+        });
+
+        return {
+            success: "",
+            data: projects,
+        };
+    } catch (error) {
+        console.error("[GET_USER_PROJECTS]", error);
+
+        return {
+            error: "Get user projects failed.",
+        };
+    }
+};

@@ -1,35 +1,47 @@
 'use server';
 
-import { UserEducationSchema } from '@/lib/SchemaTypes';
-import { db } from '@/lib/db';
-import * as z from 'zod';
+import { Prisma } from "@prisma/client";
+import * as z from "zod";
+
+import { UserEducationSchema } from "@/lib/SchemaTypes";
+import { db } from "@/lib/db";
+
+type UserEducationActionResult =
+    | {
+        success: string;
+        data: Prisma.EducationGetPayload<{}>;
+    }
+    | {
+        error: string;
+        issues?: z.ZodIssue[];
+    };
 
 export const userEducationAction = async (
     values: z.infer<typeof UserEducationSchema>,
-    userId?: any,
-    isEdit: boolean = false,
+    userId: number,
+    isEdit = false,
     eduId?: number
-) => {
+): Promise<UserEducationActionResult> => {
     try {
         const validatedFields = UserEducationSchema.safeParse(values);
 
         if (!validatedFields.success) {
-            return { error: 'Invalid fields', issues: validatedFields.error.issues };
+            return {
+                error: "Invalid fields",
+                issues: validatedFields.error.issues,
+            };
+        }
+
+        if (isEdit && !eduId) {
+            return {
+                error: "Education ID is required.",
+            };
         }
 
         const data = validatedFields.data;
 
-        let education;
-
-        if (!isEdit) {
-            education = await db.education.create({
-                data: {
-                    ...data,
-                    userId,
-                },
-            });
-        } else {
-            education = await db.education.update({
+        const education = isEdit
+            ? await db.education.update({
                 where: {
                     id: eduId,
                 },
@@ -37,11 +49,27 @@ export const userEducationAction = async (
                     ...data,
                     userId,
                 },
+            })
+            : await db.education.create({
+                data: {
+                    ...data,
+                    userId,
+                },
             });
-        }
 
-        return { success: !isEdit ? "User Education Created Successfully" : 'User Education Edited Successfully', data: education };
+        return {
+            success: isEdit
+                ? "User Education Edited Successfully"
+                : "User Education Created Successfully",
+            data: education,
+        };
     } catch (error) {
-        return { error: !isEdit ? "User Education Created failed" : 'User Education Edited failed' };
+        console.error("[USER_EDUCATION_ACTION]", error);
+
+        return {
+            error: isEdit
+                ? "User Education Edited failed"
+                : "User Education Created failed",
+        };
     }
 };

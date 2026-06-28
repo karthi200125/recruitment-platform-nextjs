@@ -1,30 +1,47 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import React, { useState } from 'react';
-import 'react-quill/dist/quill.snow.css';
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+import "react-quill/dist/quill.snow.css";
+
+const ReactQuill = dynamic(
+    () => import("react-quill"),
+    {
+        ssr: false,
+    }
+);
 
 interface UserAboutProps {
+    userAbout?: string | null;
     onUserAbout: (content: string) => void;
-    UserAbout?: any;
 }
 
-const UserAbout = ({ onUserAbout, UserAbout }: UserAboutProps) => {
-    const [value, setValue] = useState<string>(UserAbout || '');
+const UserAbout = ({
+    userAbout,
+    onUserAbout,
+}: UserAboutProps) => {
+    const [value, setValue] = useState(
+        userAbout ?? ""
+    );
 
-    const handleChange = (content: string) => {
+    useEffect(() => {
+        setValue(userAbout ?? "");
+    }, [userAbout]);
+
+    const handleChange = (
+        content: string
+    ) => {
         setValue(content);
         onUserAbout(content);
     };
 
     return (
         <ReactQuill
+            theme="snow"
             value={value}
             onChange={handleChange}
-            theme="snow"
-            placeholder="Write the About you..."
+            placeholder="Write about yourself..."
         />
     );
 };

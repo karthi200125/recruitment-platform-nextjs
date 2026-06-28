@@ -16,7 +16,7 @@ export const getEasyApplyUser = async (): Promise<EasyApplyUser | null> => {
         }
 
         const user = await db.user.findUnique({
-            where: { id: Number(session.user.id) },
+            where: { id: session.user.id },
             select: {
                 email: true,
                 phoneNo: true,

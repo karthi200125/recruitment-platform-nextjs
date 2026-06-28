@@ -8,20 +8,11 @@ import { getCompaniesEmployees } from "@/actions/user/get-company-employees";
 import EmployeesSkeleton from "@/components/skeletons/EmployeesSkeleton";
 import Employee from "../../../(protected)/dashboard/employees/Employee";
 import JobList from "../../jobs/JobLists/JobList";
+import type {
+    CompanyWithJobs,
+    User,
+} from "@/types";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Company {
-    companyAbout?: string | null;
-    jobs?: any[];
-}
-
-interface ProfileUser {
-    id: number;
-    employees?: number[];
-}
-
-// ─── Empty state ──────────────────────────────────────────────────────────────
 
 const Empty = ({ icon: Icon, text }: { icon: React.ElementType; text: string }) => (
     <div className="flex flex-col items-center justify-center gap-3 py-14 text-center">
@@ -32,22 +23,21 @@ const Empty = ({ icon: Icon, text }: { icon: React.ElementType; text: string }) 
     </div>
 );
 
-// ─── AboutCompanyProfile ──────────────────────────────────────────────────────
 
-export const AboutCompanyProfile = memo(({ company }: { company?: Company | null }) => (
-    <div className="space-y-3">
-        {company?.companyAbout ? (
-            <p className="text-sm text-slate-600 leading-relaxed">{company.companyAbout}</p>
-        ) : (
-            <Empty icon={Building2} text="No company description provided yet." />
-        )}
-    </div>
-));
+export const AboutCompanyProfile = memo(
+    ({ company }: { company?: CompanyWithJobs | null }) => (
+        <div className="space-y-3">
+            {company?.companyAbout ? (
+                <p className="text-sm text-slate-600 leading-relaxed">{company.companyAbout}</p>
+            ) : (
+                <Empty icon={Building2} text="No company description provided yet." />
+            )}
+        </div>
+    ));
 AboutCompanyProfile.displayName = "AboutCompanyProfile";
 
-// ─── CompanyJobProfile ────────────────────────────────────────────────────────
 
-export const CompanyJobProfile = memo(({ company }: { company?: Company | null }) => {
+export const CompanyJobProfile = memo(({ company }: { company?: CompanyWithJobs | null }) => {
     const jobs = company?.jobs ?? [];
 
     if (!jobs.length) return <Empty icon={Briefcase} text="No jobs posted yet." />;
@@ -64,7 +54,6 @@ export const CompanyJobProfile = memo(({ company }: { company?: Company | null }
 });
 CompanyJobProfile.displayName = "CompanyJobProfile";
 
-// ─── CompanyEmployees ─────────────────────────────────────────────────────────
 
 export const CompanyEmployees = memo(({ employeeIds }: { employeeIds?: number[] }) => {
     const { data = [], isPending } = useQuery({
@@ -78,7 +67,7 @@ export const CompanyEmployees = memo(({ employeeIds }: { employeeIds?: number[] 
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {data.map((emp: any) => (
+            {data.map((emp: User) => (
                 <Employee key={emp.id} user={emp} isVerify={false} />
             ))}
         </div>
@@ -97,10 +86,9 @@ const TABS: { key: TabKey; icon: React.ElementType; label: string }[] = [
 ];
 
 interface CompanySlidesProps {
-    company?: Company | null;
-    profileUser?: ProfileUser | null;
+    company?: CompanyWithJobs | null;
+    profileUser?: User | null;
 }
-
 const CompanySlides = ({ company, profileUser }: CompanySlidesProps) => {
     const [tab, setTab] = useState<TabKey>("Home");
 
@@ -126,8 +114,8 @@ const CompanySlides = ({ company, profileUser }: CompanySlidesProps) => {
                             key={key}
                             onClick={() => setTab(key)}
                             className={`inline-flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 transition-all duration-200 whitespace-nowrap -mb-px ${isActive
-                                    ? "border-indigo-600 text-indigo-600"
-                                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                                ? "border-indigo-600 text-indigo-600"
+                                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
                                 }`}
                         >
                             <Icon className={`w-4 h-4 ${isActive ? "" : "opacity-70"}`} strokeWidth={isActive ? 2.5 : 1.75} />

@@ -6,22 +6,17 @@ import { useSearchParams } from "next/navigation";
 import { DASHBOARD_TABS } from "./config/dashboardTabsConfig";
 import DashboardNavbar from "./dashboard-navbar";
 import DashboardContent from "./DashboardContent";
+import { DashboardData } from "@/types/dashboard";
+import { User } from "@/types";
 
 
 interface DashboardClientProps {
-    user: {
-        id: number;
-
-        role: Role;
-
-        username?: string | null;
-
-        userImage?: string | null;
-    };
-
+    user: Pick<
+        User,
+        "id" | "role" | "username" | "userImage"
+    >;
     role: Role;
-
-    dashboardData: any;
+    dashboardData: DashboardData;
 }
 
 const DashboardClient = ({
@@ -32,16 +27,8 @@ const DashboardClient = ({
     const searchParams =
         useSearchParams();
 
-    // ─────────────────────────────────────────
-    // Allowed Tabs
-    // ─────────────────────────────────────────
-
     const allowedTabs =
         DASHBOARD_TABS[role];
-
-    // ─────────────────────────────────────────
-    // Active Tab
-    // ─────────────────────────────────────────
 
     const activeTab =
         useMemo(() => {
@@ -64,10 +51,6 @@ const DashboardClient = ({
             searchParams,
             allowedTabs,
         ]);
-
-    // ─────────────────────────────────────────
-    // Render
-    // ─────────────────────────────────────────
 
     return (
         <div className="min-h-screen w-full">

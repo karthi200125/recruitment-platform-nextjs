@@ -1,20 +1,12 @@
 
 import DashboardDataTable from "@/components/dashboard/tables/DashboardDataTable";
 import { applicantsColumns } from "../tables/columns/applicantsColumns";
+import { DashboardData } from "@/types/dashboard";
 
-
-
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
 
 interface ApplicantsTabProps {
-    dashboardData: any;
+    dashboardData: DashboardData;
 }
-
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
 
 const ApplicantsTab = ({
     dashboardData,

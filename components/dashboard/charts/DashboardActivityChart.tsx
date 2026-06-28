@@ -1,42 +1,26 @@
 "use client";
 
 import {
-    BarChart,
     Bar,
+    BarChart,
+    CartesianGrid,
     ResponsiveContainer,
+    Tooltip,
     XAxis,
     YAxis,
-    Tooltip,
-    CartesianGrid,
 } from "recharts";
 
+import { DashboardActivityData } from "@/types/dashboard";
 import { ChevronDown } from "lucide-react";
-
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
-
-interface ActivityDataItem {
-    name: string;
-
-    applications: number;
-}
 
 interface DashboardActivityChartProps {
     title: string;
-
-    data: ActivityDataItem[];
+    data: DashboardActivityData[];
 }
-
-// ─────────────────────────────────────────────
-// Custom Tooltip
-// ─────────────────────────────────────────────
 
 interface TooltipProps {
     active?: boolean;
-
     payload?: any[];
-
     label?: string;
 }
 
@@ -74,13 +58,8 @@ const CustomTooltip = ({
     return null;
 };
 
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
-
 const DashboardActivityChart = ({
     title,
-
     data,
 }: DashboardActivityChartProps) => {
     return (

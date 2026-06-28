@@ -9,22 +9,23 @@ import Button from "@/components/Button";
 import CustomFormField from "@/components/CustomFormField";
 import { Form } from "@/components/ui/form";
 import FormError from "@/components/ui/FormError";
-import { Progress } from "@/components/ui/progress";
 import { useCustomToast } from "@/lib/CustomToast";
 import { UserProjectSchema } from "@/lib/SchemaTypes";
+import { closeModal } from "@/store/ModalSlice";
+import { Project } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { closeModal } from "@/store/ModalSlice";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface UserProjectProps {
     isEdit?: boolean;
-    project?: any;
+    project?: Project;
 }
 
 export function UserProjectForm({ isEdit, project }: UserProjectProps) {
-    const user = useSelector((state: any) => state.user.user);
+    const { user } = useCurrentUser()
     const [isLoading, startTransition] = useTransition();
     const queryClient = useQueryClient();
 
@@ -119,7 +120,7 @@ export function UserProjectForm({ isEdit, project }: UserProjectProps) {
                         accept="image/*"
                         className="hidden"
                         id="imageupload"
-                        // onChange={handleImageUpload}
+                    // onChange={handleImageUpload}
                     />
                     <label
                         htmlFor="imageupload"

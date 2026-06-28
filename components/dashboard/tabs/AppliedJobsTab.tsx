@@ -1,9 +1,10 @@
 import DashboardDataTable from "@/components/dashboard/tables/DashboardDataTable";
 import { appliedJobsColumns } from "../tables/columns/appliedJobsColumns";
+import { DashboardData } from "@/types/dashboard";
 
 
 interface AppliedJobsTabProps {
-    dashboardData: any;
+    dashboardData: DashboardData;
 }
 
 const AppliedJobsTab = ({

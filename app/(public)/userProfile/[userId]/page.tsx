@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 
-import { updateProfileViews } from "@/actions/user/profile-views";
+import { updateProfileViews } from "@/actions/user/update-profile-views";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 import AboutMe from "../AboutMe";

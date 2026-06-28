@@ -1,82 +1,88 @@
 "use client";
 
 import { useTransition } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
-import { toggleFollow } from "@/actions/user/toggle-follow";
 import { isFollowing } from "@/actions/user/isFollowing";
+import { toggleFollow } from "@/actions/user/toggle-follow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 import Button from "./Button";
 
-type FollowButtonProps = {
+interface FollowButtonProps {
   targetUserId: number;
   className?: string;
-};
+}
 
 export default function FollowButton({
   targetUserId,
   className,
 }: FollowButtonProps) {
   const { user } = useCurrentUser();
+
   const queryClient = useQueryClient();
+
   const [isPending, startTransition] = useTransition();
 
-  const isSelf = user?.id === targetUserId;
+  const currentUserId = user?.id ? Number(user.id) : undefined;
 
-  // ✅ Fetch follow state (like saved jobs)
-  const { data: isFollowed } = useQuery({
-    queryKey: ["isFollowing", user?.id, targetUserId],
-    queryFn: () => isFollowing(user!.id, targetUserId),
-    enabled: !!user?.id && !isSelf,
+  const isSelf = currentUserId === targetUserId;
+
+  const { data: isFollowed = false } = useQuery<boolean>({
+    queryKey: ["isFollowing", currentUserId, targetUserId],
+    queryFn: () => isFollowing(currentUserId!, targetUserId),
+    enabled: !!currentUserId && !isSelf,
   });
 
-  // ✅ Mutation with optimistic update
-  const mutation = useMutation({
-    mutationFn: () => toggleFollow(targetUserId),
+  const mutation = useMutation
+    ({
+      mutationFn: () => toggleFollow(targetUserId),
 
-    onMutate: async () => {
-      await queryClient.cancelQueries({
-        queryKey: ["isFollowing", user?.id, targetUserId],
-      });
+      onMutate: async () => {
+        await queryClient.cancelQueries({
+          queryKey: ["isFollowing", currentUserId, targetUserId],
+        });
 
-      const previous = queryClient.getQueryData<boolean>([
-        "isFollowing",
-        user?.id,
-        targetUserId,
-      ]);
+        const previous = queryClient.getQueryData<boolean>([
+          "isFollowing",
+          currentUserId,
+          targetUserId,
+        ]);
 
-      // optimistic toggle
-      queryClient.setQueryData(
-        ["isFollowing", user?.id, targetUserId],
-        !previous
-      );
-
-      return { previous };
-    },
-
-    onError: (_err, _vars, context) => {
-      if (context?.previous !== undefined) {
-        queryClient.setQueryData(
-          ["isFollowing", user?.id, targetUserId],
-          context.previous
+        queryClient.setQueryData<boolean>(
+          ["isFollowing", currentUserId, targetUserId],
+          !previous
         );
-      }
-    },
 
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["isFollowing", user?.id, targetUserId],
-      });
+        return { previous };
+      },
 
-      queryClient.invalidateQueries({
-        queryKey: ["followStats", targetUserId],
-      });
-    },
-  });
+      onError: (_error, _variables, context) => {
+        if (context?.previous !== undefined) {
+          queryClient.setQueryData<boolean>(
+            ["isFollowing", currentUserId, targetUserId],
+            context.previous
+          );
+        }
+      },
+
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["isFollowing", currentUserId, targetUserId],
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: ["followStats", targetUserId],
+        });
+      },
+    });
 
   const handleClick = () => {
-    if (!user?.id || isSelf) return;
+    if (!currentUserId || isSelf) return;
 
     startTransition(() => {
       mutation.mutate();

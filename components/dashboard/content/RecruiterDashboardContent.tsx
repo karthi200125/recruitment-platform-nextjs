@@ -5,22 +5,13 @@ import RecruiterOverviewTab from "../overview/RecruiterOverviewTab";
 import HiredCandidatesTab from "../tabs/HiredCandidatesTab";
 import ApplicantsTab from "../tabs/ApplicantsTab";
 import PostedJobsTab from "../tabs/PostedJobsTab";
-
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
+import { DashboardData } from "@/types/dashboard";
 
 interface RecruiterDashboardContentProps {
     activeTab: string;
-
     role: "RECRUITER";
-
-    dashboardData: any;
+    dashboardData: DashboardData;
 }
-
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
 
 const RecruiterDashboardContent = ({
     activeTab,

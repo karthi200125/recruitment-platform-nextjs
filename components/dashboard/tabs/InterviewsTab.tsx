@@ -2,11 +2,12 @@
 
 import DashboardDataTable from "@/components/dashboard/tables/DashboardDataTable";
 import { interviewsColumns } from "../tables/columns/interviewsColumns";
+import { DashboardData } from "@/types/dashboard";
 
 
 
 interface InterviewsTabProps {
-    dashboardData: any;
+    dashboardData: DashboardData;
 }
 
 const InterviewsTab = ({

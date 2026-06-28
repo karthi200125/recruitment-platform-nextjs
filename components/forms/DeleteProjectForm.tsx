@@ -1,56 +1,140 @@
-'use client'
+"use client";
 
-import { deleteProject } from "@/actions/user/delete-project";
-import Button from "@/components/Button"
-import { useCustomToast } from "@/lib/CustomToast";
-import { useQueryClient } from "@tanstack/react-query";
-import Image from "next/image"
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useTransition } from "react";
-import { closeModal } from "@/store/ModalSlice";
 import { useDispatch } from "react-redux";
-import noImage from '../../public/noImage.webp'
+import { useQueryClient } from "@tanstack/react-query";
 
-const DeleteProjectForm = ({ project }: any) => {
-    const [isLoading, startTransition] = useTransition();
-    const queryClient = useQueryClient();
-    const { showSuccessToast, showErrorToast } = useCustomToast()
-    const dispatch = useDispatch()
+import { deleteProject } from "@/actions/user/delete-project";
+import Button from "@/components/Button";
+import { useCustomToast } from "@/lib/CustomToast";
+import { closeModal } from "@/store/ModalSlice";
 
-    const { userId } = useParams()
-    const id = Number(userId)
+import { Project } from "@/types";
 
-    const HandleDelete = () => {
-        startTransition(() => {
-            deleteProject(project?.id)
-                .then((data: any) => {
-                    if (data?.success) {
-                        queryClient.invalidateQueries({ queryKey: ['getUserProjects', id] })
-                        queryClient.invalidateQueries({ queryKey: ['getuser', id] })
-                        showSuccessToast(data?.success)
-                        dispatch(closeModal('projectDeleteModal'))
-                    }
-                    if (data?.error) {
-                        showErrorToast(data?.error)
-                        dispatch(closeModal('projectDeleteModal'))
-                    }
-                })
-        })
-    }
+import noImage from "@/public/noImage.webp";
+
+interface DeleteProjectFormProps {
+    project: Project;
+}
+
+interface DeleteProjectResponse {
+    success?: string;
+    error?: string;
+}
+
+const DeleteProjectForm = ({
+    project,
+}: DeleteProjectFormProps) => {
+    const [isLoading, startTransition] =
+        useTransition();
+
+    const dispatch = useDispatch();
+
+    const queryClient =
+        useQueryClient();
+
+    const { showSuccessToast, showErrorToast } =
+        useCustomToast();
+
+    const params = useParams();
+
+    const userId = Number(params.userId);
+
+    const handleDelete = () => {
+        startTransition(async () => {
+            try {
+                const result: DeleteProjectResponse =
+                    await deleteProject(project.id);
+
+                if (result.success) {
+                    showSuccessToast(
+                        result.success
+                    );
+
+                    await Promise.all([
+                        queryClient.invalidateQueries({
+                            queryKey: [
+                                "getUserProjects",
+                                userId,
+                            ],
+                        }),
+                        queryClient.invalidateQueries({
+                            queryKey: [
+                                "getUser",
+                                userId,
+                            ],
+                        }),
+                    ]);
+                }
+
+                if (result.error) {
+                    showErrorToast(
+                        result.error
+                    );
+                }
+            } catch (error) {
+                console.error(
+                    "[DELETE_PROJECT]",
+                    error
+                );
+
+                showErrorToast(
+                    "Failed to delete project."
+                );
+            } finally {
+                dispatch(
+                    closeModal(
+                        "projectDeleteModal"
+                    )
+                );
+            }
+        });
+    };
 
     return (
         <div className="w-full space-y-5">
-            <div className='flex flex-row gap-5 items-start min-h-[100px]'>
-                <Image src={project?.proImage || noImage.src} alt={project?.proName} width={50} height={50} className='bg-neutral-200 h-full w-full flex-1 rounded-md' />
-                <div className="space-y-1 flex-1">
-                    <h4 className='capitalize font-bold'>{project?.proName}</h4>
-                    <h6>{project?.proLink}</h6>
-                    <h6 className='line-clamp-2 text-[var(--lighttext)]'>{project?.proDesc}</h6>
+            <div className="flex min-h-[100px] flex-row items-start gap-5">
+                <Image
+                    src={
+                        project.proImage ??
+                        noImage
+                    }
+                    alt={
+                        project.proName
+                    }
+                    width={50}
+                    height={50}
+                    className="h-full w-full flex-1 rounded-md bg-neutral-200 object-cover"
+                />
+
+                <div className="flex-1 space-y-1">
+                    <h4 className="font-bold capitalize">
+                        {project.proName}
+                    </h4>
+
+                    {project.proLink && (
+                        <h6 className="break-all text-blue-500">
+                            {project.proLink}
+                        </h6>
+                    )}
+
+                    <h6 className="line-clamp-2 text-[var(--lighttext)]">
+                        {project.proDesc}
+                    </h6>
                 </div>
             </div>
-            <Button className='w-full' isLoading={isLoading} onClick={HandleDelete}>Delete Project</Button>
-        </div>
-    )
-}
 
-export default DeleteProjectForm
+            <Button
+                className="w-full"
+                isLoading={isLoading}
+                onClick={handleDelete}
+            >
+                Delete Project
+            </Button>
+        </div>
+    );
+};
+
+export default DeleteProjectForm;

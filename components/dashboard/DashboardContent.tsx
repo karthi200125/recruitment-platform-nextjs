@@ -3,13 +3,12 @@ import { Role } from "@prisma/client";
 import CandidateDashboardContent from "@/components/dashboard/content/CandidateDashboardContent";
 import RecruiterDashboardContent from "./content/RecruiterDashboardContent";
 import OrganizationDashboardContent from "./content/OrganizationDashboardContent";
+import { DashboardData } from "@/types/dashboard";
 
 interface DashboardContentProps {
     activeTab: string;
-
     role: Role;
-
-    dashboardData: any;
+    dashboardData: DashboardData;
 }
 
 const DashboardContent = ({
@@ -17,7 +16,7 @@ const DashboardContent = ({
     role,
     dashboardData,
 }: DashboardContentProps) => {
-    // Candidate
+
     if (role === "CANDIDATE") {
         return (
             <CandidateDashboardContent

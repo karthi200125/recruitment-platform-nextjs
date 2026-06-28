@@ -1,3 +1,4 @@
+import { User as UserType } from '@/types';
 import type { LucideIcon } from 'lucide-react';
 import {
     Briefcase,
@@ -22,7 +23,7 @@ export interface ProfileMenuItem {
 }
 
 export const getProfileMenuItems = (
-    user: any | null
+    user: UserType | null
 ): ProfileMenuItem[] => {
     if (!user) {
         return [];

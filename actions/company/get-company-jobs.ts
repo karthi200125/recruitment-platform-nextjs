@@ -1,21 +1,42 @@
 'use server';
 
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 
-export const getCompanyJobs = async (id: any) => {
+type GetCompanyJobsResult =
+    | Prisma.CompanyGetPayload<{
+        include: {
+            jobs: {
+                orderBy: {
+                    createdAt: "desc";
+                };
+            };
+        };
+    }>
+    | null
+    | { error: string };
+
+export const getCompanyJobs = async (
+    id: number
+): Promise<GetCompanyJobsResult> => {
     try {
-        const companyJobs: any = await db.company.findUnique({
+        return await db.company.findUnique({
             where: {
-                id: id,
+                id,
             },
             include: {
-                jobs: true,
+                jobs: {
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                },
             },
         });
+    } catch (error) {
+        console.error("[GET_COMPANY_JOBS]", error);
 
-        return companyJobs;
-    } catch (err) {
-        console.error("Error fetching company jobs:", err);
-        return { error: "Failed to fetch company jobs" };
+        return {
+            error: "Failed to fetch company jobs",
+        };
     }
 };

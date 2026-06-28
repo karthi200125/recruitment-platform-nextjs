@@ -1,10 +1,11 @@
 
 import DashboardDataTable from "@/components/dashboard/tables/DashboardDataTable";
 import { profileViewsColumns } from "../tables/columns/profileViewsColumns";
+import { DashboardData } from "@/types/dashboard";
 
 
 interface ProfileViewsTabProps {
-    dashboardData: any;
+    dashboardData: DashboardData;
 }
 
 const ProfileViewsTab = ({

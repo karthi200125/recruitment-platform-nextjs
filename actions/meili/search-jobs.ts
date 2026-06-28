@@ -1,26 +1,37 @@
-'use server';
+"use server";
 
-import { meiliClient } from '@/lib/meilisearch';
+import { meiliClient } from "@/lib/meilisearch";
 
-export async function searchJobs(query: string) {
+interface JobSearchDocument {
+    id: number;
+}
 
-    if (!query) {
+export async function searchJobs(
+    query: string
+): Promise<number[]> {
+    if (!query.trim()) {
         return [];
     }
 
     try {
+        const index =
+            meiliClient.index<JobSearchDocument>(
+                "jobs"
+            );
 
-        const index = meiliClient.index('jobs');
+        const results =
+            await index.search(query, {
+                limit: 100,
+            });
 
-        const results = await index.search(query, {
-            limit: 100,
-        });
-
-        return results.hits.map((job: any) => job.id);
-
+        return results.hits.map(
+            (job) => job.id
+        );
     } catch (error) {
-
-        console.error(error);
+        console.error(
+            "[SEARCH_JOBS]",
+            error
+        );
 
         return [];
     }

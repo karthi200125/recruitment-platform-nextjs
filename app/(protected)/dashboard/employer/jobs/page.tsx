@@ -11,7 +11,7 @@ export default async function RecruiterJobsPage() {
         redirect("/signin");
     }
 
-    const userId = Number(session.user.id);
+    const userId = session.user.id;
 
     const jobs = await db.job.findMany({
         where: { userId },

@@ -1,57 +1,86 @@
-'use client'
+'use client';
 
 import Image from "next/image";
 import { format } from "date-fns";
+
 import noProfile from "@/public/noProfile.webp";
 
+interface ChatListUser {
+    id: number;
+    username: string;
+    userImage: string | null;
+    updatedAt: Date;
+    lastMessage: string | null;
+    isSeen: boolean;
+}
+
 interface ChatListProps {
-    chatUser?: any;
+    chatUser: ChatListUser;
     selectedChatUserId?: number | null;
 }
 
-export const ChatList = ({ chatUser, selectedChatUserId }: ChatListProps) => {
-    const isSelected = chatUser?.id === selectedChatUserId;
-    const timeAgo = format(new Date(chatUser?.updatedAt), "dd MMM yyyy");
-    const hasUnread = chatUser?.isSeen === false;
+export const ChatList = ({
+    chatUser,
+    selectedChatUserId,
+}: ChatListProps) => {
+    const isSelected = chatUser.id === selectedChatUserId;
+
+    const timeAgo = format(chatUser.updatedAt, "dd MMM yyyy");
+
+    const hasUnread = !chatUser.isSeen;
 
     return (
-        <div className={`flex items-center gap-3 px-4 py-3 border-l-[3px] transition-all duration-200 ${isSelected
-                ? "bg-indigo-50 border-l-indigo-500"
-                : "border-l-transparent hover:bg-slate-50"
-            }`}>
-            {/* Avatar */}
+        <div
+            className={`flex items-center gap-3 px-4 py-3 border-l-[3px] transition-all duration-200 ${isSelected
+                    ? "bg-indigo-50 border-l-indigo-500"
+                    : "border-l-transparent hover:bg-slate-50"
+                }`}
+        >
             <div className="relative flex-shrink-0">
                 <div className="w-11 h-11 rounded-full overflow-hidden border border-slate-200 bg-slate-100">
                     <Image
-                        src={chatUser?.userImage || noProfile.src}
-                        alt={chatUser?.username || "User"}
-                        width={44} height={44}
-                        className="w-full h-full object-cover"
+                        src={chatUser.userImage || noProfile.src}
+                        alt={chatUser.username}
+                        width={44}
+                        height={44}
+                        className="h-full w-full object-cover"
                     />
                 </div>
+
                 {hasUnread && (
-                    <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-indigo-600 border-2 border-white" />
+                    <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-indigo-600" />
                 )}
             </div>
 
-            {/* Info */}
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                    <p className={`text-sm capitalize truncate ${isSelected ? "font-bold text-indigo-900" : "font-semibold text-slate-800"}`}>
-                        {chatUser?.username}
+                    <p
+                        className={`truncate text-sm capitalize ${isSelected
+                                ? "font-bold text-indigo-900"
+                                : "font-semibold text-slate-800"
+                            }`}
+                    >
+                        {chatUser.username}
                     </p>
-                    <span className="text-[11px] text-slate-400 flex-shrink-0">{timeAgo}</span>
+
+                    <span className="flex-shrink-0 text-[11px] text-slate-400">
+                        {timeAgo}
+                    </span>
                 </div>
-                <p className={`text-xs capitalize line-clamp-1 mt-0.5 ${hasUnread ? "font-semibold text-slate-700" : "text-slate-400"}`}>
-                    {chatUser?.lastMessage || "No messages yet"}
+
+                <p
+                    className={`mt-0.5 line-clamp-1 text-xs capitalize ${hasUnread
+                            ? "font-semibold text-slate-700"
+                            : "text-slate-400"
+                        }`}
+                >
+                    {chatUser.lastMessage || "No messages yet"}
                 </p>
             </div>
 
-            {/* Unread dot */}
             {hasUnread && (
-                <span className="w-2 h-2 rounded-full bg-indigo-600 flex-shrink-0" />
+                <span className="h-2 w-2 flex-shrink-0 rounded-full bg-indigo-600" />
             )}
         </div>
     );
 };
-

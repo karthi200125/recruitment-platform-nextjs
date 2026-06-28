@@ -38,7 +38,7 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
   const session = await getServerSession(authOptions);
 
   const userId = session?.user?.id
-    ? Number(session.user.id)
+    ? session.user.id
     : undefined;
 
   const currentPage = Math.max(1, Number(searchParams.page) || 1);

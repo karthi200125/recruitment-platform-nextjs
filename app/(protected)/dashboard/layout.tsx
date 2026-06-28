@@ -26,9 +26,9 @@ export default async function DashboardLayout({
     const dbUser =
         await db.user.findUnique({
             where: {
-                id: Number(
+                id: 
                     session.user.id
-                ),
+                ,
             },
 
             select: {

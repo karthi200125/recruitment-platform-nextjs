@@ -1,20 +1,11 @@
 
 import DashboardDataTable from "@/components/dashboard/tables/DashboardDataTable";
 import { hiredCandidatesColumns } from "../tables/columns/hiredCandidatesColumns";
-
-
-
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
+import { DashboardData } from "@/types/dashboard";
 
 interface HiredCandidatesTabProps {
-    dashboardData: any;
+    dashboardData: DashboardData;
 }
-
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
 
 const HiredCandidatesTab = ({
     dashboardData,

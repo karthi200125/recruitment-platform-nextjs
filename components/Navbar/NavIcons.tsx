@@ -32,7 +32,7 @@ const NavIcons = () => {
 
         queryFn: () =>
             user?.id
-                ? getUnreadMessagesCount(Number(user.id))
+                ? getUnreadMessagesCount(user.id)
                 : Promise.resolve(0),
 
         enabled: Boolean(user?.id),

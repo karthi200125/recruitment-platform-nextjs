@@ -5,24 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Users, Clock, Eye, Star, XCircle } from "lucide-react";
 import ApplicantFilters from "./ApplicantFilters";
 
-export type ApplicationStatus = "APPLIED" | "VIEWED" | "SHORTLISTED" | "REJECTED";
-
-interface User {
-    username: string;
-    email?: string;
-    image?: string | null;
-}
-
-interface Application {
-    id: number;
-    status: ApplicationStatus;
-    createdAt: Date | string;
-    user: User;
-}
+import { JobApplicationWithUser } from "@/types";
 
 interface ApplicantListProps {
-    applicants: Application[];
+    applicants: JobApplicationWithUser[];
 }
+
+export type ApplicationStatus = "APPLIED" | "VIEWED" | "SHORTLISTED" | "REJECTED";
+
 
 export function getStatusConfig(status: string) {
     switch (status) {
@@ -39,13 +29,29 @@ export function getStatusConfig(status: string) {
     }
 }
 
-function UserAvatar({ name, image }: { name: string; image?: string | null }) {
-    const initials = name.slice(0, 2).toUpperCase();
+function UserAvatar({
+    name,
+    image,
+}: {
+    name: string;
+    image?: string | null;
+}) {
+    const initials = name
+        .slice(0, 2)
+        .toUpperCase();
+
     if (image) {
-        return <img src={image} alt={name} className="w-9 h-9 rounded-full object-cover border border-slate-200 flex-shrink-0" />;
+        return (
+            <img
+                src={image}
+                alt={name}
+                className="h-9 w-9 flex-shrink-0 rounded-full border border-slate-200 object-cover"
+            />
+        );
     }
+
     return (
-        <div className="w-9 h-9 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600 flex-shrink-0">
+        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-indigo-100 bg-indigo-50 text-xs font-bold text-indigo-600">
             {initials}
         </div>
     );
@@ -104,13 +110,12 @@ export default function ApplicantList({ applicants }: ApplicantListProps) {
                             <div
                                 key={app.id}
                                 onClick={() => router.push(`?applicantId=${app.id}`)}
-                                className={`flex items-start gap-3 p-4 cursor-pointer transition-all duration-200 border-l-[3px] ${
-                                    isActive
-                                        ? "bg-indigo-50 border-indigo-500"
-                                        : "border-transparent hover:bg-slate-50"
-                                }`}
+                                className={`flex items-start gap-3 p-4 cursor-pointer transition-all duration-200 border-l-[3px] ${isActive
+                                    ? "bg-indigo-50 border-indigo-500"
+                                    : "border-transparent hover:bg-slate-50"
+                                    }`}
                             >
-                                <UserAvatar name={app.user.username} image={app.user.image} />
+                                <UserAvatar name={app.user.username} image={app.user.userImage} />
                                 <div className="flex-1 min-w-0">
                                     <p className={`text-sm font-semibold truncate ${isActive ? "text-indigo-900" : "text-slate-800"}`}>
                                         {app.user.username}

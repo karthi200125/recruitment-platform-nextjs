@@ -4,13 +4,14 @@ import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth/authOptions';
 import { db } from '@/lib/db';
+import { JobQuestionAnswer } from '../../types/application';
 
 export async function applyForJob(
   jobId: number,
   candidateEmail: string,
   candidateMobile: string,
   candidateResume: string,
-  questionAndAnswers: any
+  questionAndAnswers: JobQuestionAnswer
 ) {
   try {
     const session = await getServerSession(authOptions);

@@ -1,18 +1,29 @@
-'use server';
+"use server";
+
+import { Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
 
-export const getCompaniesEmployees = async (ids: number[]) => {
+type GetCompaniesEmployeesResult = Prisma.UserGetPayload<{}>[];
+
+export const getCompaniesEmployees = async (
+    ids: number[]
+): Promise<GetCompaniesEmployeesResult> => {
     try {
-        const employees: any = await db.user.findMany({
+        if (ids.length === 0) {
+            return [];
+        }
+
+        return await db.user.findMany({
             where: {
                 id: {
                     in: ids,
                 },
             },
         });
-        return employees;
     } catch (error) {
-        return { error: "Failed to fetch employees" };
+        console.error("[GET_COMPANIES_EMPLOYEES]", error);
+
+        throw new Error("Failed to fetch employees.");
     }
 };

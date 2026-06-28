@@ -9,22 +9,24 @@ import Button from "@/components/Button";
 import CustomFormField from "@/components/CustomFormField";
 import { Form } from "@/components/ui/form";
 import FormError from "@/components/ui/FormError";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCustomToast } from "@/lib/CustomToast";
 import { UserExperienceSchema } from "@/lib/SchemaTypes";
+import { closeModal } from "@/store/ModalSlice";
+import { Experience } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useState, useTransition } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { closeModal } from "@/store/ModalSlice";
+import { useDispatch } from "react-redux";
 
 interface ExperienceProps {
-    experience?: any,
+    experience?: Experience,
     edit?: boolean,
 }
 
 
 export function UserExperienceForm({ experience, edit }: ExperienceProps) {
-    const user = useSelector((state: any) => state.user.user);
+    const { user } = useCurrentUser()
     const [isLoading, startTransition] = useTransition();
     const [err, setErr] = useState("")
 
@@ -33,7 +35,7 @@ export function UserExperienceForm({ experience, edit }: ExperienceProps) {
     const dispatch = useDispatch()
 
     const { userId } = useParams()
-    const id = Number(userId)
+    const id = Number(userId) 
 
     const form = useForm<z.infer<typeof UserExperienceSchema>>({
         resolver: zodResolver(UserExperienceSchema),

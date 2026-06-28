@@ -1,19 +1,36 @@
 'use server';
 
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 
-export const getWhoViewedYourProfile = async (ids: number[]) => {
+type GetWhoViewedYourProfileResult =
+    | Prisma.ProfileViewGetPayload<{
+        include: {
+            viewer: true;
+        };
+    }>[]
+    | { error: string };
+
+export const getWhoViewedYourProfile = async (
+    profileUserId: number
+): Promise<GetWhoViewedYourProfileResult> => {
     try {
-        const users: any = await db.user.findMany({
+        return await db.profileView.findMany({
             where: {
-                id: {
-                    in: ids
-                }
+                profileUserId,
+            },
+            include: {
+                viewer: true,
+            },
+            orderBy: {
+                createdAt: "desc",
             },
         });
-        return users;
     } catch (error) {
-        console.error("Error fetching profile viewers:", error);
-        return { error: "Failed to fetch profile viewers" };
+        console.error("[GET_PROFILE_VIEWERS]", error);
+
+        return {
+            error: "Failed to fetch profile viewers",
+        };
     }
 };

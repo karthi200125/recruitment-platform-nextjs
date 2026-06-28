@@ -7,11 +7,13 @@ import { db } from '@/lib/db';
 import { authOptions } from '@/lib/auth/authOptions';
 import { CreateJobSchema } from '@/lib/SchemaTypes';
 import { FEATURES } from '@/lib/dashboard/proFeatures';
+import { JobQuestionType } from '@/types';
+import { Prisma } from '@prisma/client';
 
 interface CreateJobProps {
     values: z.infer<typeof CreateJobSchema>;
     skills?: string[];
-    questions?: string[];
+    questions?: JobQuestionType[];
     jobDesc?: string;
     isEdit?: boolean;
     jobId?: number;
@@ -128,7 +130,7 @@ export const createJobAction = async ({
                     ...jobData,
                     companyId: ownedCompany.id,
                     skills,
-                    questions,
+                    questions: questions as unknown as Prisma.InputJsonValue,
                     jobDesc,
                 },
             });
@@ -143,7 +145,7 @@ export const createJobAction = async ({
                 userId: currentUser.id,
                 companyId: ownedCompany.id,
                 skills,
-                questions,
+                questions: questions as unknown as Prisma.InputJsonValue,
                 jobDesc,
                 status: 'ACTIVE',
             },

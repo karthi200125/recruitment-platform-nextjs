@@ -1,15 +1,29 @@
+import { Prisma } from "@prisma/client";
+
 import { db } from "@/lib/db";
 
-export async function getUserWithSubscription(userId: number) {
+type UserWithSubscription = Prisma.UserGetPayload<{
+  include: {
+    subscription: true;
+  };
+}>;
+
+export async function getUserWithSubscription(
+  userId: number
+): Promise<UserWithSubscription | null> {
   return db.user.findUnique({
-    where: { id: userId },
+    where: {
+      id: userId,
+    },
     include: {
       subscription: true,
     },
   });
 }
 
-export function hasActiveSubscription(user: any): boolean {
+export function hasActiveSubscription(
+  user: UserWithSubscription | null
+): boolean {
   if (!user) return false;
 
   if (!user.isPro) return false;
@@ -20,7 +34,7 @@ export function hasActiveSubscription(user: any): boolean {
 
   if (
     user.subscription.stripeCurrentPeriodEnd &&
-    new Date(user.subscription.stripeCurrentPeriodEnd) < new Date()
+    user.subscription.stripeCurrentPeriodEnd < new Date()
   ) {
     return false;
   }

@@ -1,7 +1,7 @@
-import Image from 'next/image';
+import { JobWithCompany } from "@/types";
 import { formatDistanceToNow } from "date-fns";
-import { MapPin, Clock, Briefcase, Users } from 'lucide-react';
-import { JobWithCompany } from '@/actions/job/get-filter-all-jobs';
+import { Clock, MapPin, Users } from 'lucide-react';
+import Image from 'next/image';
 
 interface Props {
   job: JobWithCompany;

@@ -1,13 +1,17 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
+
 import { db } from "@/lib/db";
 
-export const getAllUsers = async () => {
+type GetAllUsersResult = Prisma.UserGetPayload<{}>[];
+
+export const getAllUsers = async (): Promise<GetAllUsersResult> => {
     try {
-        const users: any = await db.user.findMany();
-        return users;
+        return await db.user.findMany();
     } catch (error) {
-        console.error("Error fetching users:", error);
+        console.error("[GET_ALL_USERS]", error);
+
         throw new Error("Failed to fetch users");
     }
 };

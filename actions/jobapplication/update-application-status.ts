@@ -1,23 +1,69 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
+
 import { db } from "@/lib/db";
+import { UpdatableApplicationStatus } from "@/types";
+
+interface UpdateApplicationStatusResponse {
+  success?: boolean;
+  error?: string;
+}
 
 export async function updateApplicationStatus(
   applicationId: number,
-  status: "VIEWED" | "SHORTLISTED" | "REJECTED"
-) {
-  const data: any = {
-    status,
-  };
+  status: UpdatableApplicationStatus
+): Promise<UpdateApplicationStatusResponse> {
+  try {
+    const data: Prisma.JobApplicationUpdateInput = {
+      status,
+    };
 
-  if (status === "VIEWED") data.viewedAt = new Date();
-  if (status === "SHORTLISTED") data.shortlistedAt = new Date();
-  if (status === "REJECTED") data.rejectedAt = new Date();
+    switch (status) {
+      case "VIEWED":
+        data.viewedAt = new Date();
+        break;
 
-  await db.jobApplication.update({
-    where: { id: applicationId },
-    data,
-  });
+      case "UNDER_REVIEW":
+        break;
 
-  return { success: true };
+      case "SHORTLISTED":
+        data.shortlistedAt = new Date();
+        break;
+
+      case "INTERVIEW_SCHEDULED":
+        break;
+
+      case "INTERVIEWED":
+        break;
+
+      case "HIRED":
+        break;
+
+      case "REJECTED":
+        data.rejectedAt = new Date();
+        break;
+    }
+
+    await db.jobApplication.update({
+      where: {
+        id: applicationId,
+      },
+      data,
+    });
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error(
+      "[UPDATE_APPLICATION_STATUS]",
+      error
+    );
+
+    return {
+      error:
+        "Failed to update application status.",
+    };
+  }
 }

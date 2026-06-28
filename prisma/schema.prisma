@@ -84,6 +84,7 @@ model ProfileView {
 
   createdAt DateTime @default(now())
 
+  @@unique([profileUserId, viewerUserId])
   @@index([profileUserId])
   @@index([viewerUserId])
 }

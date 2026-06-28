@@ -1,24 +1,14 @@
 
 import DashboardActivityChart from "@/components/dashboard/charts/DashboardActivityChart";
-import RecentActivityCard from "@/components/dashboard/cards/RecentActivityCard";
-import RecentApplicationsCard from "@/components/dashboard/cards/RecentApplicationsCard";
 import { Role } from "@prisma/client";
 import DashboardStats from "../cards/DashboardStats";
 import DashboardStatusChart from "../charts/DashboardStatusChart ";
-
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
+import { DashboardData } from "@/types/dashboard";
 
 interface OrganizationOverviewTabProps {
     role: Role;
-
-    dashboardData: any;
+    dashboardData: DashboardData;
 }
-
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
 
 const OrganizationOverviewTab = ({
     role,

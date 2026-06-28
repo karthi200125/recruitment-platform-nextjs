@@ -67,11 +67,9 @@ export const authOptions: NextAuthOptions = {
                     if (!isPasswordValid) {
                         return null;
                     }
-
-                    // ✅ IMPORTANT
-                    // NextAuth expects string id
+                                        
                     return {
-                        id: String(user.id),
+                        id: user.id,
                         email: user.email,
                         username: user.username,
                         role: user.role,
@@ -117,8 +115,7 @@ export const authOptions: NextAuthOptions = {
         process.env
             .NEXTAUTH_SECRET,
 
-    callbacks: {
-        // ✅ GOOGLE DB SYNC
+    callbacks: {        
         async signIn({
             user,
             account,
@@ -187,7 +184,7 @@ export const authOptions: NextAuthOptions = {
                     });
 
                 if (dbUser) {
-                    token.id = String(dbUser.id);
+                    token.id = dbUser.id;
                     token.email = dbUser.email;
                     token.username = dbUser.username;
                     token.role = dbUser.role;
@@ -218,7 +215,7 @@ export const authOptions: NextAuthOptions = {
                     });
 
                 if (dbUser) {
-                    token.id = String(dbUser.id);
+                    token.id = dbUser.id;
                     token.username = dbUser.username;
                     token.role = dbUser.role;
                     token.isPro = dbUser.isPro;
@@ -234,12 +231,12 @@ export const authOptions: NextAuthOptions = {
             token,
         }) {
             if (session.user) {
-                session.user.id = token.id as string;
+                session.user.id = token.id as number;
                 session.user.email = token.email as string;
                 session.user.username = token.username as string;
                 session.user.role = token.role as string;
                 session.user.isPro = token.isPro as boolean;
-                session.user.profileImage = token.profileImage as | string | null;
+                session.user.profileImage = token.profileImage as string | null;
             }
 
             return session;

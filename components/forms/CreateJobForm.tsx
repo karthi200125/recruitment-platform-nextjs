@@ -1,33 +1,50 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Briefcase, Building2, DollarSign, FileText, Link2, Loader2, MapPin, Settings2, Users, Zap } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { Loader2, Briefcase, MapPin, DollarSign, Settings2, FileText, Zap, Link2, Users, Building2 } from 'lucide-react';
 
-import { CreateJobSchema } from '@/lib/SchemaTypes';
 import { createJobAction } from '@/actions/job/create-job';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useCustomToast } from '@/lib/CustomToast';
+import { CreateJobSchema } from '@/lib/SchemaTypes';
 
-import JobDesc from './JobDesc';
-import JobSkills from '../../app/(protected)/createJob/JobSkills';
 import JobQuestion from '../../app/(protected)/createJob/JobQuestion';
-import { getCompanies } from '@/actions/company/get-companies';
+import JobSkills from '../../app/(protected)/createJob/JobSkills';
+import JobDesc from './JobDesc';
 
+import { Checkbox } from '@/components/ui/checkbox';
 import {
-  Form, FormField, FormItem, FormLabel, FormControl, FormMessage,
+  Form,
+  FormControl,
+  FormField, FormItem, FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Company,
+  JobQuestionType,
+  JobWithCompany,
+} from "@/types";
+import { Prisma } from '@prisma/client';
 
 interface Props {
-  job?: any;
-  recruiterCompany?: any;
+  job?: JobWithCompany;
+  recruiterCompany?: Company | null;
   isEdit?: boolean;
+}
+
+export function parseJobQuestions(
+  questions: Prisma.JsonValue | null | undefined
+): JobQuestionType[] {
+  if (!Array.isArray(questions)) {
+    return [];
+  }
+
+  return questions as unknown as JobQuestionType[];
 }
 
 const inputCls = "w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed";
@@ -49,14 +66,17 @@ const CreateJobForm = ({ job, isEdit = false, recruiterCompany }: Props) => {
 
   const [jobDesc, setJobDesc] = useState(job?.jobDesc ?? '');
   const [skills, setSkills] = useState<string[]>(job?.skills ?? []);
-  const [questions, setQuestions] = useState<string[]>(job?.questions ?? []);
+  const [questions, setQuestions] = useState<JobQuestionType[]>(
+    parseJobQuestions(job?.questions)
+  );
+
   const [isLoading, startTransition] = useTransition();
   const [isEasyApply, setIsEasyApply] = useState<boolean>(job?.isEasyApply ?? false);
 
 
   const companyName = useMemo(() => {
     if (!user) return '';
-    return user.role === 'ORGANIZATION' ? user.username : recruiterCompany?.[0]?.companyName || '';
+    return user.role === 'ORGANIZATION' ? user.username : recruiterCompany?.companyName || '';
   }, [user, recruiterCompany]);
 
   const form = useForm<z.infer<typeof CreateJobSchema>>({

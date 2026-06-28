@@ -1,7 +1,6 @@
 "use client";
 
 import CompanyForm from "@/components/forms/CompanyForm";
-import UserBackImage from "@/components/forms/UserBackImage";
 import { UserInfoForm } from "@/components/forms/UserInfoForm";
 import { openModal } from "@/store/ModalSlice";
 
@@ -14,26 +13,25 @@ import UserProfileImage from "./UserProfileImage";
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 
-import { MapPin, Globe, Pencil, MessageSquare, Lock, Crown, Camera, Users } from "lucide-react";
+import { Camera, Crown, Globe, Lock, MapPin, MessageSquare, Pencil, Users } from "lucide-react";
 
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import noProfile from "../../../public/noProfile.webp";
 import UserBannerImage from "@/components/forms/UserBackImage";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { CompanyWithJobs, UserProfile } from "@/types";
+import noProfile from "../../../public/noProfile.webp";
 
 interface ProfileUserProps {
-    profileUser?: any;
+    profileUser?: UserProfile | null;
     isLoading?: boolean;
     isOrg?: boolean;
-    company?: any;
+    company?: CompanyWithJobs | null;
 }
 
 const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: ProfileUserProps) => {
     const { user } = useCurrentUser();
     const dispatch = useDispatch();
-    const router = useRouter();
 
     const isCurrentUser = user?.id === profileUser?.id;
     const isOrganization = profileUser?.role === "ORGANIZATION";
@@ -53,7 +51,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
             {/* Cover image */}
             <div className="relative w-full h-32 sm:h-44">
                 <Image
-                    src={profileUser?.userImage || "https://img.freepik.com/free-photo/abstract-grey-bg.jpg"}
+                    src={profileUser?.userImage || "/backgray.webp"}
                     alt="Cover"
                     fill
                     className="object-cover"
@@ -88,7 +86,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
 
                     {/* Avatar */}
                     <Model
-                        bodyContent={<UserProfileImage  isCurrentUser={isCurrentUser} profileUser={profileUser} />}
+                        bodyContent={<UserProfileImage isCurrentUser={isCurrentUser} profileUser={profileUser} />}
                         title={isCurrentUser ? "Edit Profile Image" : `${profileUser?.username}'s Photo`}
                         className="w-full md:w-[800px]"
                         triggerCls=""
@@ -120,9 +118,11 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                     <div className="flex items-center gap-2 pb-1">
                         {!isCurrentUser ? (
                             <>
-                                <FollowButton
-                                    targetUserId={profileUser?.id}
-                                />
+                                {profileUser && (
+                                    <FollowButton
+                                        targetUserId={profileUser.id}
+                                    />
+                                )}
                                 <button
                                     onClick={() => canMessage && dispatch(openModal(`messageModel-${profileUser?.id}`))}
                                     disabled={!canMessage}
@@ -169,7 +169,9 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                         <div>
                             <h1 className="text-xl font-bold text-slate-900 capitalize flex items-center gap-2 flex-wrap leading-tight">
                                 {displayName}
-                                <Batch type={profileUser?.role} />
+                                <Batch
+                                    type={profileUser?.role ?? undefined}
+                                />
                             </h1>
                             {profileUser?.profession && (
                                 <p className="text-sm text-slate-500 mt-0.5">{profileUser.profession}</p>
@@ -207,7 +209,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                         {/* Follower stats */}
                         <div className="flex items-center gap-1 flex-wrap">
                             <Link
-                                href={`/network/${profileUser?.id}`}
+                                href={`/network/${profileUser!.id}`}
                                 className="group inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 bg-slate-50 border border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 transition-all duration-200"
                             >
                                 <Users className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 flex-shrink-0" strokeWidth={2} />

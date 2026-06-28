@@ -1,46 +1,38 @@
-import { Building2, ChevronLeft, Users } from "lucide-react";
+"use client";
+
 import Link from "next/link";
-import ApplicantDetails, { ApplicantDetailsSkeleton } from "./ApplicantDetails";
-import ApplicantList, { ApplicantListSkeleton } from "./ApplicantList";
+import {
+    Building2,
+    ChevronLeft,
+    Users,
+} from "lucide-react";
 
-interface Company {
-    companyName: string;
-    companyImage?: string | null;
-}
+import ApplicantDetails, {
+    ApplicantDetailsSkeleton,
+} from "./ApplicantDetails";
+import ApplicantList, {
+    ApplicantListSkeleton,
+} from "./ApplicantList";
 
-interface Job {
-    jobTitle: string;
-    mode?: string;
-    company: Company;
-    _count: {
-        jobApplications: number;
-    };
-}
-
-interface Application {
-    id: number;
-    status: any;
-    createdAt: Date | string;
-    candidateResume?: string | null;
-    questionAndAnswers?: Record<string, any>;
-    user: {
-        username: string;
-        email?: string;
-        image?: string | null;
-    };
-}
+import {
+    JobApplicationWithUser,
+    JobWithCompanyAndCount,
+} from "@/types";
 
 interface EmployerJobClientProps {
-    job: Job;
-    applicants: Application[];
-    selectedApplication: Application | null;
+    job: JobWithCompanyAndCount;
+    applicants: JobApplicationWithUser[];
+    selectedApplication: JobApplicationWithUser | null;
     isLoading?: boolean;
 }
 
 const MODE_STYLES: Record<string, string> = {
-    remote: "bg-emerald-50 text-emerald-600 border-emerald-200",
-    hybrid: "bg-violet-50 text-violet-600 border-violet-200",
-    onsite: "bg-amber-50 text-amber-600 border-amber-200",
+    remote:
+        "bg-emerald-50 text-emerald-600 border-emerald-200",
+    hybrid:
+        "bg-violet-50 text-violet-600 border-violet-200",
+    onsite:
+        "bg-amber-50 text-amber-600 border-amber-200",
 };
 
 export default function EmployerJobClient({
@@ -49,49 +41,76 @@ export default function EmployerJobClient({
     selectedApplication,
     isLoading = false,
 }: EmployerJobClientProps) {
-    const count = job._count.jobApplications;
-    const modeLower = (job.mode ?? "").toLowerCase();
-    const modeBadge = MODE_STYLES[modeLower];
+    const applicantCount =
+        job._count.jobApplications;
+
+    const mode =
+        job.mode?.toLowerCase() ?? "";
+
+    const modeBadge =
+        MODE_STYLES[mode];
 
     return (
-        <div className="flex flex-col h-[calc(100vh-64px)] bg-slate-50">
-
+        <div className="flex h-[calc(100vh-64px)] flex-col bg-slate-50">
             {/* Header */}
-            <div className="flex-shrink-0 bg-white border-b border-slate-200 px-5 py-4">
-                <div className="flex items-start justify-between gap-4 max-w-full">
-
-                    {/* Left — back + job info */}
-                    <div className="flex items-start gap-3 min-w-0">
+            <div className="flex-shrink-0 border-b border-slate-200 bg-white px-5 py-4">
+                <div className="flex max-w-full items-start justify-between gap-4">
+                    {/* Left */}
+                    <div className="flex min-w-0 items-start gap-3">
                         <Link
                             href="/dashboard/employer/jobs"
-                            className="mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors duration-200"
+                            className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors duration-200 hover:bg-slate-50 hover:text-slate-700"
                             aria-label="Back to jobs"
                         >
-                            <ChevronLeft className="w-4 h-4" strokeWidth={2} />
+                            <ChevronLeft
+                                className="h-4 w-4"
+                                strokeWidth={2}
+                            />
                         </Link>
+
                         <div className="min-w-0">
-                            <h1 className="text-base font-bold text-slate-900 leading-snug truncate">
+                            <h1 className="truncate text-base font-bold leading-snug text-slate-900">
                                 {job.jobTitle}
                             </h1>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                                <Building2 className="w-3 h-3 text-slate-400 flex-shrink-0" strokeWidth={1.75} />
-                                <p className="text-xs text-slate-400 truncate">{job.company.companyName}</p>
+
+                            <div className="mt-0.5 flex items-center gap-1.5">
+                                <Building2
+                                    className="h-3 w-3 flex-shrink-0 text-slate-400"
+                                    strokeWidth={1.75}
+                                />
+
+                                <p className="truncate text-xs text-slate-400">
+                                    {
+                                        job.company
+                                            .companyName
+                                    }
+                                </p>
                             </div>
-                            <div className="flex flex-wrap items-center gap-2 mt-2">
-                                {modeBadge && (
-                                    <span className={`inline-flex items-center text-[11px] font-semibold px-2.5 py-0.5 rounded-full border capitalize ${modeBadge}`}>
+
+                            {modeBadge && (
+                                <div className="mt-2 flex flex-wrap items-center gap-2">
+                                    <span
+                                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold capitalize ${modeBadge}`}
+                                    >
                                         {job.mode}
                                     </span>
-                                )}
-                            </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* Right — applicant count */}
-                    <div className="flex items-center gap-1.5 flex-shrink-0 rounded-xl bg-indigo-50 border border-indigo-100 px-3 py-2">
-                        <Users className="w-4 h-4 text-indigo-500" strokeWidth={2} />
+                    {/* Right */}
+                    <div className="flex flex-shrink-0 items-center gap-1.5 rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2">
+                        <Users
+                            className="h-4 w-4 text-indigo-500"
+                            strokeWidth={2}
+                        />
+
                         <span className="text-sm font-bold text-indigo-700">
-                            {count} {count === 1 ? "Applicant" : "Applicants"}
+                            {applicantCount}{" "}
+                            {applicantCount === 1
+                                ? "Applicant"
+                                : "Applicants"}
                         </span>
                     </div>
                 </div>
@@ -99,29 +118,38 @@ export default function EmployerJobClient({
 
             {/* Content */}
             <div className="flex flex-1 overflow-hidden">
-
-                {/* LEFT — applicant list */}
-                <div className="w-full md:w-[400px] lg:w-[500px] flex-shrink-0 flex flex-col border-r border-slate-100 bg-white overflow-hidden">
-
-                    {/* List panel header */}
-                    <div className="px-4 py-3 border-b border-slate-100 flex-shrink-0">
-                        <p className="text-xs font-bold text-slate-600 uppercase tracking-widest">Candidates</p>
+                {/* Left */}
+                <div className="flex w-full flex-shrink-0 flex-col overflow-hidden border-r border-slate-100 bg-white md:w-[400px] lg:w-[500px]">
+                    <div className="flex-shrink-0 border-b border-slate-100 px-4 py-3">
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-600">
+                            Candidates
+                        </p>
                     </div>
 
-                    <div className="flex-1 overflow-hidden flex flex-col">
-                        {isLoading
-                            ? <ApplicantListSkeleton />
-                            : <ApplicantList applicants={applicants} />
-                        }
+                    <div className="flex flex-1 flex-col overflow-hidden">
+                        {isLoading ? (
+                            <ApplicantListSkeleton />
+                        ) : (
+                            <ApplicantList
+                                applicants={
+                                    applicants
+                                }
+                            />
+                        )}
                     </div>
                 </div>
 
-                {/* RIGHT — applicant details */}
-                <div className="hidden md:flex flex-col flex-1 overflow-y-auto bg-slate-50/50">
-                    {isLoading
-                        ? <ApplicantDetailsSkeleton />
-                        : <ApplicantDetails application={selectedApplication} />
-                    }
+                {/* Right */}
+                <div className="hidden flex-1 flex-col overflow-y-auto bg-slate-50/50 md:flex">
+                    {isLoading ? (
+                        <ApplicantDetailsSkeleton />
+                    ) : (
+                        <ApplicantDetails
+                            application={
+                                selectedApplication
+                            }
+                        />
+                    )}
                 </div>
             </div>
         </div>

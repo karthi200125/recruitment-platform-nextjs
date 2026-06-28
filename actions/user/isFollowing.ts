@@ -2,37 +2,37 @@
 
 import { db } from "@/lib/db";
 
-export async function isFollowing(
+export const isFollowing = async (
     currentUserId: number,
     targetUserId: number
-): Promise<boolean> {
-    try {        
+): Promise<boolean> => {
+    try {
         if (
             !Number.isInteger(currentUserId) ||
             !Number.isInteger(targetUserId) ||
             currentUserId <= 0 ||
-            targetUserId <= 0
+            targetUserId <= 0 ||
+            currentUserId === targetUserId
         ) {
             return false;
         }
 
-        if (currentUserId === targetUserId) {
-            return false;
-        }
-
-        const follow = await db.follow.findUnique({
+        const existingFollow = await db.follow.findUnique({
             where: {
                 followerId_followingId: {
                     followerId: currentUserId,
                     followingId: targetUserId,
                 },
             },
-            select: { id: true }, 
+            select: {
+                id: true,
+            },
         });
 
-        return !!follow;
+        return Boolean(existingFollow);
     } catch (error) {
-        console.error("[isFollowing]", error);
-        return false; 
+        console.error("[IS_FOLLOWING]", error);
+
+        return false;
     }
-}
+};

@@ -4,10 +4,11 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Role } from "@prisma/client";
 import { BadgeCheck, Crown, Medal } from "lucide-react";
 
 interface BadgeProps {
-    type?: "premium" | "RECRUITER" | "CANDIDATE" | "ORGANIZATION";
+    type?: Role | "premium";
 }
 
 const badgeConfig = {
