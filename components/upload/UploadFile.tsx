@@ -2,6 +2,7 @@
 
 import {
     useCallback,
+    useEffect,
     useId,
     useMemo,
     useRef,
@@ -11,22 +12,22 @@ import {
 } from "react";
 
 import {
+    AlertIcon,
+    CheckCircleIcon,
+    CheckCircleSoftIcon,
     CloudUploadIcon,
     DocumentUploadIcon,
     FolderIcon,
-    AlertIcon,
-    CloseIcon,
-    LockIcon,
-    CheckCircleIcon,
-    CheckCircleSoftIcon,
+    LockIcon
 } from "./FileIcon";
 
-import UploadPreview from "./UploadPreview";
-import UploadProgress from "./UploadProgress";
-import ExistingFileCard, { ExistingFile } from "./ExistingFileCard";
+import { useUpload, type UploadResponse } from "@/hooks/useUpload";
+import { getUploadConfig } from "@/lib/upload/upload-config";
 import { ImageDimensions, UploadType } from "@/lib/upload/upload-types";
 import { readImageDimensions, validateFileList } from "@/lib/upload/upload-utils";
-import { getUploadConfig } from "@/lib/upload/upload-config";
+import ExistingFileCard, { ExistingFile } from "./ExistingFileCard";
+import UploadPreview from "./UploadPreview";
+import UploadProgress from "./UploadProgress";
 
 // ─── Public types ───────────────────────────────────────────────────────────
 
@@ -40,73 +41,60 @@ export type UploadStatus =
 export interface UploadFileProps {
     type: UploadType;
     existingFile?: ExistingFile;
-    progress?: number;
-    uploading?: boolean;
+
     disabled?: boolean;
-    variant?: "modal" | "inline";
     onClose?: () => void;
 
+    fields?: Record<string, string | number>;
     onFileSelect?: (file: File) => void;
-    onUploadStart?: (file: File) => void;
-    onUploadProgress?: (progress: number) => void;
-    onUploadSuccess?: (file: File) => void;
+    onUploadSuccess?: (response: UploadResponse) => void;
     onUploadError?: (error: string) => void;
     onCancel?: () => void;
     onRemove?: () => void;
     onReplace?: () => void;
     onDelete?: () => void;
 
-    onSubmit?: (file: File) => void;
 }
 
 export function UploadFile({
     type,
     existingFile,
-    progress: controlledProgress,
-    uploading: controlledUploading,
     disabled = false,
-    variant = "modal",
     onClose,
     onFileSelect,
-    onUploadStart,
-    onUploadProgress,
     onUploadSuccess,
     onUploadError,
     onCancel,
     onRemove,
     onReplace,
     onDelete,
-    onSubmit,
+    fields
 }: UploadFileProps) {
     const config = getUploadConfig(type);
     const inputId = useId();
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const {
+        upload,
+        cancelUpload,
+        progress,
+        isUploading,
+        error,
+        reset,
+    } = useUpload();
 
     const [status, setStatus] = useState<UploadStatus>("idle");
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [imageDimensions, setImageDimensions] = useState<ImageDimensions | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
-    const [internalProgress, setInternalProgress] = useState(0);
     const [showExisting, setShowExisting] = useState(Boolean(existingFile));
 
-    const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-    const isUploading =
-        controlledUploading !== undefined ? controlledUploading : status === "uploading";
-    const displayProgress =
-        controlledProgress !== undefined ? controlledProgress : internalProgress;
+    const displayProgress = progress;
 
     const isImageKind = config.kind === "image";
 
-    // ── File handling ──
-
-    const clearProgressTimer = useCallback(() => {
-        if (progressTimerRef.current) {
-            clearInterval(progressTimerRef.current);
-            progressTimerRef.current = null;
-        }
-    }, []);
+    const uploadError = error ?? errorMessage;
 
     const processFile = useCallback(
         async (file: File) => {
@@ -120,6 +108,7 @@ export function UploadFile({
             }
 
             setErrorMessage(null);
+            reset();
             setSelectedFile(file);
             setStatus("selected");
             setShowExisting(false);
@@ -168,6 +157,7 @@ export function UploadFile({
         },
         [disabled, isUploading]
     );
+
 
     const handleDragLeave = useCallback((event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
@@ -225,60 +215,54 @@ export function UploadFile({
         setImageDimensions(undefined);
         setStatus("idle");
         setErrorMessage(null);
-        setInternalProgress(0);
-        clearProgressTimer();
+        reset();
         onRemove?.();
-    }, [clearProgressTimer, onRemove]);
+    }, [onRemove]);
 
     const handleCancelUpload = useCallback(() => {
-        clearProgressTimer();
+        cancelUpload();
         setStatus("selected");
-        setInternalProgress(0);
         onCancel?.();
-    }, [clearProgressTimer, onCancel]);
+    }, [cancelUpload, onCancel]);
 
-    // ── Submit (delegates the actual upload to the parent via callbacks) ──
+    const timeoutRef = useRef<NodeJS.Timeout>();
 
-    const handleSubmit = useCallback(() => {
+    // handle submit
+    const handleSubmit = useCallback(async () => {
         if (!selectedFile || disabled) return;
-
-        onSubmit?.(selectedFile);
-        onUploadStart?.(selectedFile);
-
-        // If the parent is driving progress/uploading via props, do nothing further —
-        // they own the state machine. Otherwise, simulate so the component is
-        // clickable/demoable before real upload logic is wired in.
-        if (controlledProgress !== undefined || controlledUploading !== undefined) {
-            return;
+        try {
+            setStatus("uploading");
+            const result = await upload({
+                file: selectedFile,
+                type,
+                fields,
+            });
+            setStatus("success");
+            setTimeout(() => {
+                onUploadSuccess?.(result);
+                // onClose?.();
+            }, 800);
+            useEffect(() => {
+                return () => clearTimeout(timeoutRef.current);
+            }, [])
+        } catch (err) {
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Upload failed.";
+            setErrorMessage(message);
+            setStatus("error");
+            onUploadError?.(message);
         }
 
-        setStatus("uploading");
-        setInternalProgress(0);
-
-        progressTimerRef.current = setInterval(() => {
-            setInternalProgress((prev) => {
-                const next = Math.min(prev + Math.random() * 18 + 6, 100);
-                onUploadProgress?.(next);
-
-                if (next >= 100) {
-                    clearProgressTimer();
-                    setStatus("success");
-                    onUploadSuccess?.(selectedFile);
-                }
-
-                return next;
-            });
-        }, 280);
     }, [
         selectedFile,
         disabled,
-        onSubmit,
-        onUploadStart,
-        onUploadProgress,
+        upload,
+        type,
         onUploadSuccess,
-        controlledProgress,
-        controlledUploading,
-        clearProgressTimer,
+        onUploadError,
+        onClose,
     ]);
 
     // ── Existing-file action handlers ──
@@ -341,7 +325,7 @@ export function UploadFile({
                             const link = document.createElement("a");
                             link.href = existingFile.url;
                             link.download = existingFile.name;
-                            link.click();
+                            window.open(link.href, "_blank", "noopener,noreferrer");
                         }}
                         onReplace={handleReplaceClick}
                         onDelete={handleDeleteClick}
@@ -417,13 +401,13 @@ export function UploadFile({
                 ) : null}
 
                 {/* Error message */}
-                {status === "error" && errorMessage ? (
+                {status === "error" && uploadError ? (
                     <div
                         role="alert"
                         className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-700"
                     >
                         <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
-                        <span>{errorMessage}</span>
+                        <span>{uploadError}</span>
                     </div>
                 ) : null}
 
@@ -446,9 +430,6 @@ export function UploadFile({
                     <UploadProgress
                         progress={displayProgress}
                         statusText="Uploading to Cloudinary..."
-                        // statusIconStyle={
-                        //     isImageKind ? "soft" : "solid"
-                        // }
                         onCancel={handleCancelUpload}
                     />
                 ) : null}

@@ -52,7 +52,7 @@ export type UserProfile = Prisma.UserGetPayload<{
     include: {
         followers: true;
         following: true;
-    };
+    };    
 }>;
 
 export type SessionUser = Pick<

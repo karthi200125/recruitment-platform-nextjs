@@ -9,7 +9,6 @@ import FollowButton from "@/components/FollowButton";
 import Model from "@/components/Model";
 import UserInfoSkeleton from "@/components/skeletons/UserInfoSkeleton";
 import MessageBox from "../../(protected)/messages/MessageBox";
-import UserProfileImage from "./UserProfileImage";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -17,7 +16,7 @@ import { useDispatch } from "react-redux";
 
 import { Camera, Crown, Globe, Lock, MapPin, MessageSquare, Pencil, Users } from "lucide-react";
 
-import UserBannerImage from "@/components/forms/UserBackImage";
+import UploadModal from "@/components/upload/UploadModal";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { CompanyWithJobs, UserProfile } from "@/types";
 import noProfile from "../../../public/noProfile.webp";
@@ -62,21 +61,29 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
 
                 {/* Edit cover button */}
                 {isCurrentUser && (
-                    <Model
-                        bodyContent={<UserBannerImage userBannerImage={profileUser?.userImage || null} />}
-                        title="Edit Cover Image"
-                        className="w-full md:w-[800px]"
-                        triggerCls="absolute top-3 right-3"
-                        modalId="UserBannerModel"
+                    <UploadModal
+                        modalId="user-banner-upload"
+                        type="profile-banner"
+                        existingFile={
+                            profileUser?.userImage
+                                ? {
+                                    url: profileUser.userImage,
+                                    name: "Cover Image",
+                                    publicId: profileUser.userImagePublicId ?? "",
+                                }
+                                : undefined
+                        }
                     >
                         <button
                             aria-label="Edit cover image"
-                            onClick={() => dispatch(openModal("UserBannerModel"))}
-                            className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-white/80 backdrop-blur-sm border border-white/60 flex items-center justify-center text-slate-700 hover:bg-white transition-all duration-200 shadow-sm"
+                            className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-lg border border-white/60 bg-white/80 text-slate-700 shadow-sm backdrop-blur-sm transition-all duration-200 hover:bg-white"
                         >
-                            <Camera className="w-4 h-4" strokeWidth={1.75} />
+                            <Camera
+                                className="h-4 w-4"
+                                strokeWidth={1.75}
+                            />
                         </button>
-                    </Model>
+                    </UploadModal>
                 )}
             </div>
 
@@ -85,34 +92,59 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                 <div className="flex items-end justify-between gap-3 -mt-10 sm:-mt-14 mb-4">
 
                     {/* Avatar */}
-                    <Model
-                        bodyContent={<UserProfileImage isCurrentUser={isCurrentUser} profileUser={profileUser} />}
-                        title={isCurrentUser ? "Edit Profile Image" : `${profileUser?.username}'s Photo`}
-                        className="w-full md:w-[800px]"
-                        triggerCls=""
-                        modalId="profileImageModal"
+                    <UploadModal
+                        modalId="profile-image-upload"
+                        type="profile-image"
+                        existingFile={
+                            profileUser?.profileImage
+                                ? {
+                                    url: profileUser.profileImage,
+                                    name: "Profile Photo",
+                                    publicId: profileUser.profileImagePublicId,
+                                }
+                                : undefined
+                        }
                     >
                         <div className="relative group cursor-pointer flex-shrink-0">
-                            <div className={`relative w-20 h-20 sm:w-28 sm:h-28 border-4 border-white shadow-md overflow-hidden bg-slate-100 ${isOrganization ? "rounded-2xl" : "rounded-full"}`}>
+                            <div
+                                className={`relative w-20 h-20 sm:w-28 sm:h-28 overflow-hidden border-4 border-white bg-slate-100 shadow-md ${isOrganization
+                                    ? "rounded-2xl"
+                                    : "rounded-full"
+                                    }`}
+                            >
                                 <Image
-                                    src={(isCurrentUser ? user?.profileImage : profileUser?.userImage) || noProfile.src}
+                                    src={
+                                        // (isCurrentUser
+                                        //     ? user?.profileImage
+                                        //     : profileUser?.profileImage) ||
+                                        // noProfile.src
+                                        profileUser?.profileImage || noProfile.src
+                                    }
                                     alt={displayName ?? "Profile"}
                                     fill
                                     className="object-cover"
                                 />
+
                                 {isCurrentUser && (
-                                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-inherit">
-                                        <Camera className="w-5 h-5 text-white" strokeWidth={1.75} />
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                                        <Camera
+                                            className="h-5 w-5 text-white"
+                                            strokeWidth={1.75}
+                                        />
                                     </div>
                                 )}
                             </div>
+
                             {profileUser?.isPro && (
-                                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center shadow-sm">
-                                    <Crown className="w-3 h-3 text-white" strokeWidth={2.5} />
+                                <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-amber-400 shadow-sm">
+                                    <Crown
+                                        className="h-3 w-3 text-white"
+                                        strokeWidth={2.5}
+                                    />
                                 </div>
                             )}
                         </div>
-                    </Model>
+                    </UploadModal>
 
                     {/* Action buttons */}
                     <div className="flex items-center gap-2 pb-1">

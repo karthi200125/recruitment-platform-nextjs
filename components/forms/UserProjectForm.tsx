@@ -1,147 +1,246 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useCallback, useMemo, useState, useTransition } from "react";
+import { useDispatch } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { userProjectAction } from "@/actions/user/user-projects-action";
 import Button from "@/components/Button";
 import CustomFormField from "@/components/CustomFormField";
 import { Form } from "@/components/ui/form";
 import FormError from "@/components/ui/FormError";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCustomToast } from "@/lib/CustomToast";
 import { UserProjectSchema } from "@/lib/SchemaTypes";
 import { closeModal } from "@/store/ModalSlice";
 import { Project } from "@/types";
-import { useQueryClient } from "@tanstack/react-query";
-import Image from "next/image";
-import { useState, useTransition } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { UploadFile } from "../upload/UploadFile";
+
+type FormValues = z.infer<typeof UserProjectSchema>;
 
 interface UserProjectProps {
     isEdit?: boolean;
     project?: Project;
+    onSuccess?: (project: Project) => void;
+    onClose?: () => void;
 }
 
-export function UserProjectForm({ isEdit, project }: UserProjectProps) {
-    const { user } = useCurrentUser()
-    const [isLoading, startTransition] = useTransition();
+export function UserProjectForm({
+    isEdit = false,
+    project,
+    onSuccess,
+    onClose,
+}: UserProjectProps) {
+    const { user } = useCurrentUser();
+    const dispatch = useDispatch();
     const queryClient = useQueryClient();
 
-    const [err, setErr] = useState("")
-    const dispatch = useDispatch()
-    const [file, setFile] = useState<File | null>(null);
-    const [showImage, setShowImage] = useState<string | null>(project?.proImage || null);
     const { showErrorToast, showSuccessToast } = useCustomToast();
-    // const { per, UploadFile, downloadUrl } = useUpload({ file });
 
-    const form = useForm<z.infer<typeof UserProjectSchema>>({
+    const [isPending, startTransition] = useTransition();
+
+    const [error, setError] = useState("");
+
+    const [projectImage, setProjectImage] = useState(
+        project?.proImage ?? ""
+    );
+
+    const [projectImagePublicId, setProjectImagePublicId] = useState(
+        project?.proImagePublicId ?? ""
+    );
+
+    const [isUploading, setIsUploading] = useState(false);
+
+    const form = useForm<FormValues>({
         resolver: zodResolver(UserProjectSchema),
+        mode: "onChange",
         defaultValues: {
-            proName: isEdit ? project?.proName : "",
-            proDesc: isEdit ? project?.proDesc : "",
-            proLink: isEdit ? project?.proLink : "",
+            proName: project?.proName ?? "",
+            proDesc: project?.proDesc ?? "",
+            proLink: project?.proLink ?? "",
         },
     });
 
-    // const handleImageUpload = useCallback((e: any) => {
-    //     const selectedFile = e.target.files?.[0];
-    //     if (selectedFile) {
-    //         setFile(selectedFile);
-    //         const newImage = URL.createObjectURL(selectedFile);
-    //         if (newImage !== showImage) {
-    //             setShowImage(newImage);
-    //         }
-    //     }
-    // }, [showImage]);
+    const resetForm = useCallback(() => {
+        form.reset();
 
-    // useEffect(() => {
-    //     // UploadFile();
-    // }, [file])
+        setProjectImage("");
+        setProjectImagePublicId("");
+        setError("");
+    }, [form]);
 
+    const invalidateQueries = useCallback(async () => {
+        if (!user?.id) return;
 
-    const onSubmit = (values: z.infer<typeof UserProjectSchema>) => {
-        startTransition(() => {
-            const userId = user?.id
-            const proId = project?.id
-            // const proImage = downloadUrl
+        await Promise.all([
+            queryClient.invalidateQueries({
+                queryKey: ["getUserProjects", user.id],
+            }),
+            queryClient.invalidateQueries({
+                queryKey: ["getuser", user.id],
+            }),
+        ]);
+    }, [queryClient, user?.id]);
 
-            userProjectAction(values, userId, isEdit, proId, '')
-                .then((data) => {
-                    if (data?.success) {
-                        showSuccessToast(data?.success)
-                        queryClient.invalidateQueries({ queryKey: ['getUserProjects', userId] })
-                        queryClient.invalidateQueries({ queryKey: ['getuser', userId] })
-                        dispatch(closeModal(isEdit ? "projectEditModal" : 'userProjectModal'))
-                    }
-                    if (data?.error) {
-                        setErr(data?.error)
-                    }
-                })
-        });
-    };
+    const handleSuccess = useCallback(
+        async (projectData: Project, message: string) => {
+            showSuccessToast(message);
+
+            await invalidateQueries();
+
+            resetForm();
+
+            onSuccess?.(projectData);
+            onClose?.();
+
+            dispatch(
+                closeModal(
+                    isEdit
+                        ? "projectEditModal"
+                        : "userProjectModal"
+                )
+            );
+        },
+        [
+            dispatch,
+            invalidateQueries,
+            isEdit,
+            onClose,
+            onSuccess,
+            resetForm,
+            showSuccessToast,
+        ]
+    );
+
+    const onSubmit = useCallback(
+        (values: FormValues) => {
+            if (isPending || isUploading) return;
+
+            if (!user?.id) {
+                showErrorToast("User not found.");
+                return;
+            }
+
+            setError("");
+
+            startTransition(async () => {
+                const result = await userProjectAction(
+                    values,
+                    user.id,
+                    projectImage,
+                    projectImagePublicId,
+                    isEdit,
+                    project?.id
+                );
+
+                if ("error" in result) {
+                    setError(result.error);
+                    showErrorToast(result.error);
+                    return;
+                }
+
+                await handleSuccess(result.data, result.success);
+            });
+        },
+        [
+            handleSuccess,
+            isEdit,
+            isPending,
+            isUploading,
+            project?.id,
+            projectImage,
+            projectImagePublicId,
+            showErrorToast,
+            user?.id,
+        ]
+    );
+
+    const isSubmitDisabled = useMemo(
+        () =>
+            isPending ||
+            isUploading ||
+            !form.formState.isValid ||
+            !projectImage ||
+            !projectImagePublicId,
+        [
+            form.formState.isValid,
+            isPending,
+            isUploading,
+            projectImage,
+            projectImagePublicId,
+        ]
+    );
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+            >
                 <CustomFormField
+                    form={form}
                     name="proName"
-                    form={form}
                     label="Project Title"
-                    placeholder="Ex : Eccommerce Website"
-                    isLoading={isLoading}
+                    placeholder="Ex: Ecommerce Website"
+                    isLoading={isPending}
                 />
+
                 <CustomFormField
+                    form={form}
                     name="proLink"
-                    form={form}
                     label="Project Link"
-                    placeholder="Ex : https://exmaple.com"
-                    isLoading={isLoading}
+                    placeholder="Ex: https://example.com"
+                    isLoading={isPending}
                 />
+
                 <CustomFormField
-                    name="proDesc"
                     form={form}
+                    name="proDesc"
                     label="Project Description"
-                    placeholder="Ex : somthing about project"
-                    isLoading={isLoading}
+                    placeholder="Tell users about your project..."
                     isTextarea
+                    isLoading={isPending}
                 />
 
-                <div className="relative h-[200px] rounded-lg border overflow-hidden bg-gray-100">
-                    <Image
-                        src={showImage || ''}
-                        alt="User profile"
-                        fill
-                        className="w-full h-full object-cover bg-neutral-100 absolute top-0 left-0"
-                    />
-                    <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        id="imageupload"
-                    // onChange={handleImageUpload}
-                    />
-                    <label
-                        htmlFor="imageupload"
-                        className="absolute top-0 left-0 w-full h-full opacity-70 z-10 flex items-center justify-center cursor-pointer transition bg-black"
-                    >
-                        <div className="space-y-3 text-center">
-                            <img src="" alt="" />
-                            <h3 className="text-blue-400 z-10">Select Image</h3>
-                        </div>
-                    </label>
-                </div>
-                {/* {per !== null && (
-                    <div className="space-y-3">
-                        <h3>{downloadUrl ? "Completed" : "Uploading..."}</h3>
-                        <Progress value={Number(per)} className="w-full" />
-                    </div>
-                )} */}
+                <UploadFile
+                    type="project-image"
+                    existingFile={
+                        projectImage
+                            ? {
+                                url: projectImage,
+                                publicId: projectImagePublicId,
+                                name: project?.proName ?? "Project Image",
+                            }
+                            : undefined
+                    }
+                    onUploadStart={() => setIsUploading(true)}
+                    onUploadSuccess={(file) => {
+                        setProjectImage(file.url);
+                        setProjectImagePublicId(file.publicId);
+                        setIsUploading(false);
+                    }}
+                    onUploadError={() => {
+                        setIsUploading(false);
+                        showErrorToast("Failed to upload project image.");
+                    }}
+                    onDeleteSuccess={() => {
+                        setProjectImage("");
+                        setProjectImagePublicId("");
+                    }}
+                />
 
-                <FormError message={err} />
-                <Button isLoading={isLoading} className="!w-full">
-                    {isEdit ? "Edit Project" : "Add Project"}
+                <FormError message={error} />
+
+                <Button
+                    type="submit"
+                    className="!w-full"
+                    isLoading={isPending || isUploading}
+                    disabled={isSubmitDisabled}
+                >
+                    {isEdit ? "Update Project" : "Add Project"}
                 </Button>
             </form>
         </Form>

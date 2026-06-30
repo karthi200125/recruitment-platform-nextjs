@@ -1,15 +1,16 @@
-'use server';
+"use server";
 
 import { Prisma } from "@prisma/client";
 import * as z from "zod";
 
 import { db } from "@/lib/db";
+import { Project } from "@/types";
 import { UserProjectSchema } from "@/lib/SchemaTypes";
 
 type UserProjectActionResult =
     | {
         success: string;
-        data: Prisma.ProjectGetPayload<{}>;
+        data: Project;
     }
     | {
         error: string;
@@ -20,6 +21,7 @@ export const userProjectAction = async (
     values: z.infer<typeof UserProjectSchema>,
     userId: number,
     proImage: string,
+    proImagePublicId: string,
     isEdit = false,
     proId?: number
 ): Promise<UserProjectActionResult> => {
@@ -28,8 +30,14 @@ export const userProjectAction = async (
 
         if (!validatedFields.success) {
             return {
-                error: "Invalid fields",
+                error: "Invalid form data.",
                 issues: validatedFields.error.issues,
+            };
+        }
+
+        if (!userId) {
+            return {
+                error: "User not found.",
             };
         }
 
@@ -39,38 +47,119 @@ export const userProjectAction = async (
             };
         }
 
-        const data = validatedFields.data;
+        const user = await db.user.findUnique({
+            where: {
+                id: userId,
+            },
+            select: {
+                id: true,
+            },
+        });
 
-        const project = isEdit
-            ? await db.project.update({
+        if (!user) {
+            return {
+                error: "User does not exist.",
+            };
+        }
+
+        const data = {
+            proName: validatedFields.data.proName.trim(),
+            proDesc: validatedFields.data.proDesc.trim(),
+            proLink: validatedFields.data.proLink.trim(),
+        };
+
+        const projectData: Prisma.ProjectUncheckedCreateInput = {
+            ...data,
+            userId,
+            proImage,
+            proImagePublicId,
+        };
+
+        let project: Project;
+
+        if (isEdit) {
+            const existingProject = await db.project.findUnique({
                 where: {
-                    id: proId,
+                    id: proId!,
                 },
-                data: {
-                    ...data,
-                    userId,
-                    proImage,
-                },
-            })
-            : await db.project.create({
-                data: {
-                    ...data,
-                    userId,
-                    proImage,
+                select: {
+                    id: true,
+                    userId: true,
                 },
             });
 
+            if (!existingProject) {
+                return {
+                    error: "Project not found.",
+                };
+            }
+
+            if (existingProject.userId !== userId) {
+                return {
+                    error: "You are not authorized to update this project.",
+                };
+            }
+
+            const updateData: Prisma.ProjectUncheckedUpdateInput = {
+                ...data,
+            };
+
+            if (proImage && proImagePublicId) {
+                updateData.proImage = proImage;
+                updateData.proImagePublicId = proImagePublicId;
+            }
+
+            project = await db.project.update({
+                where: {
+                    id: existingProject.id,
+                },
+                data: updateData,
+            });
+
+            return {
+                success: `${project.proName} has been updated successfully.`,
+                data: project,
+            };
+        }
+
+        project = await db.project.create({
+            data: projectData,
+        });
+
         return {
-            success: isEdit
-                ? `${project.proName} has been edited successfully.`
-                : `${project.proName} has been created successfully.`,
+            success: `${project.proName} has been created successfully.`,
             data: project,
         };
     } catch (error) {
         console.error("[USER_PROJECT_ACTION]", error);
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            switch (error.code) {
+                case "P2002":
+                    return {
+                        error: "A project with these details already exists.",
+                    };
+
+                case "P2025":
+                    return {
+                        error: "Project not found.",
+                    };
+
+                default:
+                    return {
+                        error: "A database error occurred while saving the project.",
+                    };
+            }
+        }
+
+        if (error instanceof z.ZodError) {
+            return {
+                error: "Validation failed.",
+                issues: error.issues,
+            };
+        }
 
         return {
-            error: "User project processing failed.",
+            error: "Something went wrong while saving the project. Please try again.",
         };
     }
 };

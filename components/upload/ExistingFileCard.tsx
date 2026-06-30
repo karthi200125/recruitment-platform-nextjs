@@ -15,10 +15,11 @@ import { formatFileSize } from "@/lib/upload/upload-utils";
 export interface ExistingFile {
   url: string;
   name: string;
+  publicId?: string | null;
   sizeBytes?: number;
+  mimeType?: string;
   uploadedAt?: Date;
 }
-
 interface ExistingFileCardProps {
   file: ExistingFile;
   kind: UploadKind;

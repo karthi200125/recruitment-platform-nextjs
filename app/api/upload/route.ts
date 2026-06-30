@@ -3,104 +3,170 @@ import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/upload/upload";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/authOptions";
+import { getUploadConfig, parseUploadType } from "@/lib/upload/upload-config";
+import type { Company, Project, JobApplication, User } from "@prisma/client";
+import type { UploadType } from "@/lib/upload/upload-types";
 
-type UploadType =
-  | "profile"
-  | "userBanner"
-  | "companyLogo"
-  | "companyBanner"
-  | "resume"
-  | "projectImage"
-  | "chatImage"
-  | "chatFile"
+const CLOUDINARY_FOLDER = "jobify";
+
+function errorResponse(message: string, status: number) {
+  return NextResponse.json({ error: message }, { status });
+}
+
+function successResponse(data: { url: string; publicId: string }) {
+  return NextResponse.json({
+    success: true,
+    message: "Upload completed successfully.",
+    data,
+  });
+}
+
+async function deleteExistingAsset(publicId?: string | null): Promise<void> {
+  if (!publicId) return;
+  await deleteFromCloudinary(publicId);
+}
+
+function parseRequiredId(formData: FormData, field: string): number | null {
+  const raw = formData.get(field);
+  if (!raw) return null;
+  const parsed = Number(raw);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+interface ResolvedTarget {
+  user: User | null;
+  company: Company | null;
+  project: Project | null;
+  application: JobApplication | null;
+}
+
+async function resolveTarget(
+  type: UploadType,
+  userId: number,
+  formData: FormData
+): Promise<ResolvedTarget | NextResponse> {
+  switch (type) {
+    case "profile-image":
+    case "profile-banner":
+    case "resume": {
+      const user = await db.user.findUnique({ where: { id: userId } });
+      if (!user) return errorResponse("User not found", 404);
+      return { user, company: null, project: null, application: null };
+    }
+
+    case "company-logo":
+    case "company-banner": {
+      const companyId = parseRequiredId(formData, "companyId");
+      if (!companyId) return errorResponse("Company id is required.", 400);
+
+      const company = await db.company.findUnique({ where: { id: companyId } });
+      if (!company || company.userId !== userId) {
+        return errorResponse("Forbidden", 403);
+      }
+      return { user: null, company, project: null, application: null };
+    }
+
+    case "project-image": {
+      const projectId = parseRequiredId(formData, "projectId");
+
+      if (!projectId) {
+        return {
+          user: null,
+          company: null,
+          project: null,
+          application: null,
+        };
+      }
+
+      const project = await db.project.findUnique({
+        where: { id: projectId },
+      });
+
+      if (!project || project.userId !== userId) {
+        return errorResponse("Forbidden", 403);
+      }
+
+      return {
+        user: null,
+        company: null,
+        project,
+        application: null,
+      };
+    }
+
+    case "candidate-resume": {
+      const applicationId = parseRequiredId(formData, "applicationId");
+      if (!applicationId) {
+        return errorResponse("Application id is required.", 400);
+      }
+
+      const application = await db.jobApplication.findUnique({
+        where: { id: applicationId },
+      });
+      if (!application || application.userId !== userId) {
+        return errorResponse("Forbidden", 403);
+      }
+      return { user: null, company: null, project: null, application };
+    }
+
+    case "chat-image":
+    case "chat-file":
+      return { user: null, company: null, project: null, application: null };
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
-    // ✅ AUTH (MANDATORY)
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errorResponse("Unauthorized", 401);
     }
+
+    const userId = session.user.id;
 
     const formData = await req.formData();
 
     const file = formData.get("file") as File | null;
-    const type = formData.get("type") as UploadType | null;
+    const type = parseUploadType(formData.get("type"));
 
-    const companyId = formData.get("companyId")
-      ? Number(formData.get("companyId"))
-      : null;
+    if (!file) {
+      return errorResponse("File is required.", 400);
+    }
 
-    const projectId = formData.get("projectId")
-      ? Number(formData.get("projectId"))
-      : null;
+    if (!type) {
+      return errorResponse("Invalid or missing upload type.", 400);
+    }
 
-    if (!file || !type) {
-      return NextResponse.json(
-        { error: "Missing file or type" },
-        { status: 400 }
+    const config = getUploadConfig(type);
+
+    if (!config.acceptedMimeTypes.includes(file.type)) {
+      return errorResponse(
+        `Unsupported file type. Accepted: ${config.acceptedExtensionLabels.join(", ")}.`,
+        400
       );
     }
 
-    // ✅ TYPE-SPECIFIC VALIDATION
-    const typeValidation: Record<UploadType, string[]> = {
-      profile: ["image/jpeg", "image/png", "image/webp"],
-      userBanner: ["image/jpeg", "image/png", "image/webp"],
-      companyLogo: ["image/jpeg", "image/png", "image/webp"],
-      companyBanner: ["image/jpeg", "image/png", "image/webp"],
-      projectImage: ["image/jpeg", "image/png", "image/webp"],
-      chatImage: ["image/jpeg", "image/png", "image/webp"],
-      chatFile: [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/zip",
-],
-      resume: ["application/pdf"],
-    };
-
-    if (!typeValidation[type].includes(file.type)) {
-      return NextResponse.json(
-        { error: "Invalid file type" },
-        { status: 400 }
+    if (file.size > config.maxSizeBytes) {
+      return errorResponse(
+        `File is too large. Maximum size is ${config.maxSizeLabel}.`,
+        400
       );
     }
 
-    // ✅ SIZE VALIDATION
-    const maxSize = 3 * 1024 * 1024;
-    if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: "File too large" },
-        { status: 400 }
-      );
+    const target = await resolveTarget(type, userId, formData);
+    if (target instanceof NextResponse) {
+      return target;
     }
+    const { user, company, project, application } = target;
 
     const buffer = Buffer.from(await file.arrayBuffer());
-
-    const folderMap: Record<UploadType, string> = {
-      profile: "job-board/users",
-      userBanner: "job-board/users/banner",
-      companyLogo: "job-board/companies/logo",
-      companyBanner: "job-board/companies/banner",
-      resume: "job-board/resumes",
-      projectImage: "job-board/projects",
-      chatImage: "job-board/chats",
-      chatFile: "job-board/chats/files",
-    };
-
-    const uploaded = await uploadToCloudinary(buffer, folderMap[type]);
+    const uploaded = await uploadToCloudinary(buffer, CLOUDINARY_FOLDER);
 
     try {
-      const userId = Number(session.user.id);
-
       switch (type) {
-        case "profile": {
-          const user = await db.user.findUnique({ where: { id: userId } });
-
-          if (user?.profileImagePublicId) {
-            await deleteFromCloudinary(user.profileImagePublicId);
-          }
+        case "profile-image": {
+          await deleteExistingAsset(user?.profileImagePublicId);
 
           await db.user.update({
             where: { id: userId },
@@ -112,18 +178,8 @@ export async function POST(req: NextRequest) {
           break;
         }
 
-        case "userBanner": {
-          const user = await db.user.findUnique({
-            where: { id: userId },
-          });
-
-          if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
-          }
-
-          if (user.userImagePublicId) {
-            await deleteFromCloudinary(user.userImagePublicId);
-          }
+        case "profile-banner": {
+          await deleteExistingAsset(user?.userImagePublicId);
 
           await db.user.update({
             where: { id: userId },
@@ -132,30 +188,14 @@ export async function POST(req: NextRequest) {
               userImagePublicId: uploaded.publicId,
             },
           });
-
           break;
         }
 
-        case "companyLogo": {
-          if (!companyId) break;
-
-          const company = await db.company.findUnique({
-            where: { id: companyId },
-          });
-
-          if (!company || company.userId !== userId) {
-            return NextResponse.json(
-              { error: "Forbidden" },
-              { status: 403 }
-            );
-          }
-
-          if (company.companyImagePublicId) {
-            await deleteFromCloudinary(company.companyImagePublicId);
-          }
+        case "company-logo": {
+          await deleteExistingAsset(company?.companyImagePublicId);
 
           await db.company.update({
-            where: { id: companyId },
+            where: { id: company!.id },
             data: {
               companyImage: uploaded.url,
               companyImagePublicId: uploaded.publicId,
@@ -164,26 +204,11 @@ export async function POST(req: NextRequest) {
           break;
         }
 
-        case "companyBanner": {
-          if (!companyId) break;
-
-          const company = await db.company.findUnique({
-            where: { id: companyId },
-          });
-
-          if (!company || company.userId !== userId) {
-            return NextResponse.json(
-              { error: "Forbidden" },
-              { status: 403 }
-            );
-          }
-
-          if (company.companyBackImagePublicId) {
-            await deleteFromCloudinary(company.companyBackImagePublicId);
-          }
+        case "company-banner": {
+          await deleteExistingAsset(company?.companyBackImagePublicId);
 
           await db.company.update({
-            where: { id: companyId },
+            where: { id: company!.id },
             data: {
               companyBackImage: uploaded.url,
               companyBackImagePublicId: uploaded.publicId,
@@ -192,12 +217,26 @@ export async function POST(req: NextRequest) {
           break;
         }
 
-        case "resume": {
-          const user = await db.user.findUnique({ where: { id: userId } });
+        case "project-image": {
+          if (project) {
+            await deleteExistingAsset(project.proImagePublicId);
 
-          if (user?.resumePublicId) {
-            await deleteFromCloudinary(user.resumePublicId);
+            await db.project.update({
+              where: {
+                id: project.id,
+              },
+              data: {
+                proImage: uploaded.url,
+                proImagePublicId: uploaded.publicId,
+              },
+            });
           }
+
+          break;
+        }
+
+        case "resume": {
+          await deleteExistingAsset(user?.resumePublicId);
 
           await db.user.update({
             where: { id: userId },
@@ -209,54 +248,31 @@ export async function POST(req: NextRequest) {
           break;
         }
 
-        case "projectImage": {
-          if (!projectId) break;
+        case "candidate-resume": {
+          await deleteExistingAsset(application?.candidateResumePublicId);
 
-          const project = await db.project.findUnique({
-            where: { id: projectId },
-          });
-
-          if (!project || project.userId !== userId) {
-            return NextResponse.json(
-              { error: "Forbidden" },
-              { status: 403 }
-            );
-          }
-
-          if (project.proImagePublicId) {
-            await deleteFromCloudinary(project.proImagePublicId);
-          }
-
-          await db.project.update({
-            where: { id: projectId },
+          await db.jobApplication.update({
+            where: { id: application!.id },
             data: {
-              proImage: uploaded.url,
-              proImagePublicId: uploaded.publicId,
+              candidateResume: uploaded.url,
+              candidateResumePublicId: uploaded.publicId,
             },
           });
           break;
         }
 
-        case "chatImage":
-        case "chatFile":
+        case "chat-image":
+        case "chat-file":
           break;
       }
     } catch (err) {
-      // ✅ CLEANUP ON FAILURE
       await deleteFromCloudinary(uploaded.publicId);
       throw err;
     }
 
-    return NextResponse.json({
-      success: true,
-      url: uploaded.url,
-      publicId: uploaded.publicId,
-    });
+    return successResponse({ url: uploaded.url, publicId: uploaded.publicId });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { error: "Upload failed" },
-      { status: 500 }
-    );
+    console.error("[UPLOAD_ROUTE]", error);
+    return errorResponse("Upload failed", 500);
   }
 }

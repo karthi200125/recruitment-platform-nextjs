@@ -11,17 +11,17 @@ import {
 
 import { Plus } from "lucide-react";
 
-import ProjectCard from "./ProjectCard";
 import Model from "@/components/Model";
 import { UserProjectForm } from "@/components/forms/UserProjectForm";
+import ProjectCard from "./ProjectCard";
 
 import CarouselSkeleton from "@/components/skeletons/CarouselSkeleton";
 
-import { useDispatch } from "react-redux";
 import { openModal } from "@/store/ModalSlice";
+import { useDispatch } from "react-redux";
 
-import ShowProject from "./ShowProject";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import ShowProject from "./ShowProject";
 
 interface Project {
     id: number;
@@ -56,16 +56,13 @@ export default function Projects({
 
                 {isCurrentUser && (
                     <Model
-                        bodyContent={<UserProjectForm />}
                         modalId="userProjectModal"
                         title="Add Project"
-                        className="min-w-[300px] lg:w-[800px]"
+                        className="w-full max-w-4xl"
+                        bodyContent={<UserProjectForm />}
                     >
                         <Button
                             variant="border"
-                            onClick={() =>
-                                dispatch(openModal("userProjectModal"))
-                            }
                             icon={<Plus size={20} />}
                         >
                             Add
@@ -110,9 +107,6 @@ export default function Projects({
                                         >
                                             <ProjectCard
                                                 project={project}
-                                                onClick={() =>
-                                                    dispatch(openModal(modalId))
-                                                }
                                                 className="h-[320px] w-full"
                                                 isCurrentUser={isCurrentUser}
                                             />

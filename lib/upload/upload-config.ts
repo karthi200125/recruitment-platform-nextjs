@@ -366,3 +366,8 @@ export const UPLOAD_CONFIG: Record<
 export const getUploadConfig = (
     type: UploadType
 ) => UPLOAD_CONFIG[type];
+
+export function parseUploadType(value: unknown): UploadType | null {
+  if (typeof value !== "string") return null;
+  return value in UPLOAD_CONFIG ? (value as UploadType) : null;
+}

@@ -1,10 +1,7 @@
 
-import Image from "next/image";
-import Link from "next/link";
 import JobsSearchBar from "@/components/JobsSearchBar";
 import CtaButton from "@/components/ui/CtaButton";
-import UploadModal from "@/components/upload/UploadModal";
-import Button from "@/components/Button";
+import Image from "next/image";
 
 
 const HeroSection = () => {
@@ -86,16 +83,7 @@ const HeroSection = () => {
                         >
                             Hire Talent
                         </CtaButton>
-
-                        <UploadModal
-                            modalId="resumeModal"
-                            type="resume"
-                        >
-                            <Button>
-                                Upload Resume
-                            </Button>
-                        </UploadModal>
-
+                        
                     </div>
 
                     {/* SEARCH BAR */}
