@@ -66,7 +66,7 @@ export const getChatUsers = async (
                     lastMessage:
                         chat.lastMessage,
                     isSeen:
-                        chat.isSeen,
+                    chat.isSeen,
                     updatedAt:
                         chat.updatedAt,
                     createdAt:
@@ -96,3 +96,5 @@ export const getChatUsers = async (
         return [];
     }
 };
+
+export type ChatUser = Awaited<ReturnType<typeof getChatUsers>>[number];

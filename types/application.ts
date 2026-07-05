@@ -32,11 +32,14 @@ export type JobApplicationWithUserAndJob = Prisma.JobApplicationGetPayload<{
     };
 }>;
 
-export interface JobQuestionAnswer {
-    id: string | number;
+export interface JobQuestionAnswerItem {
+    id: number;
     question: string;
     answer: string;
 }
+
+export type JobQuestionAnswer = JobQuestionAnswerItem[];
+
 
 export type UpdatableApplicationStatus = Extract<
     ApplicationStatus,

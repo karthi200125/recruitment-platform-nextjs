@@ -1,81 +1,83 @@
 "use client";
 
 import { applyForJob } from "@/actions/job/apply-job";
-import { closeModal } from "@/store/ModalSlice";
 import Button from "@/components/Button";
 import { useCustomToast } from "@/lib/CustomToast";
+import { closeModal } from "@/store/ModalSlice";
+import { Job, JobQuestionAnswer, JobQuestionAnswerItem } from "@/types";
 import { EasyApplyPayload, EasyApplyUser, Question } from "@/types/easyApply";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useDispatch } from "react-redux";
-import noProfile from "../../../../../public/noProfile.webp";
 
 
 interface EasyApplySubmitProps {
-    job: {
-        id: number;
-        questions?: Question[];
-    };
+    job: any;
     applicationData: EasyApplyPayload;
-    safeSearchParams?: Record<string, string>;
     user?: EasyApplyUser | null;
 }
-
-/* ================= COMPONENT ================= */
 
 const EasyApplySubmit = ({
     job,
     applicationData,
-    safeSearchParams,
     user,
 }: EasyApplySubmitProps) => {
-    const [isPending, startTransition] = useTransition();    
+    const [isPending, startTransition] = useTransition();
     const dispatch = useDispatch();
     const { showSuccessToast, showErrorToast } = useCustomToast();
 
     const router = useRouter();
 
-    /* ================= DERIVED DATA ================= */
-
-    const formattedAnswers =
-        job?.questions?.map((q) => ({
-            id: q.id,
-            question: q.question,
-            answer: applicationData.questionAnswers[q.id] || "",
-        })) ?? [];
-
-    /* ================= HANDLER ================= */
+    const formattedAnswers: JobQuestionAnswer =
+        (job.questions ?? []).map((question: any) => ({
+            id: question.id,
+            question: question.question,
+            answer:
+                applicationData.questionAnswers[
+                question.id
+                ] ?? "",
+        }));
 
     const handleSubmit = () => {
+        if (isPending) return;
+
+        if (!applicationData.contactInfo.email.trim()) {
+            showErrorToast("Email is required.");
+            return;
+        }
+
+        if (!applicationData.contactInfo.phone.trim()) {
+            showErrorToast("Phone number is required.");
+            return;
+        }
+
         if (!applicationData.resumeData.url) {
-            return showErrorToast("Resume is required");
+            showErrorToast("Please upload a resume.");
+            return;
         }
 
         startTransition(async () => {
-            const result = await applyForJob(
-                job.id,
-                applicationData.contactInfo.email,
-                applicationData.contactInfo.phone,
-                applicationData.resumeData.url,
-                formattedAnswers
-            );
+            const result = await applyForJob({
+                jobId: job.id,
+                candidateEmail: applicationData.contactInfo.email,
+                candidateMobile: applicationData.contactInfo.phone,
+                resume: applicationData.resumeData,
+                questionAndAnswers: formattedAnswers,
+            });
 
-            if (result?.success) {
-                showSuccessToast(result.success);
-
-                router.refresh();
-                
-                dispatch(closeModal("easyapplyModal"));
+            if ("error" in result) {
+                showErrorToast(result.error || "Something went wrong.");
+                return;
             }
 
-            if (result?.error) {
-                showErrorToast(result.error);
-            }
+            showSuccessToast(result.success);
+
+            router.refresh();
+
+            dispatch(closeModal("easyapplyModal"));
         });
     };
-
-    /* ================= UI ================= */
 
     const location = [user?.city, user?.state, user?.country]
         .filter(Boolean)
@@ -98,7 +100,7 @@ const EasyApplySubmit = ({
                 <div className="w-full border p-5 rounded-md flex flex-col md:flex-row gap-5">
                     <div className="h-[80px] w-[80px] relative">
                         <Image
-                            src={user?.userImage || noProfile}
+                            src={user?.userImage || '/noProfile.webp'}
                             alt="User profile"
                             fill
                             className="rounded-md object-cover bg-neutral-200"
@@ -130,10 +132,18 @@ const EasyApplySubmit = ({
 
             {/* Resume */}
             <div className="space-y-2">
-                <h3 className="font-semibold text-sm">Resume</h3>
+                <h3 className="font-semibold text-sm">
+                    Resume
+                </h3>
 
-                <div className="border rounded-md p-5">
-                    {applicationData.resumeData.name || "No resume"}
+                <div className="rounded-xl border border-slate-200 p-4">
+                    <p className="font-medium text-slate-900">
+                        {applicationData.resumeData.name}
+                    </p>
+
+                    <p className="mt-1 text-xs text-slate-500">
+                        This resume will be submitted with your application.
+                    </p>
                 </div>
             </div>
 
@@ -145,7 +155,7 @@ const EasyApplySubmit = ({
                     </h3>
 
                     <div className="space-y-3 border rounded-md p-5">
-                        {formattedAnswers.map((q) => (
+                        {formattedAnswers.map((q: JobQuestionAnswerItem) => (
                             <div key={q.id}>
                                 <h6 className="text-[var(--lighttext)]">
                                     {q.question}
@@ -159,7 +169,11 @@ const EasyApplySubmit = ({
 
             {/* Submit */}
             <div className="flex justify-end">
-                <Button isLoading={isPending} onClick={handleSubmit}>
+                <Button
+                    isLoading={isPending}
+                    disabled={isPending}
+                    onClick={handleSubmit}
+                >
                     Submit Application
                 </Button>
             </div>

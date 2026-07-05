@@ -21,9 +21,6 @@ const FooterSkeleton = () => (
   <div className="h-40 w-full" />
 );
 
-/* -------------------------------------------------------------------------- */
-/*                            BELOW-THE-FOLD SECTIONS                         */
-/* -------------------------------------------------------------------------- */
 
 const FeaturedJobs = dynamic(
   () => import('./(public)/home/FeaturedJobs'),

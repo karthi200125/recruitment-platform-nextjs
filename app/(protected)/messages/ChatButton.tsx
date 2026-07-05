@@ -1,21 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-
-import {
-    SendHorizonal,
-    ImageIcon,
-    Paperclip,
-    Loader2,
-    Crown,
-} from "lucide-react";
-
 import Link from "next/link";
 
-import { useFileUpload } from "@/hooks/useFileUpload";
-import { createChatAndMessage } from "@/actions/message/create-chat-message ";
+import {
+    Crown,
+    ImageIcon,
+    Loader2,
+    Paperclip,
+    SendHorizonal,
+} from "lucide-react";
 
+import { useUpload } from "@/hooks/useUpload";
+import type { UploadType } from "@/lib/upload/upload-types";
+import { createChatAndMessage } from "@/actions/message/create-chat-message ";
 
 interface ChatButtonProps {
     userId: number;
@@ -26,115 +25,161 @@ export const ChatButton = ({
     userId,
     receiverId,
 }: ChatButtonProps) => {
+    const queryClient = useQueryClient();
+
     const [messageText, setMessageText] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [limitReached, setLimitReached] = useState(false);
 
-    const queryClient = useQueryClient();
+    const {
+        upload,
+        isUploading,
+    } = useUpload();
 
-    const { upload, loading: uploadLoading } =
-        useFileUpload();
+    const handleSend = useCallback(
+        async (
+            image?: string,
+            file?: string,
+            fileName?: string,
+            fileType?: string
+        ) => {
+            const trimmed = messageText.trim();
 
-    /* ================= SEND ================= */
-    const handleSend = async (
-        image?: string,
-        file?: string,
-        fileName?: string,
-        fileType?: string
-    ) => {
-        const trimmed = messageText.trim();
-
-        // ✅ must contain something
-        if (!trimmed && !image && !file) {
-            return;
-        }
-
-        try {
-            setIsLoading(true);
-
-            const result = await createChatAndMessage(
-                userId,
-                receiverId,
-                trimmed,
-                image,
-                file,
-                fileName,
-                fileType
-            );
-
-            if (result?.error === "LIMIT_REACHED") {
-                setLimitReached(true);
+            if (!trimmed && !image && !file) {
                 return;
             }
 
-            if (result?.success) {
-                setMessageText("");
+            try {
+                setIsLoading(true);
 
-                queryClient.invalidateQueries({
-                    queryKey: [
-                        "conversation",
-                        userId,
-                        receiverId,
-                    ],
-                });
+                const result = await createChatAndMessage(
+                    userId,
+                    receiverId,
+                    trimmed,
+                    image,
+                    file,
+                    fileName,
+                    fileType
+                );
 
-                queryClient.invalidateQueries({
-                    queryKey: ["chatUsers", userId],
-                });
+                if (result?.error === "LIMIT_REACHED") {
+                    setLimitReached(true);
+                    return;
+                }
+
+                if (result?.success) {
+                    setMessageText("");
+
+                    await Promise.all([
+                        queryClient.invalidateQueries({
+                            queryKey: [
+                                "conversation",
+                                userId,
+                                receiverId,
+                            ],
+                        }),
+                        queryClient.invalidateQueries({
+                            queryKey: [
+                                "chatUsers",
+                                userId,
+                            ],
+                        }),
+                    ]);
+                }
+            } catch (error) {
+                console.error(
+                    "[CHAT_SEND]",
+                    error
+                );
+            } finally {
+                setIsLoading(false);
             }
-        } catch (err) {
-            console.error("[ChatButton]", err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+        },
+        [
+            messageText,
+            queryClient,
+            receiverId,
+            userId,
+        ]
+    );
 
-    /* ================= IMAGE ================= */
-    const handleImageUpload = async (
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        const selectedFile = e.target.files?.[0];
-
-        if (!selectedFile) return;
-
-        try {
-            const res = await upload({
-                file: selectedFile,
-                type: "chatImage",
+    const uploadAndSend = useCallback(
+        async (
+            file: File,
+            type: UploadType
+        ) => {
+            const uploaded = await upload({
+                file,
+                type,
             });
 
-            await handleSend(res.url);
-        } catch (err) {
-            console.error("[ImageUpload]", err);
-        }
-    };
-
-    /* ================= FILE ================= */
-    const handleFileUpload = async (
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        const selectedFile = e.target.files?.[0];
-
-        if (!selectedFile) return;
-
-        try {
-            const res = await upload({
-                file: selectedFile,
-                type: "chatFile",
-            });
+            if (type === "chat-image") {
+                await handleSend(uploaded.url);
+                return;
+            }
 
             await handleSend(
                 undefined,
-                res.url,
-                selectedFile.name,
-                selectedFile.type
+                uploaded.url,
+                file.name,
+                file.type
             );
-        } catch (err) {
-            console.error("[FileUpload]", err);
-        }
-    };
+        },
+        [handleSend, upload]
+    );
 
-    /* ================= ENTER ================= */
+    const handleImageUpload = useCallback(
+        async (
+            e: React.ChangeEvent<HTMLInputElement>
+        ) => {
+            const file =
+                e.target.files?.[0];
+
+            if (!file) return;
+
+            try {
+                await uploadAndSend(
+                    file,
+                    "chat-image"
+                );
+            } catch (error) {
+                console.error(
+                    "[CHAT_IMAGE_UPLOAD]",
+                    error
+                );
+            } finally {
+                e.target.value = "";
+            }
+        },
+        [uploadAndSend]
+    );
+
+    const handleFileUpload = useCallback(
+        async (
+            e: React.ChangeEvent<HTMLInputElement>
+        ) => {
+            const file =
+                e.target.files?.[0];
+
+            if (!file) return;
+
+            try {
+                await uploadAndSend(
+                    file,
+                    "chat-file"
+                );
+            } catch (error) {
+                console.error(
+                    "[CHAT_FILE_UPLOAD]",
+                    error
+                );
+            } finally {
+                e.target.value = "";
+            }
+        },
+        [uploadAndSend]
+    );
+
     const handleKeyDown = (
         e: React.KeyboardEvent<HTMLInputElement>
     ) => {
@@ -144,93 +189,115 @@ export const ChatButton = ({
         }
     };
 
+
     /* ================= LIMIT ================= */
     if (limitReached) {
         return (
-            <div className="flex-shrink-0 flex items-center justify-between gap-3 px-4 py-3 border-t border-slate-100 bg-amber-50">
+            <div className="flex items-center justify-between gap-3 border-t border-amber-200 bg-amber-50 px-4 py-3">
+
                 <div className="flex items-center gap-2">
                     <Crown
-                        className="w-4 h-4 text-amber-500"
+                        className="h-4 w-4 text-amber-500"
                         strokeWidth={2}
                     />
 
-                    <p className="text-xs text-amber-700 font-medium">
+                    <p className="text-xs font-medium text-amber-700">
                         Free message limit reached.
                     </p>
                 </div>
 
                 <Link
                     href="/subscription"
-                    className="text-xs font-bold text-amber-700 underline underline-offset-2"
+                    className="text-xs font-semibold text-amber-700 underline underline-offset-4 hover:text-amber-800"
                 >
                     Upgrade
                 </Link>
+
             </div>
         );
     }
 
     return (
-        <div className="flex-shrink-0 flex items-center gap-2 px-3 py-3 border-t border-slate-100 bg-white">
+        <div className="flex flex-shrink-0 items-center gap-2 border-t border-slate-200 bg-white px-3 py-3">
 
-            {/* FILE */}
+            {/* File Upload */}
             <label
                 htmlFor="chat-file"
-                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100 cursor-pointer"
+                aria-label="Attach file"
+                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-50"
             >
-                <Paperclip className="w-4 h-4" />
+                <Paperclip
+                    className="h-4 w-4"
+                    strokeWidth={2}
+                />
             </label>
 
             <input
                 id="chat-file"
                 type="file"
-                className="hidden"
+                hidden
+                disabled={isLoading || isUploading}
+                accept=".pdf,.doc,.docx,.zip"
                 onChange={handleFileUpload}
             />
 
-            {/* IMAGE */}
+            {/* Image Upload */}
             <label
                 htmlFor="chat-image"
-                className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100 cursor-pointer"
+                aria-label="Upload image"
+                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-100 disabled:pointer-events-none disabled:opacity-50"
             >
-                <ImageIcon className="w-4 h-4" />
+                <ImageIcon
+                    className="h-4 w-4"
+                    strokeWidth={2}
+                />
             </label>
 
             <input
                 id="chat-image"
                 type="file"
-                accept="image/*"
-                className="hidden"
+                hidden
+                disabled={isLoading || isUploading}
+                accept="image/png,image/jpeg,image/webp,image/gif"
                 onChange={handleImageUpload}
             />
 
-            {/* MESSAGE */}
+            {/* Message */}
             <input
                 type="text"
                 value={messageText}
-                onChange={(e) =>
-                    setMessageText(e.target.value)
-                }
+                onChange={(e) => setMessageText(e.target.value)}
                 onKeyDown={handleKeyDown}
+                disabled={isLoading || isUploading}
                 placeholder="Type a message..."
-                className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm outline-none"
+                className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm outline-none transition placeholder:text-slate-400 focus:border-[var(--primary-clr)] focus:bg-white"
             />
 
-            {/* SEND */}
+            {/* Send */}
             <button
-                onClick={() => handleSend()}
+                type="button"
+                aria-label="Send message"
+                onClick={() => void handleSend()}
                 disabled={
-                    (!messageText.trim() &&
-                        !uploadLoading) ||
-                    isLoading
+                    isLoading ||
+                    isUploading ||
+                    messageText.trim().length === 0
                 }
-                className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white disabled:opacity-40"
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--primary-clr)] text-white transition hover:bg-[var(--primary-hover-clr)] disabled:cursor-not-allowed disabled:opacity-50"
             >
-                {isLoading || uploadLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                {isLoading || isUploading ? (
+                    <Loader2
+                        className="h-4 w-4 animate-spin"
+                        strokeWidth={2}
+                    />
                 ) : (
-                    <SendHorizonal className="w-4 h-4" />
+                    <SendHorizonal
+                        className="h-4 w-4"
+                        strokeWidth={2}
+                    />
                 )}
             </button>
+
         </div>
     );
-};
+}

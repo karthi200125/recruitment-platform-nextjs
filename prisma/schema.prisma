@@ -7,150 +7,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id              Int         @id @default(autoincrement())
-  username        String      @unique
-  firstName       String?
-  lastName        String?
-  email           String      @unique
-  password        String?
-  role            Role?
-  isPro           Boolean     @default(false)
-  userBio         String?
-  userAbout       Json?
-  userImage             String?
-  userImagePublicId     String?
-  profileImage          String?
-  profileImagePublicId  String?
-  gender          String?
-  address         String?
-  city            String?
-  state           String?
-  country         String?
-  phoneNo         String?
-  postalCode      String?
-  profession      String?
-  website         String?
-  currentCompany  String?
-  authProvider String @default("credentials")
-  resume                String?
-  resumePublicId        String?
-  skills          String[]
-  stripeCustomerId  String?  @unique
-
-  postedJobs      Job[]       @relation("PostedJobs")
-
-  jobApplications JobApplication[] 
-
-  company         Company[]
-  educations      Education[]
-  experiences     Experience[]
-  projects        Project[]
-    
-  profileViewsReceived ProfileView[] @relation("ProfileUserViews")
-
-  profileViewsGiven ProfileView[] @relation("ViewerUserViews")
-
-  employees       Int[]
-  verifyEmps      Int[]
-
-  chatsSent     Chats[]  @relation("SenderChats")  
-  chatsReceived Chats[]  @relation("ReceiverChats")
-  messages      Message[]
-
-  savedJobs       SavedJob[]
-
-  followers  Follow[] @relation("UserFollowers")
-  following  Follow[] @relation("UserFollowing")
-
-  subscription      Subscription?
-
-  resetPasswordToken     String?  @unique
-  resetPasswordExpires   DateTime?
- 
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-}
-
-model ProfileView {
-  id Int @id @default(autoincrement())
-
-  profileUserId Int
-  viewerUserId Int?
-
-  profileUser User @relation("ProfileUserViews", fields: [profileUserId], references: [id], onDelete: Cascade)
-
-  viewer User? @relation("ViewerUserViews", fields: [viewerUserId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now())
-
-  @@unique([profileUserId, viewerUserId])
-  @@index([profileUserId])
-  @@index([viewerUserId])
-}
-
-model Follow {
-  id           Int      @id @default(autoincrement())
-
-  followerId   Int
-  followingId  Int
-
-  follower     User @relation("UserFollowing", fields: [followerId], references: [id])
-  following    User @relation("UserFollowers", fields: [followingId], references: [id])
-  
-
-  createdAt    DateTime @default(now())
-
-  @@unique([followerId, followingId]) 
-}
-
-model SavedJob {
-  id        Int      @id @default(autoincrement())
-
-  userId    Int
-  jobId     Int
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([userId, jobId])
-  @@index([userId])
-  @@index([jobId])
-}
-
-model Job {
-  id          Int       @id @default(autoincrement())
-  jobTitle    String
-  jobDesc     String
-  experience  String
-  salary      String
-  city        String
-  state       String
-  country     String
-  type        String
-  mode        String
-  isEasyApply Boolean   @default(false)
-  applyLink   String?
-  vacancies   String
-  skills      String[]
-  questions   Json?   
-  status      String    @default("ACTIVE")
-  expiresAt DateTime?
-
-  userId      Int
-  user        User      @relation("PostedJobs", fields: [userId], references: [id], onDelete: Cascade)
-
-  savedBy     SavedJob[]
-
-  jobApplications JobApplication[] 
-
-  companyId   Int
-  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+enum Role {
+  CANDIDATE
+  RECRUITER
+  ORGANIZATION
 }
 
 enum ApplicationStatus {
@@ -165,207 +25,435 @@ enum ApplicationStatus {
   WITHDRAWN
 }
 
-model JobApplication {
-  id        Int      @id @default(autoincrement())
+enum CompanyEmployeeRole {
+  OWNER
+  ADMIN
+  HR
+  RECRUITER
+}
 
-  userId    Int
-  jobId     Int
+enum CompanyEmployeeStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  LEFT
+}
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+model User {
+  id Int @id @default(autoincrement())
 
-  
-  candidateEmail     String
-  candidateMobile    String
-  candidateResume    String
-  candidateResumePublicId    String?
-  questionAndAnswers Json?
-  
-  status ApplicationStatus @default(APPLIED)
+  username     String  @unique
+  email        String  @unique
+  password     String?
+  authProvider String  @default("credentials")
+  role         Role?
 
-appliedAt DateTime @default(now())
-viewedAt DateTime?
-shortlistedAt DateTime?
-interviewScheduledAt DateTime?
-interviewedAt DateTime?
-hiredAt DateTime?
-rejectedAt DateTime?
-withdrawnAt DateTime?
+  isPro            Boolean @default(false)
+  stripeCustomerId String? @unique
+
+  firstName String?
+  lastName  String?
+  gender    String?
+  phoneNo   String?
+
+  userBio    String?
+  userAbout  Json?
+  profession String?
+
+  website        String?
+  currentCompany String?
+
+  address    String?
+  city       String?
+  state      String?
+  country    String?
+  postalCode String?
+
+  userImage         String?
+  userImagePublicId String?
+
+  profileImage         String?
+  profileImagePublicId String?
+
+  resume         String?
+  resumePublicId String?
+
+  skills String[]
+
+  company            Company?
+  companyMemberships CompanyEmployee[] @relation("CompanyMember")
+  invitedEmployees   CompanyEmployee[] @relation("CompanyInviter")
+
+  postedJobs      Job[]            @relation("PostedJobs")
+  jobApplications JobApplication[]
+  savedJobs       SavedJob[]
+
+  educations  Education[]
+  experiences Experience[]
+  projects    Project[]
+
+  followers Follow[] @relation("UserFollowers")
+  following Follow[] @relation("UserFollowing")
+
+  profileViewsReceived ProfileView[] @relation("ProfileUserViews")
+  profileViewsGiven    ProfileView[] @relation("ViewerUserViews")
+
+  chatsSent     Chats[] @relation("SenderChats")
+  chatsReceived Chats[] @relation("ReceiverChats")
+
+  messages Message[]
+
+  subscription Subscription?
+
+  resetPasswordToken   String?   @unique
+  resetPasswordExpires DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Company {
+  id Int @id @default(autoincrement())
+
+  companyName String @unique
+
+  companyImage         String?
+  companyImagePublicId String?
+
+  companyBackImage         String?
+  companyBackImagePublicId String?
+
+  companyAddress String
+  companyCity    String
+  companyState   String
+  companyCountry String
+
+  companyWebsite String?
+
+  companyAbout String
+  companyBio   String
+
+  companyTotalEmployees String
+
+  companyIsVerified Boolean @default(false)
+
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  employees CompanyEmployee[]
+
+  jobs Job[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CompanyEmployee {
+  id Int @id @default(autoincrement())
+
+  companyId   Int
+  userId      Int
+  invitedById Int?
+
+  company   Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User                  @relation("CompanyMember", fields: [userId], references: [id], onDelete: Cascade)
+  invitedBy User?                 @relation("CompanyInviter", fields: [invitedById], references: [id], onDelete: SetNull)
+  role      CompanyEmployeeRole   @default(RECRUITER)
+  status    CompanyEmployeeStatus @default(PENDING)
+
+  joinedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([companyId, userId])
+  @@index([companyId])
+  @@index([userId])
+  @@index([status])
+  @@index([companyId, role])
+  @@index([companyId, status])
+}
+
+model Job {
+  id Int @id @default(autoincrement())
+
+  jobTitle   String
+  jobDesc    String
+  experience String
+  salary     String
+  vacancies  String
+  city       String
+  state      String
+  country    String
+
+  type String
+  mode String
+
+  isEasyApply Boolean @default(false)
+  applyLink   String?
+
+  skills    String[]
+  questions Json?
+  status    String    @default("ACTIVE")
+  expiresAt DateTime?
+
+  userId Int
+  user   User @relation("PostedJobs", fields: [userId], references: [id], onDelete: Cascade)
+
+  companyId Int
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  savedBy         SavedJob[]
+  jobApplications JobApplication[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-statusHistory ApplicationStatusHistory[]
-  
+  @@index([companyId])
+  @@index([companyId, status])
+  @@index([companyId, createdAt])
+}
+
+model SavedJob {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  jobId  Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, jobId])
+  @@index([userId])
+  @@index([jobId])
+}
+
+model JobApplication {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  jobId  Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  candidateEmail  String
+  candidateMobile String
+
+  candidateResume         String
+  candidateResumePublicId String?
+
+  questionAndAnswers Json?
+
+  status ApplicationStatus @default(APPLIED)
+
+  appliedAt            DateTime  @default(now())
+  viewedAt             DateTime?
+  shortlistedAt        DateTime?
+  interviewScheduledAt DateTime?
+  interviewedAt        DateTime?
+  hiredAt              DateTime?
+  rejectedAt           DateTime?
+  withdrawnAt          DateTime?
+
+  statusHistory ApplicationStatusHistory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([userId, jobId])
   @@index([userId])
   @@index([jobId])
   @@index([status])
+  @@index([jobId, status])
+  @@index([status, createdAt])
 }
 
-
 model ApplicationStatusHistory {
-  id            Int @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   applicationId Int
 
-  status        ApplicationStatus
-  createdAt     DateTime @default(now())
-
   jobApplication JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  status ApplicationStatus
+
+  createdAt DateTime @default(now())
 
   @@index([applicationId])
 }
 
+model Follow {
+  id Int @id @default(autoincrement())
 
-model Company {
-  id                     Int       @id @default(autoincrement())  
-  companyName            String    @unique
-  companyImage           String?
-  companyImagePublicId   String?
-  companyBackImage       String?
-  companyBackImagePublicId  String?
-  companyAddress         String
-  companyCity            String
-  companyState           String
-  companyCountry         String
-  companyWebsite         String?
-  companyAbout           String
-  companyBio             String
-  companyTotalEmployees  String
-  companyEmployees       Int[]   
-  companyIsVerified      Boolean   @default(false)
+  followerId  Int
+  followingId Int
 
-  userId                 Int   
-  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  follower  User @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
 
-  jobs                   Job[]
-  
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model ProfileView {
+  id Int @id @default(autoincrement())
+
+  profileUserId Int
+  viewerUserId  Int?
+
+  profileUser User @relation("ProfileUserViews", fields: [profileUserId], references: [id], onDelete: Cascade)
+
+  viewer User? @relation("ViewerUserViews", fields: [viewerUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@unique([profileUserId, viewerUserId])
+  @@index([profileUserId])
+  @@index([viewerUserId])
 }
 
 model Education {
-  id            Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   instituteName String
   degree        String
   fieldOfStudy  String
-  startDate     String
-  endDate       String
-  percentage    String  
 
-  userId        Int   
-  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startDate String
+  endDate   String
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  percentage String
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Experience {
-  id            Int      @id @default(autoincrement())
-  companyName   String
-  position      String
-  startDate     String
-  endDate       String
-  description   String?
+  id Int @id @default(autoincrement())
 
-  userId        Int   
-  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName String
+  position    String
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  startDate String
+  endDate   String
+
+  description String?
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Project {
-  id            Int      @id @default(autoincrement())
-  proName       String
-  proLink       String
-  proImage      String
-  proImagePublicId   String?
-  proDesc       String  
+  id Int @id @default(autoincrement())
 
-  userId        Int   
-  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  proName String
+  proLink String
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
+  proImage         String
+  proImagePublicId String?
 
-enum Role {
-  CANDIDATE
-  RECRUITER
-  ORGANIZATION
+  proDesc String
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Chats {
-  id          Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  senderId    Int
-  receiverId  Int
+  senderId   Int
+  receiverId Int
 
-  lastMessage     String?
-  lastMessageAt   DateTime?
+  sender   User @relation("SenderChats", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceiverChats", fields: [receiverId], references: [id], onDelete: Cascade)
 
-  sender      User @relation("SenderChats", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver    User @relation("ReceiverChats", fields: [receiverId], references: [id], onDelete: Cascade)
+  lastMessage   String?
+  lastMessageAt DateTime?
 
-  messages    Message[]
+  isSeen Boolean @default(false)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([senderId, receiverId])
   @@index([senderId])
   @@index([receiverId])
-  
+  @@index([lastMessageAt])
 }
 
 model Message {
-  id        Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  chatId    Int
-  senderId  Int
+  chatId   Int
+  senderId Int
 
-  text      String?
-  image     String?
+  chat   Chats @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender User  @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  text String?
+
+  image         String?
   imagePublicId String?
 
-  file      String?
-  fileName  String?
-  fileType  String?
+  file     String?
+  fileName String?
+  fileType String?
 
-  isSeen    Boolean  @default(false)
+  isSeen    Boolean @default(false)
   isDeleted Boolean @default(false)
-
-  chat      Chats    @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([chatId])
   @@index([senderId])
+  @@index([isSeen])
 }
 
-
 model Subscription {
-  id                         Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  userId                     Int      @unique
-  user                       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  stripeSubscriptionId       String?  @unique
-  stripePriceId              String?
-  stripeCurrentPeriodEnd     DateTime?
+  stripeSubscriptionId String? @unique
+  stripePriceId        String?
 
-  subscriptionStatus         String   
+  stripeCurrentPeriodEnd DateTime?
 
-  planName                   String?
-  billingInterval            String?  
-  amount                     Int?     
-  
-  cancelAtPeriodEnd          Boolean  @default(false)
-  canceledAt                 DateTime?
+  subscriptionStatus String
 
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @updatedAt
+  planName        String?
+  billingInterval String?
+
+  amount Int?
+
+  cancelAtPeriodEnd Boolean   @default(false)
+  canceledAt        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

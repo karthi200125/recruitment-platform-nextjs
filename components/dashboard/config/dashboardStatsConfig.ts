@@ -13,18 +13,10 @@ import { Role } from "@prisma/client";
 
 import { DashboardStatItem } from "@/types/dashboard";
 
-// ─────────────────────────────────────────────
-// Config
-// ─────────────────────────────────────────────
-
 export const DASHBOARD_STATS_CONFIG: Record<
     Role,
     DashboardStatItem[]
-> = {
-    // ─────────────────────────────────────────
-    // Candidate
-    // ─────────────────────────────────────────
-
+> = {    
     CANDIDATE: [
         {
             key: "appliedJobs",

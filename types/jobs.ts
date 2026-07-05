@@ -21,21 +21,20 @@ export type JobWithSavedUsers = Prisma.JobGetPayload<{
     };
 }>;
 
+export type JobWithCompanyAndCount = Prisma.JobGetPayload<{
+    include: {
+        company: true;
+        _count: {
+            select: {
+                jobApplications: true;
+            };
+        };
+    };
+}>;
+
 export interface JobQuestionType {
     id: string;
     question: string;
     required: boolean;
     type: "text";
 }
-
-export type JobWithCompanyAndCount =
-    Prisma.JobGetPayload<{
-        include: {
-            company: true;
-            _count: {
-                select: {
-                    jobApplications: true;
-                };
-            };
-        };
-    }>;

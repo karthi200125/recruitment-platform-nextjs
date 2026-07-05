@@ -225,7 +225,15 @@ export function UploadFile({
         onCancel?.();
     }, [cancelUpload, onCancel]);
 
-    const timeoutRef = useRef<NodeJS.Timeout>();
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+useEffect(() => {
+    return () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+    };
+}, []);
 
     // handle submit
     const handleSubmit = useCallback(async () => {
@@ -237,14 +245,11 @@ export function UploadFile({
                 type,
                 fields,
             });
-            setStatus("success");
-            setTimeout(() => {
-                onUploadSuccess?.(result);
-                // onClose?.();
-            }, 800);
-            useEffect(() => {
-                return () => clearTimeout(timeoutRef.current);
-            }, [])
+            setStatus("success");            
+            timeoutRef.current = setTimeout(() => {
+    onUploadSuccess?.(result);
+    // onClose?.();
+}, 800);            
         } catch (err) {
             const message =
                 err instanceof Error

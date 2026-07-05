@@ -1,51 +1,49 @@
-// types/easyApply.ts
+import type { Job } from "./jobs";
+import type { SearchParams } from "./search";
 
-export type ContactInfo = {
+export interface ContactInfo {
     email: string;
     phone: string;
-};
+}
 
 export type ResumeData = {
     name: string;
     url: string;
+    publicId: string;
+    file: File | null;
 };
 
-export type EasyApplyProps = {
-    job: {
-        id: number;
-        questions?: {
-            id: number;
-            question: string;
-            type: "input";
-        }[];
-    };
-    safeSearchParams?: Record<string, string>;
-};
-
-export type Question = {
-  id: number;
-  question: string;
-  type: "input";
-};
+export interface Question {
+    id: number;
+    question: string;
+    type: "input";
+}
 
 export type QuestionAnswers = Record<number, string>;
 
-export type EasyApplyPayload = {
+export interface EasyApplyPayload {
     contactInfo: ContactInfo;
     resumeData: ResumeData;
     questionAnswers: QuestionAnswers;
-};
+}
 
+export interface EasyApplyProps {
+    job: any;    
+}
 
-export type EasyApplyUser = {
+export interface EasyApplyUser {
     email: string;
+    username: string;
+
     phoneNo: string | null;
+
     userImage: string | null;
     userImagePublicId: string | null;
-    username: string;
+
     city: string | null;
     state: string | null;
     country: string | null;
+
     resume: string | null;
     resumePublicId: string | null;
-};
+}

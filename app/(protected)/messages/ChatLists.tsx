@@ -1,19 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { MessageSquare } from "lucide-react";
 import BottomDrawer from "@/components/BottomDrawer";
-import { MessageBox } from "./MessageBox";
+import { MessageSquare } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { ChatList } from "./ChatList";
-
-export interface ChatUser {
-  id: number; username: string;
-  userImage?: string | null; profession?: string | null;
-  lastMessage?: string | null;
-}
+import { MessageBox } from "./MessageBox";
+import { ChatUser } from "@/actions/message/get-chat-users";
 
 interface ChatListsProps {
-  chatUsers: ChatUser[]; isPending?: boolean;
+  chatUsers: ChatUser[];
+  isPending?: boolean;
   onSelectedChatUserId?: (id: number) => void;
   defaultChatUserId?: number | null;
 }

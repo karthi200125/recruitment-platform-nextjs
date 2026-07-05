@@ -55,16 +55,17 @@ async function resolveTarget(
     }
 
     case "company-logo":
-    case "company-banner": {
-      const companyId = parseRequiredId(formData, "companyId");
-      if (!companyId) return errorResponse("Company id is required.", 400);
+    case "company-banner":
+    //    {
+    //   const companyId = parseRequiredId(formData, "companyId");
+    //   if (!companyId) return errorResponse("Company id is required.", 400);
 
-      const company = await db.company.findUnique({ where: { id: companyId } });
-      if (!company || company.userId !== userId) {
-        return errorResponse("Forbidden", 403);
-      }
-      return { user: null, company, project: null, application: null };
-    }
+    //   const company = await db.company.findUnique({ where: { id: companyId } });
+    //   if (!company || company.userId !== userId) {
+    //     return errorResponse("Forbidden", 403);
+    //   }
+    //   return { user: null, company, project: null, application: null };
+    // }
 
     case "project-image": {
       const projectId = parseRequiredId(formData, "projectId");
@@ -192,15 +193,15 @@ export async function POST(req: NextRequest) {
         }
 
         case "company-logo": {
-          await deleteExistingAsset(company?.companyImagePublicId);
+          // await deleteExistingAsset(company?.companyImagePublicId);
 
-          await db.company.update({
-            where: { id: company!.id },
-            data: {
-              companyImage: uploaded.url,
-              companyImagePublicId: uploaded.publicId,
-            },
-          });
+          // await db.company.update({
+          //   where: { id: company!.id },
+          //   data: {
+          //     companyImage: uploaded.url,
+          //     companyImagePublicId: uploaded.publicId,
+          //   },
+          // });
           break;
         }
 
@@ -249,15 +250,15 @@ export async function POST(req: NextRequest) {
         }
 
         case "candidate-resume": {
-          await deleteExistingAsset(application?.candidateResumePublicId);
+          // await deleteExistingAsset(application?.candidateResumePublicId);
 
-          await db.jobApplication.update({
-            where: { id: application!.id },
-            data: {
-              candidateResume: uploaded.url,
-              candidateResumePublicId: uploaded.publicId,
-            },
-          });
+          // await db.jobApplication.update({
+          //   where: { id: application!.id },
+          //   data: {
+          //     candidateResume: uploaded.url,
+          //     candidateResumePublicId: uploaded.publicId,
+          //   },
+          // });
           break;
         }
 

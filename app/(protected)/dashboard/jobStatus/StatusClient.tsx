@@ -1,6 +1,7 @@
-
-import JobStatusList, { JobStatusListSkeleton } from "./JobStatusList";
-import JobStatusDetails, { JobStatusDetailsSkeleton } from "./JobStatusDetails";
+import { JobStatusListSkeleton } from "@/components/skeletons/JobStatusListSkeleton";
+import JobStatusList from "./JobStatusList";
+import { JobStatusDetailsSkeleton } from "@/components/skeletons/JobStatusDetailsSkeleton";
+import JobStatusDetails from "./JobStatusDetails";
 
 interface Company {
     companyName: string;

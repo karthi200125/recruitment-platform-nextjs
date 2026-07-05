@@ -6,29 +6,7 @@ import { format } from "date-fns";
 
 import noProfile from "@/public/noProfile.webp";
 import noImage from "@/public/noImage.webp";
-
-interface Sender {
-  id: number;
-  userImage?: string | null;
-}
-
-export interface ChatMessage {
-  id: number;
-
-  senderId: number;
-
-  text?: string | null;
-
-  image?: string | null;
-
-  file?: string | null;
-  fileName?: string | null;
-  fileType?: string | null;
-
-  createdAt: string | Date;
-
-  sender?: Sender;
-}
+import { ChatMessage } from "@/types/chat";
 
 interface CurrentUser {
   id: number;
@@ -37,11 +15,8 @@ interface CurrentUser {
 
 interface ChatsProps {
   messages: ChatMessage[];
-
   currentUserId?: number;
-
   user?: CurrentUser | null;
-
   isChatuser?: boolean;
 }
 

@@ -79,11 +79,11 @@ const UserProfileCard = () => {
                         fill
                         className="object-cover rounded-full"
                     />
-                    {user.isPro && (
+                    {/* {user.isPro && (
                         <span className="absolute -bottom-px -right-px w-3.5 h-3.5 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center">
                             <Crown className="w-2 h-2 text-white" strokeWidth={3} />
                         </span>
-                    )}
+                    )} */}
                 </button>
             </HoverCardTrigger>
 

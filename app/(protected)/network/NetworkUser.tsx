@@ -10,7 +10,6 @@ interface NetworkUserType {
     username: string;
     userImage?: string | null;
     profession?: string | null;
-    initialIsFollowing: boolean;
 }
 
 interface NetworkUserProps {
@@ -52,7 +51,6 @@ const NetworkUser = ({ networkUser }: NetworkUserProps) => {
             {/* RIGHT → REUSABLE BUTTON */}
             <FollowButton
                 targetUserId={networkUser.id}
-                initialIsFollowing={networkUser.initialIsFollowing}
             />
         </div>
     );

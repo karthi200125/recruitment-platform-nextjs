@@ -5,12 +5,30 @@
 
 @layer base {
   :root {
+    --primary-clr: #4F46E5;
+    --primary-hover-clr: #4338CA;
+    --primary-light-clr: #EEF2FF;
+
+    /* Text on primary backgrounds */
+    --primary-foreground-clr: #FFFFFF;
+
+    /* Border */
+    --primary-border-clr: #C7D2FE;
+
+    /* Focus ring */
+    --primary-ring-clr: #6366F1;
+
+    /* Disabled */
+    --primary-disabled-clr: #A5B4FC;
+
     --lighttext: rgba(0, 0, 0, 0.6);
     --pro: linear-gradient(to right, #f3e96f, #947303, #ceb349);
     --black: black;
     --white: white;
-    --voilet: #850F8D;
-    --voilet2: #C738DB;
+    /* --voilet: #850F8D;
+    --voilet2: #C738DB; */
+    --voilet: #4F46E5;
+    --voilet2: #4338CA;
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;

@@ -1,25 +1,21 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import Button from "@/components/Button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
-import { QuestionAnswers , Question} from "@/types/easyApply";
 
-/* ================= TYPES ================= */
-
+import type { Job } from "@/types";
+import type { Question, QuestionAnswers } from "@/types/easyApply";
 
 interface EasyApplyQuestionsProps {
-  job?: {
-    questions?: Question[];
-  };
+  job?: any;
   currentStep?: number;
   onNext?: (step: number) => void;
   onBack?: (step: number) => void;
   onAnswers?: (answers: QuestionAnswers) => void;
 }
-
-/* ================= COMPONENT ================= */
 
 const EasyApplyQuestions = ({
   job,
@@ -28,98 +24,135 @@ const EasyApplyQuestions = ({
   onBack,
   onAnswers,
 }: EasyApplyQuestionsProps) => {
+  const questions = job?.questions ?? [];
+
   const [answers, setAnswers] = useState<QuestionAnswers>({});
   const [errors, setErrors] = useState<QuestionAnswers>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  /* ================= HANDLERS ================= */
+  useEffect(() => {
+    if (questions.length === 0) {
+      onAnswers?.({});
+      onNext?.(currentStep + 1);
+    }
+  }, [questions, currentStep, onAnswers, onNext]);
 
-  const handleAnswerChange = (questionId: number, value: string) => {
+  const handleAnswerChange = (
+    questionId: number,
+    value: string
+  ) => {
     setAnswers((prev) => ({
       ...prev,
       [questionId]: value,
     }));
 
-    // remove error when user types
-    if (value.trim() !== "") {
+    if (value.trim()) {
       setErrors((prev) => {
-        const updated = { ...prev };
-        delete updated[questionId];
-        return updated;
+        const next = { ...prev };
+        delete next[questionId];
+        return next;
       });
     }
   };
 
   const validateAnswers = () => {
-    const newErrors: QuestionAnswers = {};
-    let isValid = true;
+    const nextErrors: QuestionAnswers = {};
 
-    job?.questions?.forEach((q) => {
-      if (!answers[q.id] || answers[q.id].trim() === "") {
-        newErrors[q.id] = "This field is required";
-        isValid = false;
+    for (const question of questions) {
+      if (!answers[question.id]?.trim()) {
+        nextErrors[question.id] = "This field is required.";
       }
-    });
+    }
 
-    setErrors(newErrors);
-    return isValid;
+    setErrors(nextErrors);
+
+    return Object.keys(nextErrors).length === 0;
   };
 
-  const handleNext = () => {
+  const handleSubmit = (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+
+    if (isSubmitting) return;
+
     if (!validateAnswers()) return;
+
+    setIsSubmitting(true);
 
     onAnswers?.(answers);
     onNext?.(currentStep + 1);
   };
 
   const handleBack = () => {
+    if (isSubmitting) return;
     onBack?.(currentStep - 1);
   };
 
-  const questions = job?.questions ?? [];
-
-  /* ================= UI ================= */
-
   return (
-    <div className="w-full border rounded-md p-5">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6">
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleNext();
-        }}
+        onSubmit={handleSubmit}
+        className="space-y-6"
       >
-        {questions.map((q) => (
-          <div key={q.id} className="mb-4 space-y-2">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Additional Questions
+          </h2>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Please answer the employer's required questions.
+          </p>
+        </div>
+
+        {questions.map((question: Question) => (
+          <div
+            key={question.id}
+            className="space-y-2"
+          >
             <Label>
-              {q.question} <span className="text-red-500">*</span>
+              {question.question}
+
+              <span className="ml-1 text-red-500">
+                *
+              </span>
             </Label>
 
-            {q.type === "input" && (
-              <div className="space-y-2">
-                <Input
-                  type="text"
-                  value={answers[q.id] || ""}
-                  onChange={(e) =>
-                    handleAnswerChange(q.id, e.target.value)
-                  }
-                />
+            <Input
+              type="text"
+              value={answers[question.id] ?? ""}
+              onChange={(e) =>
+                handleAnswerChange(
+                  question.id,
+                  e.target.value
+                )
+              }
+              placeholder="Type your answer..."
+            />
 
-                {errors[q.id] && (
-                  <p className="text-red-500 text-sm">
-                    {errors[q.id]}
-                  </p>
-                )}
-              </div>
+            {errors[question.id] && (
+              <p className="text-sm text-red-500">
+                {errors[question.id]}
+              </p>
             )}
           </div>
         ))}
 
-        {/* Actions */}
-        <div className="flex gap-5">
-          <Button variant="border" type="button" onClick={handleBack}>
+        <div className="flex items-center justify-between border-t border-slate-200 pt-6">
+          <Button
+            type="button"
+            variant="border"
+            onClick={handleBack}
+            disabled={isSubmitting}
+          >
             Back
           </Button>
-          <Button type="submit">
-            Review
+
+          <Button
+            type="submit"
+            isLoading={isSubmitting}
+          >
+            Review Application
           </Button>
         </div>
       </form>

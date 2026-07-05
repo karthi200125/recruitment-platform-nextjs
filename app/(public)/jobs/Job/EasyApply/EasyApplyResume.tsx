@@ -1,37 +1,25 @@
 "use client";
 
-import React, {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
+import { Upload, FileText } from "lucide-react";
 
 import Button from "@/components/Button";
-import { Progress } from "@/components/ui/progress";
-import { useFileUpload } from "@/hooks/useFileUpload";
 import { useCustomToast } from "@/lib/CustomToast";
 
-import {
+import type {
   EasyApplyUser,
   ResumeData,
 } from "@/types/easyApply";
 
-import { CloudUpload } from "lucid-react";
-
 interface EasyApplyResumeProps {
   user?: EasyApplyUser | null;
-
   currentStep?: number;
-
   onNext?: (step: number) => void;
-
   onBack?: (step: number) => void;
-
-  onResume?: (
-    data: ResumeData
-  ) => void;
+  onResume?: (data: ResumeData) => void;
 }
 
-/* ================= COMPONENT ================= */
+const MAX_SIZE = 5 * 1024 * 1024;
 
 const EasyApplyResume = ({
   user,
@@ -40,228 +28,141 @@ const EasyApplyResume = ({
   onBack,
   onResume,
 }: EasyApplyResumeProps) => {
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const {
-    upload,
-    progress,
-    loading,
-    error,
-  } = useFileUpload();
+  const { showErrorToast } = useCustomToast();
 
-  const {
-    showErrorToast,
-    showSuccessToast,
-  } = useCustomToast();
-
-  const [resumeName, setResumeName] =
-    useState("");
-
-  const [resumeUrl, setResumeUrl] =
-    useState("");
-
-  /* ================= PREFILL ================= */
+  const [resumeName, setResumeName] = useState("");
+  const [resumeUrl, setResumeUrl] = useState("");
+  const [resumePublicId, setResumePublicId] = useState("");
+  const [selectedFile, setSelectedFile] =
+    useState<File | null>(null);
 
   useEffect(() => {
-    if (user?.resume) {
-      setResumeName("Resume.pdf");
+    if (!user?.resume) return;
 
-      setResumeUrl(user.resume);
-    }
+    setResumeName("Current Resume");
+    setResumeUrl(user.resume);
+    setResumePublicId(user.resumePublicId ?? "");
   }, [user]);
 
-  /* ================= FILE SELECT ================= */
-
-  const handleFileSelect = async (
+  const handleChooseFile = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const selectedFile =
-      event.target.files?.[0];
+    const file = event.target.files?.[0];
 
-    if (!selectedFile) return;
+    if (!file) return;
 
-    // ✅ pdf only
-    if (
-      selectedFile.type !==
-      "application/pdf"
-    ) {
-      return showErrorToast(
-        "Only PDF files are allowed"
-      );
+    if (file.type !== "application/pdf") {
+      showErrorToast("Only PDF files are allowed.");
+      return;
     }
 
-    // ✅ max 3MB
-    if (
-      selectedFile.size >
-      3 * 1024 * 1024
-    ) {
-      return showErrorToast(
-        "Maximum file size is 3MB"
-      );
+    if (file.size > MAX_SIZE) {
+      showErrorToast("Resume must be smaller than 5 MB.");
+      return;
     }
 
-    try {
-      // ✅ set temporary name immediately
-      setResumeName(
-        selectedFile.name
-      );
+    setSelectedFile(file);
+    setResumeName(file.name);
 
-      // ✅ upload using reusable hook
-      const res = await upload({
-        file: selectedFile,
-
-        type: "resume",
-      });
-
-      // ✅ save cloudinary url
-      setResumeUrl(res.url);
-
-      showSuccessToast(
-        "Resume uploaded successfully"
-      );
-
-    } catch (err) {
-      console.error(
-        "[ResumeUpload]",
-        err
-      );
-
-      showErrorToast(
-        "Resume upload failed"
-      );
-    }
+    // remove existing resume reference
+    setResumeUrl("");
+    setResumePublicId("");
   };
 
-  /* ================= NEXT ================= */
-
   const handleNext = () => {
-    if (!resumeUrl) {
-      return showErrorToast(
-        "Please upload your resume"
+    if (!resumeUrl && !selectedFile) {
+      showErrorToast(
+        "Please select a resume before continuing."
       );
+      return;
     }
 
     onResume?.({
       name: resumeName,
-
       url: resumeUrl,
+      publicId: resumePublicId,
+      file: selectedFile,
     });
 
     onNext?.(currentStep + 1);
   };
 
-  /* ================= BACK ================= */
-
-  const handleBack = () => {
-    onBack?.(currentStep - 1);
-  };
-
-  /* ================= UI ================= */
-
   return (
-    <div className="w-full border rounded-md p-5 space-y-5">
+    <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6">
 
-      {/* FILE INPUT */}
-      <input
-        type="file"
-        id="resumeUpload"
-        accept=".pdf"
-        hidden
-        onChange={handleFileSelect}
-      />
+      <div>
+        <h2 className="text-lg font-semibold">
+          Resume
+        </h2>
 
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row gap-5 items-start justify-between">
+        <p className="mt-1 text-sm text-slate-500">
+          Use your existing resume or choose another one for this application.
+          Your profile resume will not be changed.
+        </p>
+      </div>
 
-        <div className="space-y-2">
-          <h3 className="font-bold">
-            Resume
-          </h3>
+      <div className="rounded-xl border border-slate-200 p-5">
 
-          <h5>
-            Be sure to include an
-            updated resume *
-          </h5>
-        </div>
+        <div className="flex items-center gap-3">
 
-        {/* UPLOAD BUTTON */}
-        <label
-          htmlFor="resumeUpload"
-          className="space-y-2 cursor-pointer"
-        >
-          <div className="h-[40px] rounded-full border border-[var(--voilet)] flex items-center gap-3 px-5 text-sm text-[var(--voilet)] font-bold hover:opacity-70 transitilucid-on">
-ad
-              size={22}
-            />
+          <FileText className="h-8 w-8 text-[var(--primary-clr)]" />
 
-            {loading
-              ? "Uploading..."
-              : "Upload Resume"}
+          <div className="flex-1">
+
+            <h4 className="font-medium">
+              {resumeName || "No resume selected"}
+            </h4>
+
+            <p className="text-sm text-slate-500">
+              PDF • Maximum 5 MB
+            </p>
+
           </div>
 
-          <h5 className="text-center text-[var(--lighttext)]">
-            PDF only (max 3MB)
-          </h5>
-        </label>
+          <Button
+            variant="border"
+            onClick={() =>
+              inputRef.current?.click()
+            }
+          >
+            <Upload className="h-4 w-4" />
+            {resumeName ? "Replace" : "Choose"}
+          </Button>
+
+        </div>
+
+        <input
+          ref={inputRef}
+          hidden
+          type="file"
+          accept=".pdf"
+          onChange={handleChooseFile}
+        />
+
       </div>
 
-      {/* FILE NAME */}
-      <div className="w-full border rounded-md p-3 text-sm break-all">
-        {resumeName ||
-          "No resume uploaded"}
-      </div>
-
-      {/* PREVIEW */}
-      {resumeUrl && (
-        <div className="w-full h-[500px] md:h-[600px] border rounded-md overflow-hidden">
-
-          <iframe
-            src={resumeUrl}
-            title="Resume Preview"
-            className="w-full h-full"
-          />
-        </div>
-      )}
-
-      {/* PROGRESS */}
-      {loading && (
-        <div className="space-y-2">
-
-          <p className="text-sm">
-            Uploading...
-            {" "}
-            {Math.round(progress)}%
-          </p>
-
-          <Progress
-            value={progress}
-          />
-        </div>
-      )}
-
-      {/* ERROR */}
-      {error && (
-        <p className="text-sm text-red-500">
-          {error}
-        </p>
-      )}
-
-      {/* ACTIONS */}
-      <div className="flex gap-5">
+      <div className="flex items-center justify-between border-t border-slate-200 pt-6">
 
         <Button
           variant="border"
-          onClick={handleBack}
+          onClick={() =>
+            onBack?.(currentStep - 1)
+          }
         >
           Back
         </Button>
 
         <Button
-          disabled={!resumeUrl}
           onClick={handleNext}
+          disabled={!resumeUrl && !selectedFile}
         >
           Next
         </Button>
+
       </div>
+
     </div>
   );
 };

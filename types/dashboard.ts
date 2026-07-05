@@ -1,32 +1,53 @@
-// types/dashboard.ts
-
-import { LucideIcon } from "lucide-react";
 import { Role } from "@prisma/client";
+import { LucideIcon } from "lucide-react";
 
-import { ProfileViewWithViewer } from "./profile-view";
-import { User } from "./user";
 import { JobApplicationWithUser } from "./application";
 import { JobWithCompany } from "./jobs";
+import { ProfileViewWithViewer } from "./profile-view";
+import { User } from "./user";
 
-export interface DashboardAnalyticsData {
-    count: number;
-    growth: number;
-    isPositive: boolean;
-    chartData: DashboardChartData[];
-}
-
-export interface DashboardChartData {
+export interface DashboardChartPoint {
+    label?: string;
     value: number;
 }
 
-export interface DashboardActivityData {
-    name: string;
-    applications: number;
+export interface DashboardPagination<T> {
+    data: T[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+}
+
+export interface DashboardAnalyticsData {
+    count: number;
+    period?: number;
+    growth: number;
+    isPositive: boolean;
+    chartData?: DashboardChartPoint[];
 }
 
 export interface DashboardStatusChartData {
     name: string;
     value: number;
+}
+
+export interface DashboardActivityChartData {
+    name: string;
+    value: number;
+}
+
+export interface DashboardCharts {
+    applicationStatus?: DashboardStatusChartData[];
+    applicationActivity?: DashboardActivityChartData[];
+
+    hiringStatus?: DashboardStatusChartData[];
+    hiringActivity?: DashboardActivityChartData[];
+
+    organizationHiring?: DashboardStatusChartData[];
+    recruiterPerformance?: DashboardActivityChartData[];
 }
 
 export interface ProfileCompletionItem {
@@ -37,6 +58,25 @@ export interface ProfileCompletionItem {
 export interface ProfileCompletionData {
     percentage: number;
     items: ProfileCompletionItem[];
+}
+
+export type DashboardActivityType =
+    | "application"
+    | "view"
+    | "saved"
+    | "shortlisted"
+    | "interview"
+    | "hired"
+    | "rejected"
+    | "job"
+    | "profile";
+
+export interface DashboardRecentActivity {
+    id: number;
+    title: string;
+    description?: string;
+    type: DashboardActivityType;
+    createdAt: Date;
 }
 
 export interface DashboardStatItem {
@@ -54,66 +94,47 @@ export interface DashboardStatsProps {
     stats: Record<string, DashboardAnalyticsData>;
 }
 
-export interface DashboardCharts {
-    applicationStatusChart?: DashboardStatusChartData[];
-    applicationActivityChart?: DashboardActivityData[];
-
-    hiringStatusChart?: DashboardStatusChartData[];
-    applicantsActivityChart?: DashboardActivityData[];
-
-    companyHiringChart?: DashboardStatusChartData[]
-    recruitersPerformanceChart?: DashboardActivityData[]
+export interface DashboardPagination<T> {
+    data: T[];
+    total: number;
+    page: number;
+    totalPages: number;
 }
 
-export type DashboardActivityType =
-    | "view"
-    | "interview"
-    | "shortlisted"
-    | "download";
-
-export interface DashboardRecentActivity {
-    id: number;
-    title: string;
-    time: string;
-    type: DashboardActivityType;
-}
-
-export interface DashboardData {
-    stats?: Record<string, DashboardAnalyticsData>;
-
-    analytics?: Record<string, DashboardAnalyticsData>;
-
+export interface CandidateDashboardData {
+    stats: Record<string, DashboardAnalyticsData>;
     charts?: DashboardCharts;
-
-    profileCompletion?: ProfileCompletionData;
-
-    recentActivity?: DashboardRecentActivity[];
-
-    recentApplications?: JobApplicationWithUser[];
-
-    recentApplicants?: JobApplicationWithUser[];
-
-    jobs?: {
-        data: JobWithCompany[];
-    };
-
-    applications?: {
-        data: JobApplicationWithUser[];
-    };
-
-    applicants?: {
-        data: JobApplicationWithUser[];
-    };
-
-    profileViews?: {
-        data: ProfileViewWithViewer[];
-    };
-
-    followers?: {
-        data: User[];
-    };
-
-    following?: {
-        data: User[];
-    };
+    profileCompletion: ProfileCompletionData;
+    recentActivity: DashboardRecentActivity[];
+    recentApplications: JobApplicationWithUser[];
+    applications: DashboardPagination<JobApplicationWithUser>;
+    savedJobs: DashboardPagination<JobWithCompany>;
+    profileViews: DashboardPagination<ProfileViewWithViewer>;
+    followers: DashboardPagination<User>;
+    following: DashboardPagination<User>;
 }
+
+export interface RecruiterDashboardData {
+    stats: Record<string, DashboardAnalyticsData>;
+    charts?: DashboardCharts;
+    recentActivity: DashboardRecentActivity[];
+    recentApplicants: JobApplicationWithUser[];
+    jobs: DashboardPagination<JobWithCompany>;
+    applicants: DashboardPagination<JobApplicationWithUser>;
+    hiredCandidates: DashboardPagination<JobApplicationWithUser>;
+}
+
+export interface OrganizationDashboardData {
+    stats: Record<string, DashboardAnalyticsData>;
+    charts?: DashboardCharts;
+    recentActivity: DashboardRecentActivity[];
+    recentApplicants: JobApplicationWithUser[];
+    jobs: DashboardPagination<JobWithCompany>;
+    applicants: DashboardPagination<JobApplicationWithUser>;
+    hiredCandidates: DashboardPagination<JobApplicationWithUser>;
+}
+
+export type DashboardData =
+    | CandidateDashboardData
+    | RecruiterDashboardData
+    | OrganizationDashboardData;

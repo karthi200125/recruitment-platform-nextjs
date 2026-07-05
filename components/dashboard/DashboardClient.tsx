@@ -1,77 +1,70 @@
 "use client";
 
-import { Role } from "@prisma/client";
-import { useMemo } from "react";
+import { memo } from "react";
 import { useSearchParams } from "next/navigation";
-import { DASHBOARD_TABS } from "./config/dashboardTabsConfig";
+import { Role } from "@prisma/client";
+
+import { User } from "@/types";
+import { DashboardData } from "@/types/dashboard";
+
 import DashboardNavbar from "./dashboard-navbar";
 import DashboardContent from "./DashboardContent";
-import { DashboardData } from "@/types/dashboard";
-import { User } from "@/types";
-
+import { DASHBOARD_TABS } from "./config/dashboardTabsConfig";
+import CompanyVerificationBanner from "@/app/(protected)/create-company/CompanyVerificationBanner";
 
 interface DashboardClientProps {
-    user: Pick<
-        User,
-        "id" | "role" | "username" | "userImage"
-    >;
-    role: Role;
+    user: Pick<User, "id" | "role" | "username" | "userImage">;
     dashboardData: DashboardData;
+    company: any
 }
 
 const DashboardClient = ({
     user,
-    role,
     dashboardData,
+    company
 }: DashboardClientProps) => {
-    const searchParams =
-        useSearchParams();
+    const searchParams = useSearchParams();
 
-    const allowedTabs =
-        DASHBOARD_TABS[role];
+    const allowedTabs = DASHBOARD_TABS[user.role];
+    const requestedTab = searchParams.get("tab") ?? "overview";
 
     const activeTab =
-        useMemo(() => {
-            const tab =
-                searchParams.get(
-                    "tab"
-                ) ?? "overview";
+        allowedTabs.some(
+            ({ value }) =>
+                value === requestedTab
+        )
+            ? requestedTab
+            : "overview";
 
-            const isValid =
-                allowedTabs.some(
-                    (item) =>
-                        item.value ===
-                        tab
-                );
-
-            return isValid
-                ? tab
-                : "overview";
-        }, [
-            searchParams,
-            allowedTabs,
-        ]);
+    if (!dashboardData) {
+        return null;
+    }
 
     return (
-        <div className="min-h-screen w-full">
-            <div className="space-y-6">
-                {/* Navbar */}
-                <DashboardNavbar
-                    role={role}
-                    activeTab={activeTab}
-                />
+        <main className="min-h-screen space-y-6">
 
-                {/* Content */}
-                <DashboardContent
-                    activeTab={activeTab}
-                    role={role}
-                    dashboardData={
-                        dashboardData
-                    }
-                />
-            </div>
-        </div>
+            {user.role === Role.ORGANIZATION &&
+                company &&
+                !company.companyIsVerified && (
+                    <CompanyVerificationBanner
+                        companyIsVerified={company.companyIsVerified}
+                    />
+                )}
+
+            <DashboardNavbar
+                role={user.role}
+                activeTab={activeTab}
+            />
+
+            <DashboardContent
+                role={user.role}
+                activeTab={activeTab}
+                dashboardData={
+                    dashboardData
+                }
+            />
+        </main>
     );
 };
 
-export default DashboardClient;
+export default memo(DashboardClient);

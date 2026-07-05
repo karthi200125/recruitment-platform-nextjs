@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import {
     Building2,
@@ -7,9 +5,6 @@ import {
     Users,
 } from "lucide-react";
 
-import ApplicantDetails, {
-    ApplicantDetailsSkeleton,
-} from "./ApplicantDetails";
 import ApplicantList, {
     ApplicantListSkeleton,
 } from "./ApplicantList";
@@ -18,6 +13,8 @@ import {
     JobApplicationWithUser,
     JobWithCompanyAndCount,
 } from "@/types";
+import { ApplicantDetailsSkeleton } from "@/components/skeletons/ApplicantDetailsSkeleton";
+import ApplicantDetails from "./ApplicantDetails";
 
 interface EmployerJobClientProps {
     job: JobWithCompanyAndCount;

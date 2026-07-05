@@ -1,0 +1,7 @@
+export const DASHBOARD_PAGE_SIZE = 10;
+
+export const DASHBOARD_RECENT_LIMIT = 5;
+
+export const DASHBOARD_CACHE_REVALIDATE = 60;
+
+export const DASHBOARD_PERIOD_DAYS = 30;

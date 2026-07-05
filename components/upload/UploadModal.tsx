@@ -11,6 +11,8 @@ import type { UploadType } from "@/lib/upload/upload-types";
 import type { UploadResponse } from "@/hooks/useUpload";
 import { ExistingFile } from "./ExistingFileCard";
 
+import { useSession } from "next-auth/react";
+
 interface UploadModalProps {
     modalId: string;
     type: UploadType;
@@ -54,6 +56,8 @@ const UploadModal = ({
 }: UploadModalProps) => {
     const router = useRouter();
 
+    const { update } = useSession();
+
     return (
         <Model
             modalId={modalId}
@@ -68,6 +72,7 @@ const UploadModal = ({
                     onFileSelect={onFileSelect}
                     onUploadSuccess={(response) => {
                         onUploadSuccess?.(response);
+                        update();
                         router.refresh();
                     }}
                     onUploadError={onUploadError}

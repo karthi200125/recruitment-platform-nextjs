@@ -1,259 +1,161 @@
+import { Role } from "@prisma/client";
 import { Metadata } from "next";
-
+import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
-import { getServerSession } from "next-auth";
-
-import { Role } from "@prisma/client";
-
 import { authOptions } from "@/lib/auth/authOptions";
-
 import { db } from "@/lib/db";
 
 import DashboardClient from "@/components/dashboard/DashboardClient";
-import { getRecruiterDashboardData } from "@/actions/dashboard/get-recruiter-dashboard-data";
-import { getOrganizationDashboardData } from "@/actions/dashboard/get-organization-dashboard-data";
+
 import { getCandidateDashboardData } from "@/actions/dashboard/get-candidate-dashboard-data";
-
-
-// ─────────────────────────────────────────────
-// Metadata
-// ─────────────────────────────────────────────
+import { getOrganizationDashboardData } from "@/actions/dashboard/get-organization-dashboard-data";
+import { getRecruiterDashboardData } from "@/actions/dashboard/get-recruiter-dashboard-data";
 
 export const metadata: Metadata = {
     title: "Dashboard | Job Portal",
-
-    description:
-        "Manage your jobs, applications, and profile",
-
+    description: "Manage your jobs, applications and profile.",
     robots: {
         index: false,
         follow: false,
     },
 };
 
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
+const PAGE_SIZE = 10;
 
 interface DashboardPageProps {
     searchParams?: {
         tab?: string;
 
         appliedPage?: string;
-
         savedPage?: string;
-
         interviewsPage?: string;
-
         profileViewsPage?: string;
 
         postedJobsPage?: string;
-
         applicantsPage?: string;
-
         hiredPage?: string;
-
         jobsPage?: string;
     };
 }
 
-// ─────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────
-
-const getPageNumber = (
-    value?: string
-) => {
+const getPageNumber = (value?: string) => {
     const page = Number(value);
 
-    return Number.isNaN(page) ||
-        page <= 0
-        ? 1
-        : page;
+    return Number.isInteger(page) && page > 0
+        ? page
+        : 1;
 };
-
-// ─────────────────────────────────────────────
-// Page
-// ─────────────────────────────────────────────
 
 const DashboardPage = async ({
     searchParams,
 }: DashboardPageProps) => {
-    // Session
-    const session =
-        await getServerSession(
-            authOptions
-        );
+    const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
         redirect("/signin");
     }
 
-    // User
-    const user = session.user;
-
-    const userId = Number(user.id);
+    const userId = Number(session.user.id);
 
     if (!userId) {
         redirect("/signin");
     }
 
-    // Role
-    const role = (user.role ??
-        "CANDIDATE") as Role;
+    const role: Role = session.user.role ?? Role.CANDIDATE;
 
-    // ─────────────────────────────────────────
-    // Pagination
-    // ─────────────────────────────────────────
-
-    const appliedPage =
-        getPageNumber(
-            searchParams?.appliedPage
-        );
-
-    const savedPage =
-        getPageNumber(
-            searchParams?.savedPage
-        );
-
-    const interviewsPage =
-        getPageNumber(
-            searchParams?.interviewsPage
-        );
-
-    const profileViewsPage =
-        getPageNumber(
-            searchParams?.profileViewsPage
-        );
-
-    const postedJobsPage =
-        getPageNumber(
-            searchParams?.postedJobsPage
-        );
-
-    const applicantsPage =
-        getPageNumber(
-            searchParams?.applicantsPage
-        );
-
-    const hiredPage =
-        getPageNumber(
-            searchParams?.hiredPage
-        );
-
-    const jobsPage =
-        getPageNumber(
-            searchParams?.jobsPage
-        );
-
-    // ─────────────────────────────────────────
-    // Dashboard Data
-    // ─────────────────────────────────────────
+    const pages = {
+        applied: getPageNumber(searchParams?.appliedPage),
+        saved: getPageNumber(searchParams?.savedPage),
+        interviews: getPageNumber(searchParams?.interviewsPage),
+        profileViews: getPageNumber(searchParams?.profileViewsPage),
+        postedJobs: getPageNumber(searchParams?.postedJobsPage),
+        applicants: getPageNumber(searchParams?.applicantsPage),
+        hired: getPageNumber(searchParams?.hiredPage),
+        jobs: getPageNumber(searchParams?.jobsPage),
+    };
 
     let dashboardData = null;
+    let company: {
+        id: number;
+        companyIsVerified: boolean;
+    } | null = null;
 
-    // Candidate
-    if (role === "CANDIDATE") {
-        dashboardData =
-            await getCandidateDashboardData(
-                {
+    switch (role) {
+        case Role.CANDIDATE:
+            dashboardData =
+                await getCandidateDashboardData({
                     userId,
+                    appliedPage: pages.applied,
+                    savedPage: pages.saved,
+                    interviewsPage: pages.interviews,
+                    profileViewsPage:
+                        pages.profileViews,
+                    limit: PAGE_SIZE,
+                });
+            break;
 
-                    appliedPage,
+        case Role.RECRUITER:
+            dashboardData =
+                await getRecruiterDashboardData({
+                    userId,
+                    postedJobsPage:
+                        pages.postedJobs,
+                    applicantsPage:
+                        pages.applicants,
+                    interviewsPage:
+                        pages.interviews,
+                    hiredPage:
+                        pages.hired,
+                    limit: PAGE_SIZE,
+                });
+            break;
 
-                    savedPage,
+        case Role.ORGANIZATION:
+            company =
+                await db.company.findFirst({
+                    where: {
+                        userId,
+                    },
+                    select: {
+                        id: true,
+                        companyIsVerified: true,
+                    },
+                });
 
-                    interviewsPage,
+            if (!company) {
+                redirect("/create-company");
+            }
 
-                    profileViewsPage,
+            dashboardData =
+                await getOrganizationDashboardData({
+                    companyId: company.id,
+                    jobsPage: pages.jobs,
+                    applicantsPage:
+                        pages.applicants,
+                    hiredPage: pages.hired,
+                    limit: PAGE_SIZE,
+                });
 
-                    limit: 10,
-                }
-            );
+            break;
+
+        default:
+            redirect("/signin");
     }
 
-
-
-    // Recruiter
-    if (role === "RECRUITER") {
-        dashboardData =
-            await getRecruiterDashboardData(
-                {
-                    userId,
-
-                    postedJobsPage,
-
-                    applicantsPage,
-
-                    interviewsPage,
-
-                    hiredPage,
-
-                    limit: 10,
-                }
-            );
-    }
-
-    // Organization
-    if (role === "ORGANIZATION") {
-        const company =
-            await db.company.findFirst({
-                where: {
-                    userId,
-                },
-
-                select: {
-                    id: true,
-                },
-            });
-
-        if (!company) {
-            redirect(
-                "/dashboard/create-company"
-            );
-        }
-
-        dashboardData =
-            await getOrganizationDashboardData(
-                {
-                    companyId:
-                        company.id,
-
-                    jobsPage,
-
-                    applicantsPage,
-
-                    hiredPage,
-
-                    limit: 10,
-                }
-            );
-    }
-
-    // ─────────────────────────────────────────
-    // Render
-    // ─────────────────────────────────────────
-
-console.log(dashboardData)
 
     return (
         <DashboardClient
             user={{
                 id: userId,
-
                 role,
-
-                username:
-                    user.username,
-
+                username: session.user.username,
                 userImage:
-                    user.profileImage,
+                    session.user.profileImage,
             }}
+            company={company}
             role={role}
-            dashboardData={
-                dashboardData
-            }
+            dashboardData={dashboardData}
         />
     );
 };

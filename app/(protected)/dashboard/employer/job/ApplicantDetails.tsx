@@ -24,41 +24,6 @@ interface ApplicantDetailsProps {
   application: JobApplicationWithUser | null;
 }
 
-export function ApplicantDetailsSkeleton() {
-  return (
-    <div className="animate-pulse space-y-6 p-6 sm:p-8">
-      <div className="flex items-start gap-4">
-        <div className="h-12 w-12 rounded-full bg-slate-200" />
-
-        <div className="flex-1 space-y-2 pt-1">
-          <div className="h-5 w-1/2 rounded-xl bg-slate-200" />
-          <div className="h-3.5 w-1/3 rounded-lg bg-slate-100" />
-          <div className="mt-1 h-6 w-24 rounded-full bg-slate-100" />
-        </div>
-      </div>
-
-      <div className="h-px bg-slate-100" />
-
-      <div className="h-[360px] rounded-2xl bg-slate-100" />
-
-      <div className="space-y-4 rounded-2xl border border-slate-200 p-5">
-        <div className="h-4 w-24 rounded bg-slate-200" />
-
-        {Array.from({ length: 2 }).map((_, index) => (
-          <div
-            key={index}
-            className="space-y-1.5"
-          >
-            <div className="h-3.5 w-3/4 rounded bg-slate-200" />
-            <div className="h-3 w-full rounded bg-slate-100" />
-            <div className="h-3 w-5/6 rounded bg-slate-100" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function UserAvatar({
   name,
   image,

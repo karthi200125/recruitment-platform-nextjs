@@ -1,17 +1,17 @@
 "use client";
 
-import { useTransition } from "react";
 import {
   useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { useTransition } from "react";
 
 import { isFollowing } from "@/actions/user/isFollowing";
 import { toggleFollow } from "@/actions/user/toggle-follow";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { UserCheck, UserPlus } from "lucide-react";
 
-import Button from "./Button";
 
 interface FollowButtonProps {
   targetUserId: number;
@@ -23,13 +23,9 @@ export default function FollowButton({
   className,
 }: FollowButtonProps) {
   const { user } = useCurrentUser();
-
   const queryClient = useQueryClient();
-
   const [isPending, startTransition] = useTransition();
-
   const currentUserId = user?.id ? Number(user.id) : undefined;
-
   const isSelf = currentUserId === targetUserId;
 
   const { data: isFollowed = false } = useQuery<boolean>({
@@ -92,16 +88,24 @@ export default function FollowButton({
   if (isSelf) return null;
 
   return (
-    <Button
+    <button
       onClick={handleClick}
-      disabled={isPending}
-      className={`text-xs md:text-sm px-3 py-1 rounded-full ${className ?? ""
-        } ${isFollowed
-          ? "bg-[var(--voilet)] text-white"
-          : "border"
-        }`}
+      disabled={isPending || mutation.isPending}
+      className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold border transition-all duration-200 ${isFollowed
+        ? "bg-[var(--voilet)] border-[var(--voilet)] text-white hover:bg-[var(--voilet2)] hover:border-[var(--voilet2)]"
+        : "bg-white border-slate-200 text-slate-600 hover:bg-[var(--voilet)]/10 hover:border-[var(--voilet)] hover:text-[var(--voilet)]"
+        } ${isPending || mutation.isPending
+          ? "cursor-not-allowed opacity-60"
+          : ""
+        } ${className ?? ""}`}
     >
+      {isFollowed ? (
+        <UserCheck className="w-3 h-3" strokeWidth={2} />
+      ) : (
+        <UserPlus className="w-3 h-3" strokeWidth={2} />
+      )}
+
       {isFollowed ? "Following" : "Follow"}
-    </Button>
+    </button>
   );
 }

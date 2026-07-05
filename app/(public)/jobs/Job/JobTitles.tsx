@@ -1,38 +1,38 @@
 'use client';
 
-import React, { useMemo } from "react";
-import { format , formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
+import {
+  AlertCircle,
+  Briefcase,
+  CheckCircle2,
+  Clock,
+  ExternalLink,
+  ListChecks,
+  MapPin,
+  MoreHorizontal,
+  Timer,
+  Users,
+  Zap
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  MapPin, Clock, Users, Briefcase, Timer,
-  CheckCircle2, AlertCircle, ExternalLink,
-  MoreHorizontal, Zap, ListChecks
-} from "lucide-react";
+import React, { useMemo } from "react";
 
 import Model from "@/components/Model";
-import EasyApply from "./EasyApply/EasyApply";
-import JobTitlesSkeleton from "@/components/skeletons/JobTitlesSkeleton";
 import SaveJobButton from "@/components/SaveJobButton";
+import JobTitlesSkeleton from "@/components/skeletons/JobTitlesSkeleton";
+import EasyApply from "./EasyApply/EasyApply";
 
-import noImage from "../../../../public/noImage.webp";
 import { checkSkills } from "@/actions/job/compare-skills";
-import { JobWithCompany } from "@/actions/job/get-filter-all-jobs";
-
-type Role = 'CANDIDATE' | 'RECRUITER' | 'ORGANIZATION';
-
-interface User {
-  id: number;
-  role: Role;
-  skills?: string[];
-}
+import { Company, JobWithCompany, SearchParams, User } from "@/types";
+import noImage from "../../../../public/noImage.webp";
 
 interface JobTitlesProps {
-  user: User | null | undefined;
+  user: User;
   job: JobWithCompany;
-  company: JobWithCompany["company"] | undefined;
+  company: Company;
   isPending: boolean;
-  safeSearchParams?: Record<string, string | string[] | undefined>;
+  safeSearchParams?: SearchParams;
 }
 
 const MODE_STYLES: Record<string, string> = {
@@ -96,9 +96,9 @@ const JobTitles: React.FC<JobTitlesProps> = ({ user, job, company, isPending, sa
             </span>
           )}
           <span className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2} />            
+            <Clock className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2} />
             {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
-            
+
           </span>
           <span className="flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2} />
@@ -174,6 +174,7 @@ const JobTitles: React.FC<JobTitlesProps> = ({ user, job, company, isPending, sa
                     bodyContent={<EasyApply job={job} safeSearchParams={safeSearchParams} />}
                     title={`Apply to ${company?.companyName}`}
                     modalId="easyapplyModal"
+                    className="max-w-5xl"
                   >
                     <button className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors duration-200 shadow-sm shadow-indigo-200">
                       <Zap className="w-4 h-4" strokeWidth={2} />Easy Apply

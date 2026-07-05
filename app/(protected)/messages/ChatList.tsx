@@ -1,21 +1,13 @@
-'use client';
+'use client'
 
-import Image from "next/image";
 import { format } from "date-fns";
+import Image from "next/image";
 
 import noProfile from "@/public/noProfile.webp";
-
-interface ChatListUser {
-    id: number;
-    username: string;
-    userImage: string | null;
-    updatedAt: Date;
-    lastMessage: string | null;
-    isSeen: boolean;
-}
+import { ChatUser } from "@/actions/message/get-chat-users";
 
 interface ChatListProps {
-    chatUser: ChatListUser;
+    chatUser: ChatUser;
     selectedChatUserId?: number | null;
 }
 
@@ -24,16 +16,14 @@ export const ChatList = ({
     selectedChatUserId,
 }: ChatListProps) => {
     const isSelected = chatUser.id === selectedChatUserId;
-
     const timeAgo = format(chatUser.updatedAt, "dd MMM yyyy");
-
     const hasUnread = !chatUser.isSeen;
 
     return (
         <div
             className={`flex items-center gap-3 px-4 py-3 border-l-[3px] transition-all duration-200 ${isSelected
-                    ? "bg-indigo-50 border-l-indigo-500"
-                    : "border-l-transparent hover:bg-slate-50"
+                ? "bg-indigo-50 border-l-indigo-500"
+                : "border-l-transparent hover:bg-slate-50"
                 }`}
         >
             <div className="relative flex-shrink-0">
@@ -56,8 +46,8 @@ export const ChatList = ({
                 <div className="flex items-center justify-between gap-2">
                     <p
                         className={`truncate text-sm capitalize ${isSelected
-                                ? "font-bold text-indigo-900"
-                                : "font-semibold text-slate-800"
+                            ? "font-bold text-indigo-900"
+                            : "font-semibold text-slate-800"
                             }`}
                     >
                         {chatUser.username}
@@ -70,8 +60,8 @@ export const ChatList = ({
 
                 <p
                     className={`mt-0.5 line-clamp-1 text-xs capitalize ${hasUnread
-                            ? "font-semibold text-slate-700"
-                            : "text-slate-400"
+                        ? "font-semibold text-slate-700"
+                        : "text-slate-400"
                         }`}
                 >
                     {chatUser.lastMessage || "No messages yet"}

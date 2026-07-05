@@ -12,7 +12,7 @@ import CompanySlides from "../CompanySlides/CompanySlides";
 import Education from "../Educations";
 import Experiences from "../Experiences";
 import MoreProfiles from "../MoreProfiles";
-import Projects from "../Projects";
+import Projects from "../project/Projects";
 import UserInfo from "../UserInfo";
 
 import { getUserProfileUserById } from "@/actions/user/getuser/getUserProfileUserById";
@@ -25,7 +25,6 @@ const UserProfile = () => {
   const params = useParams();
   const rawUserId = params?.userId;
 
-  // ✅ Safe parsing
   const userId = useMemo(() => {
     if (typeof rawUserId !== "string") return null;
     if (!/^\d+$/.test(rawUserId)) return null;
@@ -34,7 +33,6 @@ const UserProfile = () => {
 
   const hasTrackedView = useRef(false);
 
-  // ✅ React Query (proper typing)
   const {
     data: profileData,
     isPending,
@@ -58,11 +56,9 @@ const UserProfile = () => {
     retry: 1,
   });
 
-  // ✅ Derived values (safe)
   const company = profileData?.company?.[0] ?? null;
   const isOrg = profileData?.role === "ORGANIZATION";
 
-  // ✅ Track profile view (safe + optimized)
   useEffect(() => {
     if (!loggedInUser?.id || userId === null) return;
     if (loggedInUser.id === userId) return;
@@ -75,12 +71,10 @@ const UserProfile = () => {
     });
   }, [loggedInUser?.id, userId]);
 
-  // ✅ Invalid ID
   if (userId === null) {
     return <div>Invalid Profile ID</div>;
   }
-
-  // ✅ Error state
+  
   if (isError) {
     return (
       <div>
@@ -90,7 +84,6 @@ const UserProfile = () => {
     );
   }
 
-  // ✅ Not found
   if (!isPending && !profileData) {
     return <div>Profile not found.</div>;
   }

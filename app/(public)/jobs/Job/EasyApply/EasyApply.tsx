@@ -1,17 +1,27 @@
 "use client";
 
-import { Progress } from "@/components/ui/progress";
-import { ContactInfo, EasyApplyProps, QuestionAnswers, ResumeData, EasyApplyUser, EasyApplyPayload } from "@/types/easyApply";
 import { useState } from "react";
-import EasyApplyQuestions from "./EasyApplyQuestions";
-import EasyApplyUserInfo from "./EasyApplyUserInfo";
-import EasyApplySubmit from "./EasyApplySubmit";
-import EasyApplyResume from "./EasyApplyResume";
-import { getEasyApplyUser } from "@/actions/user/getuser/getEasyApplyUser";
 import { useQuery } from "@tanstack/react-query";
 
+import { getEasyApplyUser } from "@/actions/user/getuser/getEasyApplyUser";
 
-const EasyApply = ({ job, safeSearchParams }: EasyApplyProps) => {
+import { Progress } from "@/components/ui/progress";
+
+import EasyApplyUserInfo from "./EasyApplyUserInfo";
+import EasyApplyResume from "./EasyApplyResume";
+import EasyApplyQuestions from "./EasyApplyQuestions";
+import EasyApplySubmit from "./EasyApplySubmit";
+
+import type {
+    ContactInfo,
+    EasyApplyProps,
+    EasyApplyUser,
+    QuestionAnswers,
+    ResumeData,
+} from "@/types/easyApply";
+import EasyApplySkeleton from "@/components/skeletons/EasyApplySkeleton";
+
+const EasyApply = ({ job }: EasyApplyProps) => {
     const { data: user, isPending } = useQuery<EasyApplyUser>({
         queryKey: ["easyApplyUser"],
         queryFn: async () => {
@@ -25,40 +35,47 @@ const EasyApply = ({ job, safeSearchParams }: EasyApplyProps) => {
         },
     });
 
-    const [currentStep, setCurrentStep] = useState<number>(0);
+    const [currentStep, setCurrentStep] = useState(0);
 
-    const [contactInfo, setContactInfo] = useState<ContactInfo>({
-        email: "",
-        phone: "",
-    });
+    const [contactInfo, setContactInfo] =
+        useState<ContactInfo>({
+            email: "",
+            phone: "",
+        });
 
-    const [resumeData, setResumeData] = useState<ResumeData>({
-        name: "",
-        url: "",
-    });
+    const [resumeData, setResumeData] =
+        useState<ResumeData>({
+            name: "",
+            url: "",
+            publicId: "",
+            file: null,
+        });
 
-    const [questionAnswers, setQuestionAnswers] = useState<QuestionAnswers>({});
+    const [questionAnswers, setQuestionAnswers] =
+        useState<QuestionAnswers>({});
 
-
-    const hasQuestions = Boolean(job?.questions?.length);
-
+    const hasQuestions = (job.questions?.length ?? 0) > 0;
     const totalSteps = hasQuestions ? 4 : 3;
     const progress = ((currentStep + 1) / totalSteps) * 100;
 
     if (isPending) {
-        return <p>Loading...</p>;
+        return <EasyApplySkeleton />;
     }
 
     return (
-        <div className="w-full flex flex-col">
-            {/* Progress Bar */}
-            <div className="sticky top-[60px] w-full flex items-center gap-5 bg-white py-3">
-                <Progress value={progress} className="w-full" />
-                <h3 className="font-bold">{progress.toFixed(0)}%</h3>
+        <div className="flex w-full flex-col">
+            <div className="sticky top-[60px] flex items-center gap-5 bg-white py-3">
+                <Progress
+                    value={progress}
+                    className="w-full"
+                />
+
+                <span className="font-semibold">
+                    {Math.round(progress)}%
+                </span>
             </div>
 
             <div className="mt-5">
-                {/* STEP 1 - USER INFO */}
                 {currentStep === 0 && (
                     <EasyApplyUserInfo
                         user={user}
@@ -68,7 +85,6 @@ const EasyApply = ({ job, safeSearchParams }: EasyApplyProps) => {
                     />
                 )}
 
-                {/* STEP 2 - RESUME */}
                 {currentStep === 1 && (
                     <EasyApplyResume
                         user={user}
@@ -79,24 +95,26 @@ const EasyApply = ({ job, safeSearchParams }: EasyApplyProps) => {
                     />
                 )}
 
-                {/* STEP 3 - QUESTIONS */}
-                {currentStep === 2 && hasQuestions && (
-                    <EasyApplyQuestions
-                        job={job}
-                        currentStep={currentStep}
-                        onNext={setCurrentStep}
-                        onBack={setCurrentStep}
-                        onAnswers={setQuestionAnswers}
-                    />
-                )}
+                {currentStep === 2 &&
+                    hasQuestions && (
+                        <EasyApplyQuestions
+                            job={job}
+                            currentStep={currentStep}
+                            onNext={setCurrentStep}
+                            onBack={setCurrentStep}
+                            onAnswers={
+                                setQuestionAnswers
+                            }
+                        />
+                    )}
 
-                {/* STEP 4 - SUBMIT */}
-                {((currentStep === 2 && !hasQuestions) ||
-                    (currentStep === 3 && hasQuestions)) && (
+                {((currentStep === 2 &&
+                    !hasQuestions) ||
+                    (currentStep === 3 &&
+                        hasQuestions)) && (
                         <EasyApplySubmit
                             user={user}
                             job={job}
-                            safeSearchParams={safeSearchParams}
                             applicationData={{
                                 contactInfo,
                                 resumeData,
@@ -106,11 +124,14 @@ const EasyApply = ({ job, safeSearchParams }: EasyApplyProps) => {
                     )}
             </div>
 
-            {/* Footer */}
-            <div className="mt-5 border rounded-md p-5">
-                <h6>
-                    Submitting this application won't change your profile.
-                </h6>
+            <div className="mt-5 rounded-xl border border-slate-200 p-5">
+                <p className="text-sm text-slate-500">
+                    Submitting this application
+                    will not modify your public
+                    profile. Any resume uploaded
+                    here will only be used for
+                    this application.
+                </p>
             </div>
         </div>
     );

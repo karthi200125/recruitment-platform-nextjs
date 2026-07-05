@@ -43,11 +43,7 @@ const Jobb = ({
 }: Props) => {
   return (
     <div className="flex h-[calc(100vh-60px)] flex-col bg-white overflow-hidden">
-
-      {/* <div className="w-full flex items-center justify-center bg-black z-20 py-3 px-4">
-        <JobsSearchBar />
-      </div> */}
-
+      
       {/* Filter bar */}
       <div className="border-b border-slate-100 bg-white z-20">
         <FilterNavbar />

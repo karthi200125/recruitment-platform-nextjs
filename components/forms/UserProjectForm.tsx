@@ -52,8 +52,6 @@ export function UserProjectForm({
         project?.proImagePublicId ?? ""
     );
 
-    const [isUploading, setIsUploading] = useState(false);
-
     const form = useForm<FormValues>({
         resolver: zodResolver(UserProjectSchema),
         mode: "onChange",
@@ -117,7 +115,7 @@ export function UserProjectForm({
 
     const onSubmit = useCallback(
         (values: FormValues) => {
-            if (isPending || isUploading) return;
+            if (isPending) return;
 
             if (!user?.id) {
                 showErrorToast("User not found.");
@@ -148,8 +146,7 @@ export function UserProjectForm({
         [
             handleSuccess,
             isEdit,
-            isPending,
-            isUploading,
+            isPending,            
             project?.id,
             projectImage,
             projectImagePublicId,
@@ -161,14 +158,12 @@ export function UserProjectForm({
     const isSubmitDisabled = useMemo(
         () =>
             isPending ||
-            isUploading ||
             !form.formState.isValid ||
             !projectImage ||
             !projectImagePublicId,
         [
-            form.formState.isValid,
             isPending,
-            isUploading,
+            form.formState.isValid,
             projectImage,
             projectImagePublicId,
         ]
@@ -211,22 +206,29 @@ export function UserProjectForm({
                         projectImage
                             ? {
                                 url: projectImage,
-                                publicId: projectImagePublicId,
                                 name: project?.proName ?? "Project Image",
+                                publicId: projectImagePublicId,
                             }
                             : undefined
                     }
-                    onUploadStart={() => setIsUploading(true)}
+                    disabled={isPending}
                     onUploadSuccess={(file) => {
                         setProjectImage(file.url);
                         setProjectImagePublicId(file.publicId);
-                        setIsUploading(false);
                     }}
-                    onUploadError={() => {
-                        setIsUploading(false);
-                        showErrorToast("Failed to upload project image.");
+                    onUploadError={(message) => {
+                        setError(message);
+                        showErrorToast(message);
                     }}
-                    onDeleteSuccess={() => {
+                    onRemove={() => {
+                        setProjectImage("");
+                        setProjectImagePublicId("");
+                    }}
+                    onReplace={() => {
+                        setProjectImage("");
+                        setProjectImagePublicId("");
+                    }}
+                    onDelete={() => {
                         setProjectImage("");
                         setProjectImagePublicId("");
                     }}
@@ -237,7 +239,7 @@ export function UserProjectForm({
                 <Button
                     type="submit"
                     className="!w-full"
-                    isLoading={isPending || isUploading}
+                    isLoading={isPending}
                     disabled={isSubmitDisabled}
                 >
                     {isEdit ? "Update Project" : "Add Project"}

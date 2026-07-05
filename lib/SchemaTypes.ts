@@ -187,7 +187,7 @@ export const CompanySchema = z.object({
         message: "Company Address is required",
     }),
     companyAbout: z.string().min(50, {
-        message: "Company Address is required minimum 50 words needed",
+        message: "Company description must contain at least 50 characters.",
     }),
     companyBio: z.string().min(30, {
         message: "Company Bio is required minimum 30 words needed",
@@ -201,9 +201,12 @@ export const CompanySchema = z.object({
     companyCountry: z.string().min(1, {
         message: "Company Country is required",
     }),
-    companyWebsite: z.string().min(1, {
-        message: "Company Website URL is required",
-    }).optional(),
+    companyWebsite: z
+        .string()
+        .trim()
+        .url("Enter a valid website URL.")
+        .optional()
+        .or(z.literal("")),
     companyTotalEmployees: z.string().min(1, {
         message: "Total Employees must be at least 1",
     }),
@@ -223,13 +226,13 @@ export const DeleteAccountSchema = z.object({
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email("Invalid email"),
+    email: z.string().email("Invalid email"),
 });
 
 export const resetPasswordSchema = z.object({
-  password: z
-    .string()
-    .min(8, "Minimum 8 characters")
-    .regex(/[A-Z]/, "Must include uppercase")
-    .regex(/[0-9]/, "Must include number"),
+    password: z
+        .string()
+        .min(8, "Minimum 8 characters")
+        .regex(/[A-Z]/, "Must include uppercase")
+        .regex(/[0-9]/, "Must include number"),
 });

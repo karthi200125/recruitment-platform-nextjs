@@ -1,11 +1,8 @@
-'use client';
-
 import { Prisma } from '@prisma/client';
 
 import Employee from './Employee';
 import EmployeesSkeleton from '@/components/skeletons/EmployeesSkeleton';
 
-// ================= TYPES =================
 
 type EmployeeUser = Prisma.UserGetPayload<{}>;
 
@@ -17,16 +14,21 @@ interface EmployeesClientProps {
     companyEmps: EmployeeUser[];
     verificationEmps: EmployeeUser[];
     currentUserId: number;
+    isLoading?: boolean;
 }
-
-// ================= COMPONENT =================
 
 const EmployeesClient = ({
     user,
     companyEmps,
     verificationEmps,
     currentUserId,
+    isLoading = false,
 }: EmployeesClientProps) => {
+
+    if (isLoading) {
+        return <EmployeesSkeleton />;
+    }
+
     return (
         <div className="w-full min-h-screen px-2 md:px-4 py-6 space-y-6">
             {/* 🔹 Header */}
@@ -63,8 +65,6 @@ const EmployeesClient = ({
 };
 
 export default EmployeesClient;
-
-// ================= SECTION =================
 
 interface EmployeeSectionProps {
     title: string;
@@ -115,8 +115,6 @@ const EmployeeSection = ({
         </section>
     );
 };
-
-// ================= EMPTY STATE =================
 
 const EmptyState = ({ text }: { text: string }) => {
     return (

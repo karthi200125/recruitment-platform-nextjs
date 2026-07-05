@@ -1,22 +1,13 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
+import { useCallback, useState } from "react";
 
 import { getNetworkusers } from "@/actions/user/get-network-users";
 import EmployeesSkeleton from "@/components/skeletons/EmployeesSkeleton";
-import NetworkUser from "../NetworkUser";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-
-
-interface AuthUser {
-    id: number;
-}
-
-interface RootState {
-    user: { user: AuthUser | null };
-}
+import NetworkUser from "../NetworkUser";
 
 interface NetworkUserType {
     id: number;
@@ -33,9 +24,7 @@ const Network = () => {
     const session = useCurrentUser();
     const currentUser = session?.user
 
-    const [network, setNetwork] =
-        useState<"followers" | "followings">("followers");
-
+    const [network, setNetwork] = useState<"followers" | "followings">("followers");
     const isCurrentUser = currentUser?.id === userId;
 
 
@@ -53,7 +42,7 @@ const Network = () => {
                 throw new Error(res.error || "Failed to fetch network");
             }
 
-            return res.data; // ✅ IMPORTANT FIX
+            return res.data;
         },
         enabled: !!userId,
         staleTime: 1000 * 60 * 2,
@@ -128,7 +117,7 @@ const Network = () => {
                 {/* List */}
                 <div className="p-4 space-y-3 min-h-[200px]">
                     {isPending ? (
-                        <EmployeesSkeleton count={6} />
+                        <EmployeesSkeleton />
                     ) : users.length === 0 ? (
                         <div className="text-center text-sm text-gray-400 py-10">
                             No {network} found

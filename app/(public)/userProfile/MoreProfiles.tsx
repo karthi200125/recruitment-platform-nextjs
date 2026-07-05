@@ -81,11 +81,11 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                             className="object-cover"
                         />
                     </div>
-                    {moreUser.isPro && (
+                    {/* {moreUser.isPro && (
                         <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-amber-400 border border-white flex items-center justify-center">
                             <Crown className="w-2 h-2 text-white" strokeWidth={3} />
                         </div>
-                    )}
+                    )} */}
                 </div>
             </Link>
 
@@ -112,17 +112,16 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                 {!isCurrentUser && (
                     <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
                         <FollowButton
-                            targetUserId={moreUser.id}                                                        
+                            targetUserId={moreUser.id}
                         />
                         <button
                             onClick={() => canMessage && dispatch(openModal(`messageModel-${moreUser.id}`))}
                             disabled={!canMessage}
                             title={!canMessage ? "Upgrade to Premium to message" : `Message ${moreUser.username}`}
-                            className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold border transition-all duration-200 ${
-                                canMessage
+                            className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold border transition-all duration-200 ${canMessage
                                     ? "bg-white border-slate-200 text-slate-600 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700"
                                     : "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed"
-                            }`}
+                                }`}
                         >
                             {canMessage
                                 ? <MessageSquare className="w-3 h-3" strokeWidth={2} />

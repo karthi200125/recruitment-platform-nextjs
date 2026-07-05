@@ -1,34 +1,27 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
-
 import { getConversation } from "@/actions/message/get-conversation";
-
-import MessageBoxSkeleton from "@/components/skeletons/MessageBoxSkeleton";
-
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-
-import { MessageSquare } from "lucide-react";
-
-import { ChatMessage, Chats } from "./Chats";
-import { ChatUser } from "./ChatUser";
-import { ChatButton } from "./ChatButton";
 import { markMessagesAsSeen } from "@/actions/message/mark-messages-as-seen ";
+import MessageBoxSkeleton from "@/components/skeletons/MessageBoxSkeleton";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { MessageSquare } from "lucide-react";
+import { useEffect } from "react";
+import { ChatButton } from "./ChatButton";
+import { Chats } from "./Chats";
+import { ChatUser } from "./ChatUser";
+import { ChatUser as ChatUserType } from "@/actions/message/get-chat-users";
+import { ChatMessage } from "@/types";
 
 interface MessageBoxProps {
   receiverId?: number;
-
   chatUser?: ChatUserType;
-
   isLoading?: boolean;
-
   isChatuser?: boolean;
 }
 
 interface Conversation {
   id: number;
-
   messages: ChatMessage[];
 }
 
@@ -39,10 +32,7 @@ export const MessageBox = ({
   isChatuser = false,
 }: MessageBoxProps) => {
   const { user } = useCurrentUser();
-
   const queryClient = useQueryClient();
-
-  /* ================= GET CONVERSATION ================= */
 
   const {
     data: conversation,
@@ -70,18 +60,14 @@ export const MessageBox = ({
     ),
 
     staleTime: 1000 * 30,
-
-    // ✅ refresh messages every 3 sec
+    
     refetchInterval: receiverId
       ? 3000
       : false,
 
     refetchOnWindowFocus: true,
-
     refetchOnReconnect: true,
   });
-
-  /* ================= MARK AS SEEN ================= */
 
   useEffect(() => {
     const handleMarkSeen = async () => {
@@ -119,16 +105,10 @@ export const MessageBox = ({
     handleMarkSeen();
   }, [
     conversation?.id,
-
-    // ✅ rerun when new messages arrive
     conversation?.messages?.length,
-
     user?.id,
-
     queryClient,
   ]);
-
-  /* ================= LOADING ================= */
 
   if (isPending || isLoading) {
     return (
@@ -137,8 +117,6 @@ export const MessageBox = ({
       </div>
     );
   }
-
-  /* ================= EMPTY STATE ================= */
 
   if (!receiverId) {
     return (
@@ -162,8 +140,6 @@ export const MessageBox = ({
       </div>
     );
   }
-
-  /* ================= UI ================= */
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
