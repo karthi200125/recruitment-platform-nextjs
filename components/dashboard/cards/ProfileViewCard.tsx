@@ -1,103 +1,100 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { formatDistanceToNow } from "date-fns";
 
-type ProfileView = {
-    id: number;
-    company: string;
-    role: string;
-    viewedAt: string;
-    logo: string;
-};
+import { ProfileViewWithViewer } from "@/types";
 
-const profileViews: ProfileView[] = [
-    {
-        id: 1,
-        company: "Tech Solutions Inc.",
-        role: "HR Manager",
-        viewedAt: "2 hours ago",
-        logo: "/logos/techsolutions.png",
-    },
+interface ProfileViewsCardProps {
+    profileViews: ProfileViewWithViewer[];
+}
 
-    {
-        id: 2,
-        company: "Google",
-        role: "Recruiter",
-        viewedAt: "1 day ago",
-        logo: "/logos/google.png",
-    },
-
-    {
-        id: 3,
-        company: "Microsoft",
-        role: "Talent Acquisition",
-        viewedAt: "2 days ago",
-        logo: "/logos/microsoft.png",
-    },
-];
-
-export default function ProfileViewsCard() {
+const ProfileViewsCard = ({
+    profileViews,
+}: ProfileViewsCardProps) => {
     return (
-        <section className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-
+        <section className="w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             {/* Header */}
-            <div className="flex items-center justify-between mb-5">
-
+            <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-[18px] font-semibold tracking-tight text-slate-900">
                     Profile Views
                 </h2>
 
                 <Link
-                    href="/dashboard/profile-views"
-                    className="text-[14px] font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                    href="/dashboard?tab=profileViews"
+                    className="text-[14px] font-medium text-blue-600 transition-colors hover:text-blue-700"
                 >
                     View all
                 </Link>
             </div>
 
-            {/* List */}
-            <div className="flex flex-col">
+            {/* Empty State */}
+            {profileViews.length === 0 ? (
+                <div className="flex h-40 items-center justify-center">
+                    <p className="text-sm text-slate-500">
+                        No profile views yet.
+                    </p>
+                </div>
+            ) : (
+                <div className="flex flex-col">
+                    {profileViews.map((view) => {
+                        const viewer = view.viewer;
 
-                {profileViews.map((item) => (
-                    <div
-                        key={item.id}
-                        className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
-                    >
+                        return (
+                            <div
+                                key={view.id}
+                                className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
+                            >
+                                {/* Left */}
+                                <div className="flex min-w-0 items-center gap-3">
+                                    <div className="relative flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                                        <Image
+                                            src={
+                                                viewer?.profileImage ??
+                                                "/images/user-placeholder.png"
+                                            }
+                                            alt={
+                                                viewer?.username ??
+                                                "User"
+                                            }
+                                            fill
+                                            className="object-cover"
+                                        />
+                                    </div>
 
-                        {/* Left */}
-                        <div className="flex items-center gap-3 min-w-0">
+                                    <div className="min-w-0">
+                                        <h3 className="truncate text-[15px] font-medium text-slate-900">
+                                            {viewer?.firstName &&
+                                                viewer?.lastName
+                                                ? `${viewer.firstName} ${viewer.lastName}`
+                                                : viewer?.username ??
+                                                "Anonymous"}
+                                        </h3>
 
-                            {/* Logo */}
-                            <div className="relative w-11 h-11 rounded-xl border border-slate-200 bg-white overflow-hidden flex items-center justify-center flex-shrink-0">
+                                        <p className="truncate text-[14px] text-slate-500">
+                                            {viewer?.profession ??
+                                                "Professional"}
+                                        </p>
+                                    </div>
+                                </div>
 
-                                <Image
-                                    src={item.logo}
-                                    alt={item.company}
-                                    width={28}
-                                    height={28}
-                                    className="object-contain"
-                                />
+                                {/* Right */}
+                                <span className="ml-3 flex-shrink-0 text-[13px] text-slate-400">
+                                    {formatDistanceToNow(
+                                        view.createdAt,
+                                        {
+                                            addSuffix: true,
+                                        }
+                                    )}
+                                </span>
                             </div>
-
-                            {/* Info */}
-                            <div className="min-w-0">
-
-                                <h3 className="text-[15px] font-medium text-slate-900 truncate">
-                                    {item.company}
-                                </h3>
-
-                                <p className="text-[14px] text-slate-500 truncate">
-                                    {item.role}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Time */}
-                        <span className="text-[13px] text-slate-400 flex-shrink-0 ml-3">
-                            {item.viewedAt}
-                        </span>
-                    </div>
-                ))}
-            </div>
+                        );
+                    })}
+                </div>
+            )}
         </section>
     );
-}
+};
+
+export default ProfileViewsCard;

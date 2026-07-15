@@ -1,61 +1,34 @@
 "use client";
 
-import { useMemo } from "react";
-
 import {
-    PieChart,
     Pie,
+    PieChart,
     Cell,
-    ResponsiveContainer,
     Tooltip,
+    ResponsiveContainer,
 } from "recharts";
-
 import { ChevronDown } from "lucide-react";
 
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
-
-interface StatusItem {
-    label: string;
-
-    value: number;
-
-    color: string;
-}
+import { DashboardStatusChartData } from "@/types/dashboard";
 
 interface DashboardStatusChartProps {
     title: string;
-
     total?: number;
-
-    data: StatusItem[];
+    data: DashboardStatusChartData[];
 }
-
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
 
 const DashboardStatusChart = ({
     title,
     total,
     data,
 }: DashboardStatusChartProps) => {
-    // Safe Total
     const calculatedTotal =
-        useMemo(() => {
-            if (typeof total === "number") {
-                return total;
-            }
+        total ??
+        data.reduce(
+            (sum, item) => sum + item.value,
+            0
+        );
 
-            return data.reduce(
-                (acc, item) =>
-                    acc + item.value,
-                0
-            );
-        }, [data, total]);
-
-    // Empty State
     const hasData =
         data.length > 0 &&
         calculatedTotal > 0;
@@ -68,8 +41,11 @@ const DashboardStatusChart = ({
                     {title}
                 </h3>
 
-                <button className="flex h-11 items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white px-4 text-[14px] font-medium text-[#374151] transition-colors hover:bg-[#F9FAFB]">
-                    Last 30 days
+                <button
+                    type="button"
+                    className="flex h-11 items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white px-4 text-[14px] font-medium text-[#374151] transition-colors hover:bg-[#F9FAFB]"
+                >
+                    Last 30 Days
 
                     <ChevronDown
                         className="h-4 w-4"
@@ -80,6 +56,7 @@ const DashboardStatusChart = ({
 
             {/* Content */}
             <div className="mt-8 flex flex-col gap-8 lg:h-[240px] lg:flex-row lg:items-center lg:justify-between">
+
                 {/* Chart */}
                 <div className="relative mx-auto h-[220px] w-[220px] flex-shrink-0">
                     {hasData ? (
@@ -88,7 +65,12 @@ const DashboardStatusChart = ({
                             height="100%"
                         >
                             <PieChart>
-                                <Tooltip />
+                                <Tooltip
+                                    formatter={(value: any) => [
+                                        value.toLocaleString(),
+                                        "Count",
+                                    ]}
+                                />
 
                                 <Pie
                                     data={data}
@@ -99,38 +81,29 @@ const DashboardStatusChart = ({
                                     paddingAngle={2}
                                     minAngle={4}
                                     stroke="transparent"
-                                    animationDuration={
-                                        700
-                                    }
+                                    animationDuration={700}
                                 >
-                                    {data.map(
-                                        (
-                                            item,
-                                            index
-                                        ) => (
-                                            <Cell
-                                                key={`${item.label}-${index}`}
-                                                fill={
-                                                    item.color
-                                                }
-                                            />
-                                        )
-                                    )}
+                                    {data.map((item) => (
+                                        <Cell
+                                            key={item.label}
+                                            fill={item.color}
+                                        />
+                                    ))}
                                 </Pie>
                             </PieChart>
                         </ResponsiveContainer>
                     ) : (
                         <div className="flex h-full items-center justify-center rounded-full border border-dashed border-slate-200">
-                            <p className="text-sm text-slate-400">
+                            <span className="text-sm text-slate-400">
                                 No chart data
-                            </p>
+                            </span>
                         </div>
                     )}
 
                     {/* Center */}
                     <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
                         <h4 className="text-[42px] font-bold leading-none tracking-[-2px] text-[#111827]">
-                            {calculatedTotal}
+                            {calculatedTotal.toLocaleString()}
                         </h4>
 
                         <p className="mt-2 text-[16px] font-medium text-[#6B7280]">
@@ -143,21 +116,16 @@ const DashboardStatusChart = ({
                 <div className="flex flex-1 flex-col gap-5">
                     {hasData ? (
                         data.map((item) => {
-                            const percentage =
-                                (
-                                    (item.value /
-                                        calculatedTotal) *
-                                    100
-                                ).toFixed(1);
+                            const percentage = (
+                                (item.value / calculatedTotal) *
+                                100
+                            ).toFixed(1);
 
                             return (
                                 <div
-                                    key={
-                                        item.label
-                                    }
+                                    key={item.label}
                                     className="flex items-center justify-between gap-4"
                                 >
-                                    {/* Left */}
                                     <div className="flex items-center gap-3">
                                         <div
                                             className="h-3 w-3 rounded-full"
@@ -168,26 +136,17 @@ const DashboardStatusChart = ({
                                         />
 
                                         <span className="text-[15px] font-medium text-[#111827]">
-                                            {
-                                                item.label
-                                            }
+                                            {item.label}
                                         </span>
                                     </div>
 
-                                    {/* Right */}
                                     <div className="flex items-center gap-2">
                                         <span className="text-[15px] font-semibold text-[#111827]">
-                                            {
-                                                item.value
-                                            }
+                                            {item.value.toLocaleString()}
                                         </span>
 
                                         <span className="text-[15px] text-[#6B7280]">
-                                            (
-                                            {
-                                                percentage
-                                            }
-                                            %)
+                                            ({percentage}%)
                                         </span>
                                     </div>
                                 </div>
@@ -195,12 +154,13 @@ const DashboardStatusChart = ({
                         })
                     ) : (
                         <div className="flex flex-1 items-center justify-center">
-                            <p className="text-sm text-slate-400">
+                            <span className="text-sm text-slate-400">
                                 No analytics available
-                            </p>
+                            </span>
                         </div>
                     )}
                 </div>
+
             </div>
         </div>
     );

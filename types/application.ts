@@ -18,6 +18,11 @@ export type JobApplicationWithStatusHistory =
 export type JobApplicationWithUser = Prisma.JobApplicationGetPayload<{
     include: {
         user: true;
+        job: {
+            include: {
+                company: true;
+            };
+        };
     };
 }>;
 

@@ -1,89 +1,84 @@
+import { memo } from "react";
 import { Role } from "@prisma/client";
 
-import { DashboardData } from "@/types/dashboard";
+import { DashboardData, DashboardTab, DashboardPagination } from "@/types/dashboard";
+import { JobApplicationWithUser, JobWithCompany, User } from "@/types";
+
 import DashboardOverview from "./overview/DashboardOverview";
-import RecentActivityCard from "./cards/RecentActivityCard";
+import DashboardTableSection from "./tables/DashboardTableSection";
 
 interface DashboardContentProps {
-    activeTab: string;
     role: Role;
+    activeTab: DashboardTab;
     dashboardData: DashboardData;
+    isLoading?: boolean;
 }
 
-const DashboardContent = ({
-    activeTab,
-    role,
-    dashboardData,
-}: DashboardContentProps) => {
-    return {
-        < section className = "space-y-5" >
-        {/* Overview */ }
-    {
-        activeTab ===
-            "overview" && (
-                <DashboardOverview
-                    role={role}
-                    stats={dashboardData.stats ?? {}}
-                    leftChart={{
-                        title: "Company Hiring",
-                        total: dashboardData.stats?.applicants?.count ?? 0,
-                        data: dashboardData.charts?.companyHiringChart ?? [],
-                    }}
-                    rightChart={{
-                        title: "Recruiters Performance",
-                        data: dashboardData.charts?.recruitersPerformanceChart ?? [],
-                    }}
-                    leftContent={
-                        <RecentApplicantsCard
-                            applicants={dashboardData.recentApplicants ?? []}
-                        />
-                    }
-                    rightContent={
-                        <RecentActivityCard
-                            activities={dashboardData.recentActivity ?? []}
-                        />
-                    }
-                />
-            )
-    }
+type AnyTableData =
+    | DashboardPagination<JobApplicationWithUser>
+    | DashboardPagination<JobWithCompany>
+    | DashboardPagination<User>;
 
-    {/* Jobs */ }
-    {
-        activeTab ===
-            "jobs" && (
-                <OrganizationJobsTab
-                    dashboardData={
-                        dashboardData
-                    }
-                />
-            )
-    }
-
-    {/* Applicants */ }
-    {
-        activeTab ===
-            "applicants" && (
-                <ApplicantsTab
-                    dashboardData={
-                        dashboardData
-                    }
-                />
-            )
-    }
-
-    {/* Hired */ }
-    {
-        activeTab ===
-            "hired" && (
-                <HiredCandidatesTab
-                    dashboardData={
-                        dashboardData
-                    }
-                />
-            )
-    }
-                </section >
+const getTableForTab = (dashboardData: DashboardData, tab: DashboardTab): AnyTableData | null => {
+    switch (dashboardData.role) {
+        case "CANDIDATE": {
+            const { tables } = dashboardData;
+            switch (tab) {
+                case "applied": return tables.appliedJobs ?? null;
+                case "saved": return tables.savedJobs ?? null;
+                case "interviews": return tables.interviews ?? null;
+                case "followers": return tables.followers ?? null;
+                case "following": return tables.following ?? null;
+                default: return null;
+            }
+        }
+        case "RECRUITER": {
+            const { tables } = dashboardData;
+            switch (tab) {
+                case "applied": return tables.appliedJobs ?? null;
+                case "saved": return tables.savedJobs ?? null;
+                case "interviews": return tables.interviews ?? null;
+                case "followers": return tables.followers ?? null;
+                case "following": return tables.following ?? null;
+                case "postedJobs": return tables.postedJobs ?? null;
+                case "applicants": return tables.applicants ?? null;
+                case "hired": return tables.hiredCandidates ?? null;
+                default: return null;
+            }
+        }
+        case "ORGANIZATION": {
+            const { tables } = dashboardData;
+            switch (tab) {
+                case "jobs": return tables.postedJobs ?? null;
+                case "applicants": return tables.applicants ?? null;
+                case "hired": return tables.hiredCandidates ?? null;
+                case "employees": return tables.employees ?? null;
+                default: return null;
+            }
+        }
+        default:
+            return null;
     }
 };
 
-export default DashboardContent;
+const DashboardContent = ({ role, activeTab, dashboardData, isLoading = false }: DashboardContentProps) => {
+    if (activeTab === "overview") {
+        return <DashboardOverview role={role} overview={dashboardData.overview} isLoading={isLoading} />;
+    }
+
+    const tableData = getTableForTab(dashboardData, activeTab);
+
+    if (!tableData) {
+        return (
+            <div className="flex h-64 items-center justify-center rounded-[24px] border border-slate-200 bg-white text-sm text-slate-500">
+                This section isn&apos;t available for your role.
+            </div>
+        );
+    }
+
+    return (
+        <DashboardTableSection role={role} activeTab={activeTab} pagination={tableData} isLoading={isLoading} />
+    );
+};
+
+export default memo(DashboardContent);

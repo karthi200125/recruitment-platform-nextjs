@@ -1,6 +1,6 @@
 import { Role } from "@prisma/client";
 import DashboardStats from "../cards/DashboardStats";
-import DashboardStatusChart from "../charts/DashboardStatusChart ";
+import DashboardStatusChart from "../charts/DashboardStatusChart";
 import DashboardActivityChart from "../charts/DashboardActivityChart";
 import ProfileCompletionCard from "../cards/ProfileCompletionCard";
 import ProfileViewsCard from "../cards/ProfileViewCard";

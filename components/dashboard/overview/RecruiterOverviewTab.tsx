@@ -6,7 +6,7 @@ import DashboardStats from "../cards/DashboardStats";
 import DashboardActivityChart from "@/components/dashboard/charts/DashboardActivityChart";
 import RecentActivityCard from "@/components/dashboard/cards/RecentActivityCard";
 import RecentApplicationsCard from "@/components/dashboard/cards/RecentApplicationsCard";
-import DashboardStatusChart from "../charts/DashboardStatusChart ";
+import DashboardStatusChart from "../charts/DashboardStatusChart";
 
 interface RecruiterOverviewTabProps {
     role: Role;

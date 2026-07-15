@@ -2,7 +2,7 @@
 import DashboardActivityChart from "@/components/dashboard/charts/DashboardActivityChart";
 import { Role } from "@prisma/client";
 import DashboardStats from "../cards/DashboardStats";
-import DashboardStatusChart from "../charts/DashboardStatusChart ";
+import DashboardStatusChart from "../charts/DashboardStatusChart";
 import { DashboardData } from "@/types/dashboard";
 
 interface OrganizationOverviewTabProps {

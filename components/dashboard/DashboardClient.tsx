@@ -12,59 +12,36 @@ import DashboardContent from "./DashboardContent";
 import { DASHBOARD_TABS } from "./config/dashboardTabsConfig";
 import CompanyVerificationBanner from "@/app/(protected)/create-company/CompanyVerificationBanner";
 
-interface DashboardClientProps {
-    user: Pick<User, "id" | "role" | "username" | "userImage">;
-    dashboardData: DashboardData;
-    company: any
+interface DashboardCompany {
+  id: number;
+  companyIsVerified: boolean;
 }
 
-const DashboardClient = ({
-    user,
-    dashboardData,
-    company
-}: DashboardClientProps) => {
-    const searchParams = useSearchParams();
+interface DashboardClientProps {
+  user: Omit<Pick<User, "id" | "role" | "username" | "userImage">, "role"> & { role: Role };
+  dashboardData: DashboardData;
+  company: DashboardCompany | null;
+}
 
-    const allowedTabs = DASHBOARD_TABS[user.role];
-    const requestedTab = searchParams.get("tab") ?? "overview";
+const DashboardClient = ({ user, dashboardData, company }: DashboardClientProps) => {
+  const searchParams = useSearchParams();
 
-    const activeTab =
-        allowedTabs.some(
-            ({ value }) =>
-                value === requestedTab
-        )
-            ? requestedTab
-            : "overview";
+  const allowedTabs = DASHBOARD_TABS[user.role];
+  const requestedTab = searchParams.get("tab") ?? "overview";
 
-    if (!dashboardData) {
-        return null;
-    }
+  const activeTab = allowedTabs.some(({ value }) => value === requestedTab) ? requestedTab : "overview";
 
-    return (
-        <main className="min-h-screen space-y-6">
+  return (
+    <main className="min-h-screen space-y-6">
+      {user.role === Role.ORGANIZATION && company && !company.companyIsVerified && (
+        <CompanyVerificationBanner companyIsVerified={company.companyIsVerified} />
+      )}
 
-            {user.role === Role.ORGANIZATION &&
-                company &&
-                !company.companyIsVerified && (
-                    <CompanyVerificationBanner
-                        companyIsVerified={company.companyIsVerified}
-                    />
-                )}
+      <DashboardNavbar role={user.role} activeTab={activeTab} />
 
-            <DashboardNavbar
-                role={user.role}
-                activeTab={activeTab}
-            />
-
-            <DashboardContent
-                role={user.role}
-                activeTab={activeTab}
-                dashboardData={
-                    dashboardData
-                }
-            />
-        </main>
-    );
+      <DashboardContent role={user.role} activeTab={activeTab as any} dashboardData={dashboardData} />
+    </main>
+  );
 };
 
 export default memo(DashboardClient);

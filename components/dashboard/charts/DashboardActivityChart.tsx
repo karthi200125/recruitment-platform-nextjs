@@ -9,18 +9,20 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-
-import { DashboardActivityData } from "@/types/dashboard";
 import { ChevronDown } from "lucide-react";
+import { DashboardActivityChartData } from "@/types/dashboard";
 
 interface DashboardActivityChartProps {
     title: string;
-    data: DashboardActivityData[];
+    data: DashboardActivityChartData[];
+    valueLabel?: string;
 }
 
-interface TooltipProps {
+interface CustomTooltipProps {
     active?: boolean;
-    payload?: any[];
+    payload?: {
+        value: number;
+    }[];
     label?: string;
 }
 
@@ -28,40 +30,38 @@ const CustomTooltip = ({
     active,
     payload,
     label,
-}: TooltipProps) => {
-    if (
-        active &&
-        payload &&
-        payload.length
-    ) {
-        return (
-            <div className="rounded-2xl border border-[#EAEAEA] bg-white px-4 py-3 shadow-[0px_8px_30px_rgba(15,23,42,0.08)]">
-                <p className="text-[14px] font-medium text-[#6B7280]">
-                    {label}
-                </p>
-
-                <div className="mt-2 flex items-center gap-2">
-                    <div className="h-3 w-3 rounded-full bg-[#3B82F6]" />
-
-                    <span className="text-[15px] font-semibold text-[#111827]">
-                        {
-                            payload[0]
-                                .value
-                        }{" "}
-                        Applications
-                    </span>
-                </div>
-            </div>
-        );
+    valueLabel,
+}: CustomTooltipProps & {
+    valueLabel: string;
+}) => {
+    if (!active || !payload?.length) {
+        return null;
     }
 
-    return null;
+    return (
+        <div className="rounded-2xl border border-[#EAEAEA] bg-white px-4 py-3 shadow-[0px_8px_30px_rgba(15,23,42,0.08)]">
+            <p className="text-[14px] font-medium text-[#6B7280]">
+                {label}
+            </p>
+
+            <div className="mt-2 flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-[#3B82F6]" />
+
+                <span className="text-[15px] font-semibold text-[#111827]">
+                    {payload[0].value.toLocaleString()} {valueLabel}
+                </span>
+            </div>
+        </div>
+    );
 };
 
 const DashboardActivityChart = ({
     title,
     data,
+    valueLabel = "Applications",
 }: DashboardActivityChartProps) => {
+    const hasData = data.length > 0;
+
     return (
         <div className="h-full rounded-[24px] border border-[#EAEAEA] bg-white p-6">
             {/* Header */}
@@ -70,8 +70,11 @@ const DashboardActivityChart = ({
                     {title}
                 </h3>
 
-                <button className="flex h-11 items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white px-4 text-[14px] font-medium text-[#374151] transition-colors hover:bg-[#F9FAFB]">
-                    Last 30 days
+                <button
+                    type="button"
+                    className="flex h-11 items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white px-4 text-[14px] font-medium text-[#374151] transition-colors hover:bg-[#F9FAFB]"
+                >
+                    Last 30 Days
 
                     <ChevronDown
                         className="h-4 w-4"
@@ -82,69 +85,69 @@ const DashboardActivityChart = ({
 
             {/* Chart */}
             <div className="mt-8 h-[250px] w-full">
-                <ResponsiveContainer
-                    width="100%"
-                    height="100%"
-                >
-                    <BarChart
-                        data={data}
-                        barGap={6}
+                {hasData ? (
+                    <ResponsiveContainer
+                        width="100%"
+                        height="100%"
                     >
-                        {/* Grid */}
-                        <CartesianGrid
-                            vertical={false}
-                            stroke="#F1F5F9"
-                        />
+                        <BarChart
+                            data={data}
+                            barGap={6}
+                        >
+                            <CartesianGrid
+                                vertical={false}
+                                stroke="#F1F5F9"
+                            />
 
-                        {/* X Axis */}
-                        <XAxis
-                            dataKey="name"
-                            tickLine={false}
-                            axisLine={false}
-                            tick={{
-                                fill: "#6B7280",
-                                fontSize: 13,
-                                fontWeight: 500,
-                            }}
-                            dy={10}
-                        />
+                            <XAxis
+                                dataKey="name"
+                                tickLine={false}
+                                axisLine={false}
+                                tick={{
+                                    fill: "#6B7280",
+                                    fontSize: 13,
+                                    fontWeight: 500,
+                                }}
+                                dy={10}
+                            />
 
-                        {/* Y Axis */}
-                        <YAxis
-                            tickLine={false}
-                            axisLine={false}
-                            tick={{
-                                fill: "#6B7280",
-                                fontSize: 13,
-                                fontWeight: 500,
-                            }}
-                            width={40}
-                        />
+                            <YAxis
+                                tickLine={false}
+                                axisLine={false}
+                                tick={{
+                                    fill: "#6B7280",
+                                    fontSize: 13,
+                                    fontWeight: 500,
+                                }}
+                                width={40}
+                            />
 
-                        {/* Tooltip */}
-                        <Tooltip
-                            cursor={{
-                                fill: "transparent",
-                            }}
-                            content={
-                                <CustomTooltip />
-                            }
-                        />
+                            <Tooltip
+                                cursor={{
+                                    fill: "transparent",
+                                }}
+                                content={
+                                    <CustomTooltip
+                                        valueLabel={valueLabel}
+                                    />
+                                }
+                            />
 
-                        {/* Bars */}
-                        <Bar
-                            dataKey="applications"
-                            radius={[
-                                10,
-                                10,
-                                0,
-                                0,
-                            ]}
-                            fill="#3B82F6"
-                            barSize={10}
-                        />
-                    </BarChart>
-                </ResponsiveContainer>
+                            <Bar
+                                dataKey="applications"
+                                fill="#3B82F6"
+                                radius={[10, 10, 0, 0]}
+                                barSize={10}
+                            />
+                        </BarChart>
+                    </ResponsiveContainer>
+                ) : (
+                    <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-200">
+                        <span className="text-sm text-slate-400">
+                            No analytics available
+                        </span>
+                    </div>
+                )}
             </div>
         </div>
     );

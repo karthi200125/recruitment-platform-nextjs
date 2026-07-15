@@ -1,127 +1,60 @@
+"use client";
+
+import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 
+import { getActivityConfig } from "@/lib/dashboard/activity-config";
 import {
-    Eye,
-    CalendarDays,
-    CircleCheckBig,
-    Download,
-} from "lucide-react";
+    DashboardRecentActivity
+} from "@/types/dashboard";
 
-type ActivityType =
-    | "view"
-    | "interview"
-    | "shortlisted"
-    | "download";
+interface RecentActivityCardProps {
+    activities: DashboardRecentActivity[];
+}
 
-type ActivityItem = {
-    id: number;
-    title: string;
-    time: string;
-    type: ActivityType;
-};
+const RecentActivityCard = ({
+    activities,
+}: RecentActivityCardProps) => {
 
-const activities: ActivityItem[] = [
-    {
-        id: 1,
-        title: "Tech Solutions viewed your profile",
-        time: "2 hours ago",
-        type: "view",
-    },
 
-    {
-        id: 2,
-        title:
-            "Interview scheduled for Frontend Developer at Google",
-        time: "1 day ago",
-        type: "interview",
-    },
+    if (activities.length === 0) {
+        return (
+            <div className="flex h-full min-h-[360px] flex-col rounded-2xl border border-slate-200 bg-white shadow-sm">
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+                    <h2 className="text-[20px] font-semibold tracking-tight text-slate-900">
+                        Recent Activity
+                    </h2>
 
-    {
-        id: 3,
-        title:
-            "You were shortlisted for UI/UX Designer at Microsoft",
-        time: "2 days ago",
-        type: "shortlisted",
-    },
+                    <Link
+                        href="/dashboard?tab=activity"
+                        className="text-[14px] font-medium text-blue-600 transition-colors hover:text-blue-700"
+                    >
+                        View all
+                    </Link>
+                </div>
 
-    {
-        id: 4,
-        title:
-            "Your resume was downloaded by Amazon",
-        time: "3 days ago",
-        type: "download",
-    },
-];
-
-const activityConfig: Record<
-    ActivityType,
-    {
-        icon: React.ElementType;
-        iconClass: string;
-        wrapperClass: string;
+                {/* Empty */}
+                <div className="flex flex-1 items-center justify-center">
+                    <p className="text-[15px] text-slate-500">
+                        No recent activity found.
+                    </p>
+                </div>
+            </div>
+        );
     }
-> = {
-    view: {
-        icon: Eye,
 
-        iconClass:
-            "text-blue-600",
-
-        wrapperClass:
-            "bg-blue-50",
-    },
-
-    interview: {
-        icon: CalendarDays,
-
-        iconClass:
-            "text-violet-600",
-
-        wrapperClass:
-            "bg-violet-50",
-    },
-
-    shortlisted: {
-        icon: CircleCheckBig,
-
-        iconClass:
-            "text-emerald-600",
-
-        wrapperClass:
-            "bg-emerald-50",
-    },
-
-    download: {
-        icon: Download,
-
-        iconClass:
-            "text-orange-500",
-
-        wrapperClass:
-            "bg-orange-50",
-    },
-};
-
-type RecentActivityCardProps = {
-    data?: ActivityItem[];
-};
-
-export default function RecentActivityCard({
-    data = activities,
-}: RecentActivityCardProps) {
     return (
-        <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-
+        <div className="h-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-
+            <div className="mb-6 flex items-center justify-between">
                 <h2 className="text-[20px] font-semibold tracking-tight text-slate-900">
                     Recent Activity
                 </h2>
 
                 <Link
-                    href="/dashboard/activity"
-                    className="text-[14px] font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                    href="/dashboard?tab=activity"
+                    className="text-[14px] font-medium text-blue-600 transition-colors hover:text-blue-700"
                 >
                     View all
                 </Link>
@@ -129,57 +62,53 @@ export default function RecentActivityCard({
 
             {/* Timeline */}
             <div className="flex flex-col">
-
-                {data.map((item, index) => {
-                    const config =
-                        activityConfig[item.type];
-
-                    const Icon =
-                        config.icon;
-
-                    const isLast =
-                        index === data.length - 1;
+                {activities.map((activity, index) => {
+                    const config = getActivityConfig(activity.type);
+                    const Icon = config.icon;
+                    const isLast = index === activities.length - 1;
 
                     return (
                         <div
-                            key={item.id}
+                            key={activity.id}
                             className="relative flex gap-4 pb-7 last:pb-0"
                         >
-
-                            {/* Left timeline */}
-                            <div className="relative flex flex-col items-center flex-shrink-0">
-
-                                {/* Line */}
+                            {/* Timeline */}
+                            <div className="relative flex flex-shrink-0 flex-col items-center">
                                 {!isLast && (
-                                    <div className="absolute top-11 bottom-[-28px] w-px bg-slate-200" />
+                                    <div className="absolute bottom-[-28px] top-11 w-px bg-slate-200" />
                                 )}
 
-                                {/* Icon */}
                                 <div
-                                    className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center ${config.wrapperClass}`}
+                                    className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-full ${config.wrapperClass}`}
                                 >
                                     <Icon
-                                        className={`w-[18px] h-[18px] ${config.iconClass}`}
+                                        className={`h-[18px] w-[18px] ${config.iconClass}`}
                                         strokeWidth={2}
                                     />
                                 </div>
                             </div>
 
                             {/* Content */}
-                            <div className="flex-1 pt-1 min-w-0">
-
-                                <p className="text-[16px] leading-[1.5] font-medium text-slate-900">
-                                    {item.title}
+                            <div className="min-w-0 flex-1 pt-1">
+                                <p className="text-[15px] font-medium leading-6 text-slate-900">
+                                    {activity.title}
                                 </p>
 
-                                <span className="mt-1 block text-[14px] text-slate-400">
-                                    {item.time}
+                                <span className="mt-1 block text-[13px] text-slate-400">
+                                    {formatDistanceToNow(
+                                        activity.createdAt,
+                                        {
+                                            addSuffix: true,
+                                        }
+                                    )}
                                 </span>
                             </div>
                         </div>
                     );
                 })}
             </div>
-        </section>
+        </div>
     );
-}
+};
+
+export default RecentActivityCard;

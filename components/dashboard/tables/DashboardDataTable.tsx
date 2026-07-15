@@ -16,6 +16,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import DashboardTableSkeleton from "@/components/skeletons/DashboardTableSkeleton";
 
 interface DashboardDataTableProps<
     TData,
@@ -29,6 +30,7 @@ interface DashboardDataTableProps<
     emptyTitle?: string;
     emptyDescription?: string;
     className?: string;
+    isLoading?: boolean;
 }
 
 const DashboardDataTable = <
@@ -40,6 +42,7 @@ const DashboardDataTable = <
     emptyTitle = "No data found",
     emptyDescription = "There is currently no data available.",
     className,
+    isLoading
 }: DashboardDataTableProps<
     TData,
     TValue
@@ -50,6 +53,12 @@ const DashboardDataTable = <
         getCoreRowModel:
             getCoreRowModel(),
     });
+
+    if (isLoading) {
+        return (
+            <DashboardTableSkeleton />
+        );
+    }
 
     return (
         <div

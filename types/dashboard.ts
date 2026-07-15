@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import { ApplicationStatus, Role } from "@prisma/client";
 import { LucideIcon } from "lucide-react";
 
 import { JobApplicationWithUser } from "./application";
@@ -6,32 +6,32 @@ import { JobWithCompany } from "./jobs";
 import { ProfileViewWithViewer } from "./profile-view";
 import { User } from "./user";
 
-export interface DashboardChartPoint {
-    label?: string;
-    value: number;
-}
-
-export interface DashboardPagination<T> {
-    data: T[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-}
-
-export interface DashboardAnalyticsData {
-    count: number;
-    period?: number;
-    growth: number;
-    isPositive: boolean;
-    chartData?: DashboardChartPoint[];
-}
-
 export interface DashboardStatusChartData {
-    name: string;
+    label: string;
     value: number;
+    color: string;
+}
+
+export type DashboardTab =
+    | "overview"
+    | "applied"
+    | "saved"
+    | "interviews"
+    | "profileViews"
+    | "followers"
+    | "following"
+    | "postedJobs"
+    | "applicants"
+    | "jobs"
+    | "employees"
+    | "hired";
+
+export interface DashboardTabItem {
+    label: string;
+    value: DashboardTab;
+    disabled?: boolean;
+    badge?: number;
+    href?: string;
 }
 
 export interface DashboardActivityChartData {
@@ -40,14 +40,83 @@ export interface DashboardActivityChartData {
 }
 
 export interface DashboardCharts {
-    applicationStatus?: DashboardStatusChartData[];
-    applicationActivity?: DashboardActivityChartData[];
+    statusChart: {
+        title: string;
+        total: number;
+        data: DashboardStatusChartData[];
+    };
+    activityChart: {
+        title: string;
+        data: DashboardActivityChartData[];
+    };
+}
 
-    hiringStatus?: DashboardStatusChartData[];
-    hiringActivity?: DashboardActivityChartData[];
+export interface DashboardAnalyticsData {
+    count: number;
+    growth: number;
+    isPositive: boolean;
+    chartData: DashboardStatusChartData[];
+    label?: string;
+    description?: string;
+}
 
-    organizationHiring?: DashboardStatusChartData[];
-    recruiterPerformance?: DashboardActivityChartData[];
+export type DashboardStatKey =
+    | "appliedJobs"
+    | "savedJobs"
+    | "interviews"
+    | "profileViews"
+    | "postedJobs"
+    | "jobs"
+    | "applicants"
+    | "employees"
+    | "hiredCandidates";
+
+export interface DashboardStatItem {
+    key: DashboardStatKey;
+    label: string;
+    icon: LucideIcon;
+    href?: string;
+    iconBg: string;
+    iconColor: string;
+    chartColor: string;
+}
+
+// stats is always keyed by DashboardStatKey — components should never widen this to Record<string, ...>
+export type DashboardStatsMap = Partial<Record<DashboardStatKey, DashboardAnalyticsData>>;
+
+export interface DashboardStatsProps {
+    role: Role;
+    stats: DashboardStatsMap;
+}
+
+export interface DashboardFilterOption {
+    label: string;
+    value: string;
+}
+
+export interface DashboardFilterItem {
+    key: string;
+    label: string;
+    value: string;
+    options: DashboardFilterOption[];
+}
+
+export interface DashboardSearchState {
+    value: string;
+}
+
+export interface DashboardPaginationMeta {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+}
+
+export interface DashboardPagination<T> {
+    data: T[];
+    pagination: DashboardPaginationMeta;
 }
 
 export interface ProfileCompletionItem {
@@ -58,6 +127,9 @@ export interface ProfileCompletionItem {
 export interface ProfileCompletionData {
     percentage: number;
     items: ProfileCompletionItem[];
+    title?: string;
+    description?: string;
+    actionLabel?: string;
 }
 
 export type DashboardActivityType =
@@ -74,64 +146,81 @@ export type DashboardActivityType =
 export interface DashboardRecentActivity {
     id: number;
     title: string;
-    description?: string;
     type: DashboardActivityType;
     createdAt: Date;
-}
-
-export interface DashboardStatItem {
-    key: string;
-    label: string;
-    icon: LucideIcon;
     href?: string;
-    iconBg: string;
-    iconColor: string;
-    chartColor: string;
 }
 
-export interface DashboardStatsProps {
-    role: Role;
-    stats: Record<string, DashboardAnalyticsData>;
-}
-
-export interface DashboardPagination<T> {
-    data: T[];
-    total: number;
-    page: number;
-    totalPages: number;
-}
-
-export interface CandidateDashboardData {
-    stats: Record<string, DashboardAnalyticsData>;
-    charts?: DashboardCharts;
-    profileCompletion: ProfileCompletionData;
+// unified name: "recentApplications" always means "the applications relevant to viewing this role"
+// candidate -> their own applications; recruiter/org -> applications received on their jobs
+export interface DashboardOverviewData {
+    stats: DashboardStatsMap;
+    charts: DashboardCharts;
+    profileCompletion?: ProfileCompletionData;
+    profileViews?: ProfileViewWithViewer[];
+    recentApplications?: JobApplicationWithUser[];
     recentActivity: DashboardRecentActivity[];
-    recentApplications: JobApplicationWithUser[];
-    applications: DashboardPagination<JobApplicationWithUser>;
+}
+
+export interface DashboardTableConfig {
+    title: string;
+    description?: string;
+    searchPlaceholder?: string;
+    emptyTitle?: string;
+    emptyDescription?: string;
+    actionLabel?: string;
+    filters?: DashboardFilterItem[];
+}
+
+export interface DashboardLoadingState {
+    isLoading: boolean;
+}
+
+export interface DashboardEmptyState {
+    title: string;
+    description: string;
+}
+
+export interface DashboardQueryParams {
+    userId: number;
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: ApplicationStatus;
+    sort?: "newest" | "oldest";
+}
+
+// every role gets both "as candidate" and "as poster" tables since RECRUITER (and any user) can also apply to jobs
+export interface CandidateTables {
+    appliedJobs: DashboardPagination<JobApplicationWithUser>;
     savedJobs: DashboardPagination<JobWithCompany>;
-    profileViews: DashboardPagination<ProfileViewWithViewer>;
+    interviews: DashboardPagination<JobApplicationWithUser>;
     followers: DashboardPagination<User>;
     following: DashboardPagination<User>;
 }
 
-export interface RecruiterDashboardData {
-    stats: Record<string, DashboardAnalyticsData>;
-    charts?: DashboardCharts;
-    recentActivity: DashboardRecentActivity[];
-    recentApplicants: JobApplicationWithUser[];
-    jobs: DashboardPagination<JobWithCompany>;
+export interface PosterTables {
+    postedJobs: DashboardPagination<JobWithCompany>;
     applicants: DashboardPagination<JobApplicationWithUser>;
     hiredCandidates: DashboardPagination<JobApplicationWithUser>;
 }
 
+export interface CandidateDashboardData {
+    role: "CANDIDATE";
+    overview: DashboardOverviewData;
+    tables: Partial<CandidateTables>;
+}
+
+export interface RecruiterDashboardData {
+    role: "RECRUITER";
+    overview: DashboardOverviewData;
+    tables: Partial<CandidateTables & PosterTables>;
+}
+
 export interface OrganizationDashboardData {
-    stats: Record<string, DashboardAnalyticsData>;
-    charts?: DashboardCharts;
-    recentActivity: DashboardRecentActivity[];
-    recentApplicants: JobApplicationWithUser[];
-    jobs: DashboardPagination<JobWithCompany>;
-    applicants: DashboardPagination<JobApplicationWithUser>;
-    hiredCandidates: DashboardPagination<JobApplicationWithUser>;
+    role: "ORGANIZATION";
+    overview: DashboardOverviewData;
+    tables: Partial<PosterTables & { employees: DashboardPagination<User> }>;
 }
 
 export type DashboardData =

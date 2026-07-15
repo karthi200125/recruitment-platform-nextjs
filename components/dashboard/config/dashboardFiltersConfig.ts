@@ -1,5 +1,3 @@
-// config/dashboard/dashboardFiltersConfig.ts
-
 import {
     ArrowUpDown,
     BriefcaseBusiness,
