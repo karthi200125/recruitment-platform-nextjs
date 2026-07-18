@@ -12,6 +12,8 @@ import { DashboardData, DashboardTab } from "@/types/dashboard";
 import { TAB_PAGE_PARAM, TAB_TABLE_KEY } from "@/actions/dashboard/utils/tabTableKey";
 import { getDashboardTable } from "@/actions/dashboard/getDashboardTable";
 import { getDashboardOverview } from "@/actions/dashboard/getDashboardOverview";
+import { getPendingCompanyInvitation } from "@/actions/company/getPendingCompanyInvitation";
+import { getAcceptedCompanyMembership } from "@/actions/company/getAcceptedCompanyMembership";
 
 export const metadata: Metadata = {
     title: "Dashboard | Job Portal",
@@ -23,8 +25,6 @@ interface DashboardPageProps {
     searchParams?: Record<string, string | string[] | undefined>;
 }
 
-// only trust a tab value that's actually configured for this role — otherwise
-// fall back to overview instead of trying to fetch a table that doesn't exist
 const resolveActiveTab = (role: Role, requested: string | undefined): DashboardTab => {
     const allowed = DASHBOARD_TABS[role];
     const match = allowed.find((tab) => tab.value === requested);
@@ -38,7 +38,7 @@ const DashboardPage = async ({ searchParams = {} }: DashboardPageProps) => {
         redirect("/signin");
     }
 
-    const userId = Number(session.user.id);
+    const userId = session.user.id;
 
     if (!userId) {
         redirect("/signin");
@@ -56,6 +56,18 @@ const DashboardPage = async ({ searchParams = {} }: DashboardPageProps) => {
             })
             : null;
 
+    const pendingInvitation =
+        role === Role.RECRUITER
+            ? await getPendingCompanyInvitation()
+            : null;
+
+    // const isCompanyMember = role === Role.RECRUITER
+    //     ? await getAcceptedCompanyMembership(userId)
+    //     : false;
+
+    const membership = await getAcceptedCompanyMembership(userId);
+    const isCompanyMember = !!membership;
+
     const dashboardData: DashboardData =
         activeTab === "overview"
             ? { role, overview: await getDashboardOverview(userId, role), tables: {} }
@@ -69,16 +81,14 @@ const DashboardPage = async ({ searchParams = {} }: DashboardPageProps) => {
                 username: session.user.username,
                 userImage: session.user.profileImage,
             }}
+            isCompanyMember={isCompanyMember}
             company={company}
             dashboardData={dashboardData}
+            pendingInvitation={pendingInvitation}
         />
     );
 };
 
-// fetches ONLY the active tab's table, and also needs a minimal overview shell
-// since DashboardData always carries `overview` — but DashboardContent never
-// renders it outside the "overview" tab, so this is cheap/unused in practice.
-// (see note below on the alternative if you'd rather skip this entirely)
 const buildTableDashboardData = async (
     role: Role,
     userId: number,
@@ -99,8 +109,6 @@ const buildTableDashboardData = async (
     } as DashboardData;
 };
 
-// placeholder shape — never rendered when activeTab !== "overview", exists
-// purely to satisfy DashboardData's required `overview` field cheaply
 const EMPTY_OVERVIEW = {
     stats: {},
     charts: {

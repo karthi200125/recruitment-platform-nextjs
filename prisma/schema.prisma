@@ -82,7 +82,7 @@ model User {
 
   company            Company?
   companyMemberships CompanyEmployee[] @relation("CompanyMember")
-  invitedEmployees   CompanyEmployee[] @relation("CompanyInviter")
+  sentInvitations CompanyEmployee[] @relation("CompanyInviter")
 
   postedJobs      Job[]            @relation("PostedJobs")
   jobApplications JobApplication[]

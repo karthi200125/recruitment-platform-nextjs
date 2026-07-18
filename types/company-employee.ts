@@ -2,25 +2,53 @@ import { Prisma } from "@prisma/client";
 
 export type CompanyEmployee = Prisma.CompanyEmployeeGetPayload<{}>;
 
-export type CompanyEmployeeWithUser =
-    Prisma.CompanyEmployeeGetPayload<{
-        include: {
-            user: true;
-        };
-    }>;
+export type CompanyEmployeeWithUser = Prisma.CompanyEmployeeGetPayload<{
+    include: {
+        user: true;
+    };
+}>;
 
-export type CompanyEmployeeWithCompany =
-    Prisma.CompanyEmployeeGetPayload<{
-        include: {
-            company: true;
-        };
-    }>;
+export type CompanyEmployeeWithCompany = Prisma.CompanyEmployeeGetPayload<{
+    include: {
+        company: true;
+    };
+}>;
 
-export type CompanyEmployeeWithUserAndCompany =
+export type CompanyEmployeeWithInviter = Prisma.CompanyEmployeeGetPayload<{
+    include: {
+        invitedBy: true;
+    };
+}>;
+
+export type PendingCompanyInvitation =
     Prisma.CompanyEmployeeGetPayload<{
-        include: {
-            user: true;
-            company: true;
+        select: {
+            id: true;
+
+            role: true;
+
+            status: true;
+
+            createdAt: true;
+
+            company: {
+                select: {
+                    id: true;
+                    companyName: true;
+                    companyImage: true;
+                    companyIsVerified: true;
+                };
+            };
+
+            invitedBy: {
+                select: {
+                    id: true;
+                    username: true;
+                    firstName: true;
+                    lastName: true;
+                    profileImage: true;
+                };
+            };
         };
     }>;
 

@@ -3,19 +3,17 @@
 import { Role } from "@prisma/client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import { openModal } from "@/store/ModalSlice";
-import { Plus } from "lucide-react";
 import { useDispatch } from "react-redux";
-import Model from "../Model";
+import RoleAction from "../RoleAction";
 import { DASHBOARD_TABS } from "./config/dashboardTabsConfig";
-import InviteRecruiterModal from "@/app/(protected)/dashboard/employees/InviteRecruiterModal";
 
 interface DashboardNavbarProps {
     role: Role;
     activeTab: string;
+    isCompanyMember: boolean;
 }
 
-const DashboardNavbar = ({ role, activeTab }: DashboardNavbarProps) => {
+const DashboardNavbar = ({ role, activeTab, isCompanyMember }: DashboardNavbarProps) => {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -60,22 +58,10 @@ const DashboardNavbar = ({ role, activeTab }: DashboardNavbarProps) => {
                 })}
             </div>
 
-            {/* dashboard navbar right side action buttons for all roles */}
-            <Model
-                bodyContent={<InviteRecruiterModal />}
-                title="Invite Employees"
-                className="lg:max-w-5xl"
-                triggerCls=""
-                modalId="InviteRecruiterModal"
-            >
-                <button
-                    onClick={() => dispatch(openModal("InviteRecruiterModal"))}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200"
-                >
-                    <Plus className="h-4 w-4" />
-                    Invite Employess
-                </button>
-            </Model>
+            <RoleAction
+                role={role}
+                isCompanyMember={isCompanyMember}
+            />
 
         </div>
     );
