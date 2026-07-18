@@ -58,7 +58,7 @@ const CustomFormField = <T extends FieldValues>({
                                 isLoading={isLoading}
                                 selectCls={selectCls}
                                 onSelect={onSelect}
-                                optionsLoading={optionsLoading}
+                                optionsLoading={optionsLoading}                                
                             />
                             :
                             isTextarea ?

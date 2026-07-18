@@ -1,215 +1,277 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
-import { getCompanies } from "@/actions/company/get-companies";
 import { UserUpdate } from "@/actions/user/update-user";
 import { UserInfoSchema } from "@/lib/SchemaTypes";
+import { useCustomToast } from "@/lib/CustomToast";
 
 import Button from "@/components/Button";
 import CustomFormField from "@/components/CustomFormField";
 import { Form } from "@/components/ui/form";
 import FormError from "@/components/ui/FormError";
 
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useCustomToast } from "@/lib/CustomToast";
-
 import { closeModal } from "@/store/ModalSlice";
+
 import UserAbout from "./UserAbout";
 
-import { UserProfile } from "@/types";
+import type { UserProfile } from "@/types";
 
-/* ──────────────────────────────────────────────── */
 interface Props {
-    profileUser?: UserProfile | null
-    currentStep?: number;
-    onNext?: (value: number) => void;
+    profileUser?: UserProfile | null;
 }
-/* ──────────────────────────────────────────────── */
 
 export function UserInfoForm({
     profileUser,
-    currentStep = 1,
-    onNext,
 }: Props) {
-    const { user: currentUser } = useCurrentUser();
-    const dispatch = useDispatch();
-    const pathname = usePathname();
-    const queryClient = useQueryClient();
-
-    const [isPending, startTransition] = useTransition();
-    const [userAbout, setUserAbout] = useState<string>(
-        typeof profileUser?.userAbout === "string"
-            ? profileUser.userAbout
-            : profileUser?.userAbout
-                ? JSON.stringify(profileUser.userAbout)
-                : ""
-    );
-    const [err, setErr] = useState("");
-
     const router = useRouter();
+    const dispatch = useDispatch();
 
+    const [isPending, startTransition] =useTransition();
+    const [err, setErr] = useState("");
     const { showSuccessToast } = useCustomToast();
 
-    const isRecruiter = profileUser?.role === "RECRUITER";
+    const [userAbout, setUserAbout] =
+        useState<string>(
+            typeof profileUser?.userAbout ===
+                "string"
+                ? profileUser.userAbout
+                : profileUser?.userAbout
+                    ? JSON.stringify(
+                        profileUser.userAbout
+                    )
+                    : ""
+        );
 
-    /* ────────────────────────────────────────────────
-       Fetch companies
-    ──────────────────────────────────────────────── */
-    const { data: companies = [], isLoading: companyLoading } =
-        useQuery({
-            queryKey: ["companies"],
-            queryFn: getCompanies,
+    const form =
+        useForm<
+            z.infer<
+                typeof UserInfoSchema
+            >
+        >({
+            resolver: zodResolver(
+                UserInfoSchema
+            ),
+            mode: "onChange",
+            defaultValues: {
+                username:
+                    profileUser?.username ??
+                    "",
+                email:
+                    profileUser?.email ??
+                    "",
+                firstName:
+                    profileUser?.firstName ??
+                    "",
+                lastName:
+                    profileUser?.lastName ??
+                    "",
+                userBio:
+                    profileUser?.userBio ??
+                    "",
+                website:
+                    profileUser?.website ??
+                    "",
+                gender:
+                    profileUser?.gender ??
+                    "",
+                profession:
+                    profileUser?.profession ??
+                    "",
+                phoneNo:
+                    profileUser?.phoneNo ??
+                    "",
+                address:
+                    profileUser?.address ??
+                    "",
+                city:
+                    profileUser?.city ??
+                    "",
+                state:
+                    profileUser?.state ??
+                    "",
+                country:
+                    profileUser?.country ??
+                    "",
+                postalCode:
+                    profileUser?.postalCode ??
+                    "",
+            },
         });
 
-    const companiesOptions = companies.map(
-        (c) => c.companyName
-    );
-
-    /* ────────────────────────────────────────────────
-       Form
-    ──────────────────────────────────────────────── */
-    const form = useForm<z.infer<typeof UserInfoSchema>>({
-        resolver: zodResolver(UserInfoSchema),
-        defaultValues: {
-            username: profileUser?.username || "",
-            userBio: profileUser?.userBio || "",
-            website: profileUser?.website || "",
-            email: profileUser?.email || "",
-            firstName: profileUser?.firstName || "",
-            lastName: profileUser?.lastName || "",
-            gender: profileUser?.gender || "",
-            address: profileUser?.address || "",
-            city: profileUser?.city || "",
-            state: profileUser?.state || "",
-            country: profileUser?.country || "",
-            phoneNo: profileUser?.phoneNo || "",
-            postalCode: profileUser?.postalCode || "",
-            profession: profileUser?.profession || "",
-            currentCompany: profileUser?.currentCompany || "",
-        },
-    });
-
-    /* ────────────────────────────────────────────────
-       Submit
-    ──────────────────────────────────────────────── */
-    const onSubmit = (values: z.infer<typeof UserInfoSchema>) => {
-        const id = profileUser?.id;
-        if (!id) return;
-
-        // ✅ recruiter validation
-        if (isRecruiter && !values.currentCompany) {
-            setErr("Please select a company");
-            return;
-        }
-
+    const onSubmit = (
+        values: z.infer<
+            typeof UserInfoSchema
+        >
+    ) => {
         setErr("");
 
         startTransition(async () => {
-            const res = await UserUpdate(values, id, userAbout);
+            const res =
+                await UserUpdate(
+                    values,
+                    userAbout
+                );
 
-            if (res.success) {
-                showSuccessToast(res.success);
-
-                router.refresh()
-
-                dispatch(closeModal("userInfoFormModal"));
-
-                if (pathname === "/welcome" && onNext) {
-                    onNext(currentStep + 1);
-                }
-            } else {
-                setErr(res.error || "Something went wrong");
+            if (res.error) {
+                setErr(res.error);
+                return;
             }
+
+            showSuccessToast(
+                res.success ??
+                "Profile updated successfully."
+            );
+
+            router.refresh();
+
+            dispatch(
+                closeModal(
+                    "userInfoFormModal"
+                )
+            );
         });
     };
 
-    /* ──────────────────────────────────────────────── */
     return (
         <Form {...form}>
             <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
+                onSubmit={form.handleSubmit(
+                    onSubmit
+                )}
+                className="space-y-5"
             >
-
-                {/* GRID FIELDS */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <CustomFormField name="username" form={form} label="Username" />
-                    <CustomFormField name="email" form={form} label="Email" type="email" />
-                    <CustomFormField name="firstName" form={form} label="First Name" />
-                    <CustomFormField name="lastName" form={form} label="Last Name" />
-                    <CustomFormField name="address" form={form} label="Address" />
-                    <CustomFormField name="city" form={form} label="City" />
-                    <CustomFormField name="state" form={form} label="State" />
-                    <CustomFormField name="country" form={form} label="Country" />
-                    <CustomFormField name="postalCode" form={form} label="Postal Code" />
-                    <CustomFormField name="phoneNo" form={form} label="Phone Number" />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <CustomFormField
+                        name="username"
+                        label="Username"
+                        form={form}
+                    />
 
                     <CustomFormField
-                        name="gender"
+                        name="email"
+                        label="Email"
+                        type="email"
+                        form={form}                                                
+                    />
+
+                    <CustomFormField
+                        name="firstName"
+                        label="First Name"
                         form={form}
-                        label="Gender"
-                        isSelect
-                        options={["Male", "Female", "Others"]}
+                    />
+
+                    <CustomFormField
+                        name="lastName"
+                        label="Last Name"
+                        form={form}
                     />
 
                     <CustomFormField
                         name="profession"
-                        form={form}
                         label="Profession"
+                        form={form}
+                    />
+
+                    <CustomFormField
+                        name="phoneNo"
+                        label="Phone Number"
+                        form={form}
+                    />
+
+                    <CustomFormField
+                        name="gender"
+                        label="Gender"
+                        form={form}
+                        isSelect
+                        options={[
+                            "Male",
+                            "Female",
+                            "Others",
+                        ]}
+                    />
+
+                    <CustomFormField
+                        name="postalCode"
+                        label="Postal Code"
+                        form={form}
+                    />
+
+                    <CustomFormField
+                        name="address"
+                        label="Address"
+                        form={form}
+                    />
+
+                    <CustomFormField
+                        name="city"
+                        label="City"
+                        form={form}
+                    />
+
+                    <CustomFormField
+                        name="state"
+                        label="State"
+                        form={form}
+                    />
+
+                    <CustomFormField
+                        name="country"
+                        label="Country"
+                        form={form}
                     />
                 </div>
 
                 <CustomFormField
                     name="userBio"
+                    label="Professional Headline"
                     form={form}
-                    label="User Bio"
                     isTextarea
                 />
 
                 <CustomFormField
                     name="website"
-                    form={form}
                     label="Website"
+                    form={form}
                 />
 
-                {/* RECRUITER FIELD */}
-                {isRecruiter && (
-                    <CustomFormField
-                        name="currentCompany"
-                        form={form}
-                        label="Select Company"
-                        isSelect
-                        options={companiesOptions}
-                        optionsLoading={companyLoading}
-                    />
-                )}
-
-                {/* ABOUT */}
                 <div className="space-y-2">
-                    <h5 className="font-bold">About User</h5>
+                    <h3 className="text-sm font-semibold text-slate-800">
+                        About
+                    </h3>
+
                     <UserAbout
-                        onUserAbout={setUserAbout}
-                        UserAbout={
-                            typeof profileUser?.userAbout === "string"
+                        onUserAbout={
+                            setUserAbout
+                        }
+                        userAbout={
+                            typeof profileUser?.userAbout ===
+                                "string"
                                 ? profileUser.userAbout
                                 : profileUser?.userAbout
-                                    ? JSON.stringify(profileUser.userAbout)
+                                    ? JSON.stringify(
+                                        profileUser.userAbout
+                                    )
                                     : ""
                         }
                     />
                 </div>
 
-                <FormError message={err} />
+                <FormError
+                    message={err}
+                />
 
-                <Button isLoading={isPending} className="w-full">
-                    {pathname === "/welcome" ? "Next" : "Update"}
+                <Button
+                    type="submit"
+                    isLoading={isPending}
+                    className="w-full"
+                >
+                    Save Changes
                 </Button>
             </form>
         </Form>

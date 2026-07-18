@@ -18,7 +18,7 @@ type Role = 'CANDIDATE' | 'RECRUITER' | 'ORGANIZATION';
 interface RecruiterUser {
     id: number;
     username: string;
-    userImage?: string | null;
+    profileImage?: string | null;
     profession?: string | null;
     role: Role;
     isPro: boolean;
@@ -74,7 +74,7 @@ const JobRecruiter: React.FC<JobRecruiterProps> = ({ job, company, isPending = f
                 <Link href={`/userProfile/${recruiter.id}`} className="flex-shrink-0">
                     <div className="relative">
                         <Image
-                            src={recruiter.userImage || '/noProfile.webp'}
+                            src={recruiter.profileImage || '/noProfile.webp'}
                             alt={recruiter.username}
                             width={48}
                             height={48}

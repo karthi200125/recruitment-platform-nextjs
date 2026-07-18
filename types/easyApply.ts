@@ -1,6 +1,3 @@
-import type { Job } from "./jobs";
-import type { SearchParams } from "./search";
-
 export interface ContactInfo {
     email: string;
     phone: string;
@@ -27,18 +24,28 @@ export interface EasyApplyPayload {
     questionAnswers: QuestionAnswers;
 }
 
+export interface EasyApplyJob {
+    id: number;
+    jobTitle: string;
+    questions?: Question[] | null;
+}
+
 export interface EasyApplyProps {
-    job: any;    
+    job: EasyApplyJob;
 }
 
 export interface EasyApplyUser {
     email: string;
     username: string;
 
+    firstName: string | null;
+    lastName: string | null;
+    profession: string | null;
+
     phoneNo: string | null;
 
-    userImage: string | null;
-    userImagePublicId: string | null;
+    profileImage: string | null;
+    profileImagePublicId: string | null;
 
     city: string | null;
     state: string | null;

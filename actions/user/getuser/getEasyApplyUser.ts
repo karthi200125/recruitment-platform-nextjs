@@ -1,11 +1,11 @@
-// types/user.ts
+"use server";
 
-
-import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/authOptions";
-import { EasyApplyUser } from "@/types/easyApply";
 
+import { authOptions } from "@/lib/auth/authOptions";
+import { db } from "@/lib/db";
+
+import type { EasyApplyUser } from "@/types/easyApply";
 
 export const getEasyApplyUser = async (): Promise<EasyApplyUser | null> => {
     try {
@@ -16,16 +16,24 @@ export const getEasyApplyUser = async (): Promise<EasyApplyUser | null> => {
         }
 
         const user = await db.user.findUnique({
-            where: { id: session.user.id },
+            where: {
+                id: session.user.id,
+            },
             select: {
-                email: true,
-                phoneNo: true,
-                userImage: true,
-                userImagePublicId: true,
                 username: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                profession: true,
+                phoneNo: true,
+
+                profileImage: true,
+                profileImagePublicId: true,
+
                 city: true,
                 state: true,
                 country: true,
+
                 resume: true,
                 resumePublicId: true,
             },
@@ -33,7 +41,7 @@ export const getEasyApplyUser = async (): Promise<EasyApplyUser | null> => {
 
         return user;
     } catch (error) {
-        console.error("getEasyApplyUser error:", error);
+        console.error("[GET_EASY_APPLY_USER]", error);
         return null;
     }
 };

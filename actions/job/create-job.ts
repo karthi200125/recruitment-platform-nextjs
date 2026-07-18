@@ -9,6 +9,7 @@ import { CreateJobSchema } from '@/lib/SchemaTypes';
 import { FEATURES } from '@/lib/dashboard/proFeatures';
 import { JobQuestionType } from '@/types';
 import { Prisma } from '@prisma/client';
+import { getCurrentUserCompany } from '../company/get-current-user-company.ts';
 
 interface CreateJobProps {
     values: z.infer<typeof CreateJobSchema>;
@@ -57,22 +58,22 @@ export const createJobAction = async ({
             return { error: 'Invalid form data' };
         }
 
-        const { company, ...jobData } = validated.data;
+        const { company: _, ...jobData } = validated.data;
 
-        // ✅ COMPANY CHECK
-        const ownedCompany = await db.company.findFirst({
-            where: {
-                companyName: company,
-                userId: currentUser.id,
-            },
-        });
+        const currentCompany = await getCurrentUserCompany(currentUser.id);
 
-        if (!ownedCompany) {
-            return { error: 'You do not own this company' };
+        if (!currentCompany) {
+            return {
+                error:
+                    "You must belong to a company before posting jobs.",
+            };
         }
 
-        if (!ownedCompany.companyIsVerified) {
-            return { error: 'Company is not verified' };
+        if (!currentCompany.companyIsVerified) {
+            return {
+                error:
+                    "Your company must be verified before posting jobs.",
+            };
         }
 
         // ✅ FEATURE LIMITS
@@ -128,7 +129,7 @@ export const createJobAction = async ({
                 where: { id: jobId },
                 data: {
                     ...jobData,
-                    companyId: ownedCompany.id,
+                    companyId: currentCompany.id,
                     skills,
                     questions: questions as unknown as Prisma.InputJsonValue,
                     jobDesc,
@@ -143,7 +144,7 @@ export const createJobAction = async ({
             data: {
                 ...jobData,
                 userId: currentUser.id,
-                companyId: ownedCompany.id,
+                companyId: currentCompany.id,
                 skills,
                 questions: questions as unknown as Prisma.InputJsonValue,
                 jobDesc,

@@ -8,7 +8,6 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { createJobAction } from '@/actions/job/create-job';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useCustomToast } from '@/lib/CustomToast';
 import { CreateJobSchema } from '@/lib/SchemaTypes';
 
@@ -60,7 +59,7 @@ function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: 
 }
 
 const CreateJobForm = ({ job, isEdit = false, recruiterCompany }: Props) => {
-  const { user } = useCurrentUser();
+
   const router = useRouter();
   const { showErrorToast, showSuccessToast } = useCustomToast();
 
@@ -74,13 +73,14 @@ const CreateJobForm = ({ job, isEdit = false, recruiterCompany }: Props) => {
   const [isEasyApply, setIsEasyApply] = useState<boolean>(job?.isEasyApply ?? false);
 
 
-  const companyName = useMemo(() => {
-    if (!user) return '';
-    return user.role === 'ORGANIZATION' ? user.username : recruiterCompany?.companyName || '';
-  }, [user, recruiterCompany]);
+  const companyName = useMemo(
+    () => recruiterCompany?.companyName ?? "",
+    [recruiterCompany]
+  );
 
   const form = useForm<z.infer<typeof CreateJobSchema>>({
     resolver: zodResolver(CreateJobSchema),
+    mode: "onChange",
     defaultValues: {
       jobTitle: job?.jobTitle ?? '',
       experience: job?.experience ?? '',
@@ -113,7 +113,10 @@ const CreateJobForm = ({ job, isEdit = false, recruiterCompany }: Props) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}         
+        className="space-y-8"
+      >
 
         {/* ── Basic Info ── */}
         <div className="space-y-5">
@@ -297,7 +300,7 @@ const CreateJobForm = ({ job, isEdit = false, recruiterCompany }: Props) => {
           {isLoading ? (
             <><Loader2 className="w-4 h-4 animate-spin" />{isEdit ? 'Updating...' : 'Creating...'}</>
           ) : (
-            <><Briefcase className="w-4 h-4" strokeWidth={2} />{isEdit ? 'Update Job' : 'Post Job'}</>
+            <><Briefcase className="w-4 h-4" strokeWidth={2} />{isEdit ? 'Update Job' : 'Publish Job'}</>
           )}
         </button>
       </form>

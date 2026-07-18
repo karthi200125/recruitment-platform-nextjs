@@ -2,9 +2,7 @@
 export const getSkills = async (q?: string): Promise<string[]> => {
     const apiKey = 'NPrhy2sLAaP8zdMZSnjxjEGUWJK7tS4C';
     const url = `https://api.apilayer.com/skills?q=${q}`;
-
-    console.log(q)
-
+    
     const myHeaders = new Headers();
     myHeaders.append("apikey", apiKey);
 

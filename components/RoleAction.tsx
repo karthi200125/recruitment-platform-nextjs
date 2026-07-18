@@ -39,7 +39,7 @@ const RoleAction = ({
             <Link
                 href={
                     isCompanyMember
-                        ? "/create-job"
+                        ? "/createJob"
                         : "/jobs"
                 }
             >

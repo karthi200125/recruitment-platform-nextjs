@@ -60,8 +60,7 @@ model User {
   userAbout  Json?
   profession String?
 
-  website        String?
-  currentCompany String?
+  website        String?  
 
   address    String?
   city       String?

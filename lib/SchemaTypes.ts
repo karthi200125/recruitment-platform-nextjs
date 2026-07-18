@@ -1,54 +1,51 @@
-import { z } from "zod";
+import * as z from "zod";
 
 export const UserInfoSchema = z.object({
-    username: z.string().min(1, {
-        message: "Username is required",
+    username: z.string().trim().min(3, {
+        message: "Username must be at least 3 characters.",
+    }).max(30, {
+        message: "Username cannot exceed 30 characters.",
     }),
     email: z.string().email({
-        message: "Invalid email address",
+        message: "Invalid email address.",
     }),
-    firstName: z.string().min(1, {
-        message: "Firstname is required",
-    }),
-    userBio: z.string().min(50, {
-        message: "User Bio is required",
-    }).max(100, {
-        message: "Maximum 100 characters",
-    }),
-    website: z.string().url({
-        message: "Invalid website URL",
-    }).optional(),
-    currentCompany: z.string().optional(),
-    lastName: z.string().min(1, {
-        message: "Lastname is required",
-    }),
-    gender: z.string().min(1, {
-        message: "Gender is required",
-    }),
-    address: z.string().min(1, {
-        message: "Address is required",
-    }),
-    city: z.string().min(1, {
-        message: "City is required",
-    }),
-    state: z.string().min(1, {
-        message: "State is required",
-    }),
-    country: z.string().min(1, {
-        message: "Country is required",
-    }),
-    postalCode: z.string().min(1, {
-        message: "Postal Code is required",
-    }),
-    phoneNo: z.string().min(1, {
-        message: "Phone Number is required",
-    }).max(10, {
-        message: "Phone Number is required and should be at least 10 digits",
-    }),
-    profession: z.string().min(1, {
-        message: "Profession name is required",
-    }),
+    firstName: z.string().trim().max(50, {
+        message: "First name cannot exceed 50 characters.",
+    }).optional().or(z.literal("")),
+    lastName: z.string().trim().max(50, {
+        message: "Last name cannot exceed 50 characters.",
+    }).optional().or(z.literal("")),
+
+    userBio: z.string().trim().max(100, {
+        message: "User bio cannot exceed 100 characters.",
+    }).optional().or(z.literal("")),
+    website: z.union([z.literal(""), z.string().trim().url({
+        message: "Please enter a valid website URL.",
+    }),]).optional(),
+    profession: z.string().trim().max(100, {
+        message: "Profession cannot exceed 100 characters.",
+    }).optional().or(z.literal("")),
+    gender: z.string().trim().optional().or(z.literal("")),
+    address: z.string().trim().max(255, {
+        message: "Address cannot exceed 255 characters.",
+    }).optional().or(z.literal("")),
+    city: z.string().trim().max(100, {
+        message: "City cannot exceed 100 characters.",
+    }).optional().or(z.literal("")),
+    state: z.string().trim().max(100, {
+        message: "State cannot exceed 100 characters.",
+    }).optional().or(z.literal("")),
+    country: z.string().trim().max(100, {
+        message: "Country cannot exceed 100 characters.",
+    }).optional().or(z.literal("")),
+    postalCode: z.string().trim().max(20, {
+        message: "Postal code cannot exceed 20 characters.",
+    }).optional().or(z.literal("")),
+    phoneNo: z.union([z.literal(""), z.string().trim().regex(/^[0-9]{10}$/, {
+        message: "Phone number must contain exactly 10 digits.",
+    }),]).optional(),
 });
+
 
 export const UserEducationSchema = z.object({
     instituteName: z.string().min(1, {
@@ -105,40 +102,56 @@ export const CreateJobSchema = z.object({
     jobTitle: z.string().min(1, {
         message: "Job Title is required",
     }),
+
     experience: z.string().min(1, {
-        message: "Job Experince required",
+        message: "Job Experience is required",
     }),
+
     salary: z.string().min(1, {
-        message: "Job Salary required",
+        message: "Job Salary is required",
     }),
+
     city: z.string().min(1, {
-        message: "Job City required",
+        message: "Job City is required",
     }),
+
     state: z.string().min(1, {
-        message: "Job State required",
+        message: "Job State is required",
     }),
+
     country: z.string().min(1, {
-        message: "Job Country required",
+        message: "Job Country is required",
     }),
+
     type: z.string().min(1, {
-        message: "Job Type required",
+        message: "Job Type is required",
     }),
+
     mode: z.string().min(1, {
-        message: "Job Mode required",
+        message: "Job Mode is required",
     }),
+
     company: z.string().min(1, {
-        message: "Select Company",
+        message: "Company is required",
     }),
-    isEasyApply: z.boolean({
-        required_error: "Please select if this job is EasyApply or not",
-    }),
-    applyLink: z.string().min(1, {
-        message: "External Job Apply link",
-    }).optional(),
+
+    isEasyApply: z.boolean(),
+
+    applyLink: z.string(),
+
     vacancies: z.string().min(1, {
-        message: "Give How many Vacnacies Your are Hiring",
+        message: "Vacancies are required",
     }),
 })
+    .refine(
+        (data) =>
+            data.isEasyApply ||
+            data.applyLink.trim().length > 0,
+        {
+            path: ["applyLink"],
+            message: "Apply link is required.",
+        }
+    );
 
 export const RegisterSchema = z.object({
     username: z.string().min(1, {

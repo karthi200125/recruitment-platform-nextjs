@@ -1,12 +1,10 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-
-import { getUserCompany } from "@/actions/company/get-user-company";
 import { authOptions } from "@/lib/auth/authOptions";
 import { db } from "@/lib/db";
 import { FEATURES } from "@/types/features";
-
 import CreateJobClient from "./CreateJobClient";
+import { getCurrentUserCompany } from "@/actions/company/get-current-user-company.ts";
 
 export default async function CreateJobPage() {
     const session = await getServerSession(authOptions);
@@ -15,9 +13,10 @@ export default async function CreateJobPage() {
         redirect("/signin");
     }
 
+    const userId = Number(session.user.id);
     const user = await db.user.findUnique({
         where: {
-            id: session.user.id,
+            id: userId,
         },
     });
 
@@ -32,28 +31,33 @@ export default async function CreateJobPage() {
         redirect("/dashboard");
     }
 
+    const company = await getCurrentUserCompany(userId);
 
-    const recruiterCompany = await getUserCompany(user.id);
+    if (!company) {
+        redirect("/dashboard");
+    }
 
     const tier = user.isPro ? "PRO" : "FREE";
-
     const features = FEATURES[user.role][tier];
-
     const startOfMonth = new Date();
+
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const [activeJobs, monthlyJobs] = await Promise.all([
+    const [
+        activeJobs,
+        monthlyJobs,
+    ] = await Promise.all([
         db.job.count({
             where: {
-                userId: user.id,
+                userId,
                 status: "ACTIVE",
             },
         }),
 
         db.job.count({
             where: {
-                userId: user.id,
+                userId,
                 createdAt: {
                     gte: startOfMonth,
                 },
@@ -61,16 +65,16 @@ export default async function CreateJobPage() {
         }),
     ]);
 
-    const isBlocked =
-        activeJobs >= features.MAX_ACTIVE_JOBS ||
+    const isBlocked = activeJobs >= features.MAX_ACTIVE_JOBS ||
         ("JOBS_PER_MONTH" in features &&
-            monthlyJobs >= features.JOBS_PER_MONTH);
+            monthlyJobs >=
+            features.JOBS_PER_MONTH);
 
     return (
         <CreateJobClient
-            userId={user.id}
+            userId={userId}
             role={user.role}
-            recruiterCompany={recruiterCompany}
+            recruiterCompany={company}
             features={features}
             usage={{
                 activeJobs,

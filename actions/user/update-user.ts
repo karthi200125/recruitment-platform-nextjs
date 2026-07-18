@@ -1,9 +1,12 @@
 "use server";
 
+import * as z from "zod";
+import { Prisma } from "@prisma/client";
+import { getServerSession } from "next-auth";
+
+import { authOptions } from "@/lib/auth/authOptions";
 import { db } from "@/lib/db";
 import { UserInfoSchema } from "@/lib/SchemaTypes";
-import { Prisma } from "@prisma/client";
-import * as z from "zod";
 
 interface ActionResponse<T = unknown> {
     success?: string;
@@ -13,57 +16,56 @@ interface ActionResponse<T = unknown> {
 
 export const UserUpdate = async (
     values: z.infer<typeof UserInfoSchema>,
-    id: number,
     userAbout?: string
 ): Promise<ActionResponse> => {
     try {
-        // ✅ validate ID
-        if (!Number.isInteger(id) || id <= 0) {
-            return { error: "Invalid user ID" };
+        const session = await getServerSession(authOptions);
+
+        if (!session?.user?.id) {
+            return { error: "Unauthorized." };
         }
 
-        // ✅ validate form
-        const parsed = UserInfoSchema.safeParse(values);
-        if (!parsed.success) {
-            return { error: "Invalid form fields" };
+        const userId = session.user.id;
+
+        const validated = UserInfoSchema.safeParse(values);
+
+        if (!validated.success) {
+            return { error: "Invalid form fields." };
         }
 
-        const data = parsed.data;
+        const data = validated.data;
 
-        /* ────────────────────────────────────────────────
-           HANDLE COMPANY VERIFICATION (RECRUITER)
-        ──────────────────────────────────────────────── */
-        if (data.currentCompany) {
-            const company = await db.company.findUnique({
-                where: { companyName: data.currentCompany },
-                select: { userId: true },
-            });
+        const existingUser = await db.user.findUnique({
+            where: { id: userId },
+            select: { id: true },
+        });
 
-            if (company?.userId) {
-                const existingUser = await db.user.findUnique({
-                    where: { id: company.userId },
-                    select: { employees: true },
-                });
-
-                if (
-                    existingUser &&
-                    !existingUser.employees?.includes(id)
-                ) {
-                    await db.user.update({
-                        where: { id: company.userId },
-                        data: {
-                            verifyEmps: { push: id },
-                        },
-                    });
-                }
-            }
+        if (!existingUser) {
+            return { error: "User not found." };
         }
 
-        /* ────────────────────────────────────────────────
-           UPDATE USER
-        ──────────────────────────────────────────────── */
+        const usernameExists = await db.user.findFirst({
+            where: {
+                username: data.username,
+                NOT: {
+                    id: userId,
+                },
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (usernameExists) {
+            return {
+                error: "Username is already taken.",
+            };
+        }
+
         const updatedUser = await db.user.update({
-            where: { id },
+            where: {
+                id: userId,
+            },
             data: {
                 ...data,
                 userAbout:
@@ -74,11 +76,14 @@ export const UserUpdate = async (
         });
 
         return {
-            success: "User updated successfully",
+            success: "Profile updated successfully.",
             data: updatedUser,
         };
     } catch (error) {
-        console.error("[UserUpdate]", error);
-        return { error: "User update failed" };
+        console.error("[USER_UPDATE]", error);
+
+        return {
+            error: "Something went wrong. Please try again.",
+        };
     }
 };
