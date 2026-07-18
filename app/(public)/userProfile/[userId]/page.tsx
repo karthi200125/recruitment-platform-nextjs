@@ -56,7 +56,7 @@ const UserProfile = () => {
     retry: 1,
   });
 
-  const company = profileData?.company?.[0] ?? null;
+  const company = profileData?.company ?? null;
   const isOrg = profileData?.role === "ORGANIZATION";
 
   useEffect(() => {

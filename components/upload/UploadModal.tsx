@@ -29,7 +29,7 @@ interface UploadModalProps {
     disabled?: boolean;
 
     onFileSelect?: (file: File) => void;
-    onUploadSuccess?: (response: UploadResponse) => void;
+    onUploadSuccess?: (response: UploadResponse) => void | Promise<void>;
     onUploadError?: (error: string) => void;
     onCancel?: () => void;
     onRemove?: () => void;
@@ -70,10 +70,13 @@ const UploadModal = ({
                     fields={fields}
                     disabled={disabled}
                     onFileSelect={onFileSelect}
-                    onUploadSuccess={(response) => {
-                        onUploadSuccess?.(response);
-                        update();
-                        router.refresh();
+                    onUploadSuccess={async (response) => {
+                        try {
+                            await onUploadSuccess?.(response);
+                            await update();
+                        } finally {
+                            router.refresh();
+                        }
                     }}
                     onUploadError={onUploadError}
                     onCancel={onCancel}

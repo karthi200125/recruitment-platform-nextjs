@@ -90,7 +90,7 @@ export default function RoleForm() {
         onSuccess: async (role) => {
             await update();
             router.refresh();
-            router.push("/dashboard");
+            router.push("/create-company");
         },
         onError: (error: Error) => {
             console.error('[ROLE_SELECT_ERROR]', error.message);

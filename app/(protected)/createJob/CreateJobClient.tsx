@@ -104,7 +104,7 @@ export default function CreateJobClient({
   const router = useRouter();
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-7 px-4 py-8 sm:px-6">
+    <div className="mx-auto w-full max-w-5xl space-y-7 px-4 py-8 sm:px-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>

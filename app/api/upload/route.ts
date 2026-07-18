@@ -55,17 +55,24 @@ async function resolveTarget(
     }
 
     case "company-logo":
-    case "company-banner":
-    //    {
-    //   const companyId = parseRequiredId(formData, "companyId");
-    //   if (!companyId) return errorResponse("Company id is required.", 400);
+    case "company-banner": {
+      const company = await db.company.findUnique({
+        where: {
+          userId,
+        },
+      });
 
-    //   const company = await db.company.findUnique({ where: { id: companyId } });
-    //   if (!company || company.userId !== userId) {
-    //     return errorResponse("Forbidden", 403);
-    //   }
-    //   return { user: null, company, project: null, application: null };
-    // }
+      if (!company) {
+        return errorResponse("Company not found.", 404);
+      }
+
+      return {
+        user: null,
+        company,
+        project: null,
+        application: null,
+      };
+    }
 
     case "project-image": {
       const projectId = parseRequiredId(formData, "projectId");
@@ -193,15 +200,30 @@ export async function POST(req: NextRequest) {
         }
 
         case "company-logo": {
-          // await deleteExistingAsset(company?.companyImagePublicId);
+          await deleteExistingAsset(company?.companyImagePublicId);
 
-          // await db.company.update({
-          //   where: { id: company!.id },
-          //   data: {
-          //     companyImage: uploaded.url,
-          //     companyImagePublicId: uploaded.publicId,
-          //   },
-          // });
+          await db.$transaction([
+            db.company.update({
+              where: {
+                id: company!.id,
+              },
+              data: {
+                companyImage: uploaded.url,
+                companyImagePublicId: uploaded.publicId,
+              },
+            }),
+
+            db.user.update({
+              where: {
+                id: company!.userId,
+              },
+              data: {
+                profileImage: uploaded.url,
+                profileImagePublicId: uploaded.publicId,
+              },
+            }),
+          ]);
+
           break;
         }
 

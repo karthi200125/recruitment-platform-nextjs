@@ -12,7 +12,8 @@ import { RegisterSchema } from "@/lib/SchemaTypes";
 import Button from "@/components/Button";
 import FormError from "@/components/ui/FormError";
 import { Input } from "@/components/ui/input";
-import {    Form,
+import {
+    Form,
     FormControl,
     FormField,
     FormItem,
@@ -160,6 +161,15 @@ const RegisterForm = () => {
 
                 <FormError message={error} />
 
+                <div className="flex justify-end">
+                    <Link
+                        href="/forgot-password"
+                        className="text-sm text-blue-500 hover:text-white transition"
+                    >
+                        Forgot password?
+                    </Link>
+                </div>
+
                 <Button
                     type="submit"
                     isLoading={isPending}
@@ -168,15 +178,6 @@ const RegisterForm = () => {
                     Register
                 </Button>
 
-                <p className="text-sm text-center text-white/60">
-                    Already have an account?{" "}
-                    <Link
-                        href="/signin"
-                        className="text-blue-500 hover:text-blue-400"
-                    >
-                        Sign in
-                    </Link>
-                </p>
             </form>
         </Form>
     );

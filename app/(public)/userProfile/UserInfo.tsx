@@ -52,11 +52,11 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                 publicId: company.companyImagePublicId ?? "",
             }
             : undefined
-        : profileUser?.userImage
+        : profileUser?.profileImage
             ? {
-                url: profileUser.userImage,
+                url: profileUser.profileImage,
                 name: profileUser.username,
-                publicId: profileUser.userImagePublicId ?? "",
+                publicId: profileUser.profileImagePublicId ?? "",
             }
             : undefined;
 
@@ -68,11 +68,11 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                 publicId: company.companyBackImagePublicId ?? "",
             }
             : undefined
-        : profileUser?.profileImage
+        : profileUser?.userImage
             ? {
-                url: profileUser.profileImage,
+                url: profileUser.userImage,
                 name: profileUser.username,
-                publicId: profileUser.profileImagePublicId ?? "",
+                publicId: profileUser.userImagePublicId ?? "",
             }
             : undefined;
 
@@ -89,7 +89,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                     src={
                         isOrganization
                             ? company?.companyBackImage || "/backgray.webp"
-                            : profileUser?.profileImage || "/backgray.webp"
+                            : profileUser?.userImage || "/backgray.webp"
                     }
                     alt="Cover"
                     fill
@@ -103,7 +103,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                 {isCurrentUser && (
                     <UploadModal
                         modalId="user-banner-upload"
-                        type="profile-banner"
+                        type={isOrganization ? "company-banner" : "profile-banner"}
                         existingFile={CompanyBannerImageExistingFile}
                     >
                         <button
@@ -126,7 +126,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                     {/* Avatar */}
                     <UploadModal
                         modalId="profile-image-upload"
-                        type="profile-image"
+                        type={isOrganization ? "company-logo" : "profile-image"}
                         existingFile={CompanyImageExistingFile}
                     >
                         <div className="relative group cursor-pointer flex-shrink-0">
@@ -140,7 +140,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                                     src={
                                         isOrganization
                                             ? company?.companyImage || noProfile
-                                            : profileUser?.userImage || noProfile
+                                            : profileUser?.profileImage || noProfile
                                     }
                                     alt={displayName ?? "Profile"}
                                     fill
@@ -197,7 +197,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                             <Model
                                 bodyContent={user?.role === "ORGANIZATION" ? <CompanyForm company={company} /> : <UserInfoForm profileUser={profileUser} />}
                                 title="Edit Profile"
-                                className="lg:w-[800px]"
+                                className="lg:max-w-5xl"
                                 triggerCls=""
                                 modalId="userInfoFormModal"
                             >
@@ -218,20 +218,20 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
 
                     {/* Name + badge + profession */}
                     <div>
-                        <h1 className="text-xl font-bold text-slate-900 capitalize flex items-center gap-2 flex-wrap leading-tight">
+                        <h1 className="text-3xl font-bold tracking-tight text-slate-900 capitalize flex items-center gap-2 flex-wrap leading-tight">
                             {displayName}
                             <Batch
                                 type={profileUser?.role ?? undefined}
                             />
                         </h1>
                         {profileUser?.profession && (
-                            <p className="text-sm text-slate-500 mt-0.5">{profileUser.profession}</p>
+                            <p className="text-base font-medium text-slate-600 mt-0.5">{profileUser.profession}</p>
                         )}
                     </div>
 
                     {/* Bio */}
                     {displayBio && (
-                        <p className="text-sm text-slate-600 leading-relaxed max-w-xl">
+                        <p className="text-[15px] leading-7 text-slate-600 max-w-3xl">
                             {displayBio}
                         </p>
                     )}
@@ -239,7 +239,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                     {/* Location + website */}
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
                         {displayLocation && (
-                            <span className="flex items-center gap-1.5 text-sm text-slate-500">
+                            <span className="flex items-center gap-1.5 text-[14px] font-medium text-slate-500">
                                 <MapPin className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2} />
                                 {displayLocation}
                             </span>

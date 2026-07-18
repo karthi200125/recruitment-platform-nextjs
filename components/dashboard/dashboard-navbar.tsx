@@ -3,7 +3,12 @@
 import { Role } from "@prisma/client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import { openModal } from "@/store/ModalSlice";
+import { Plus } from "lucide-react";
+import { useDispatch } from "react-redux";
+import Model from "../Model";
 import { DASHBOARD_TABS } from "./config/dashboardTabsConfig";
+import InviteRecruiterModal from "@/app/(protected)/dashboard/employees/InviteRecruiterModal";
 
 interface DashboardNavbarProps {
     role: Role;
@@ -14,6 +19,7 @@ const DashboardNavbar = ({ role, activeTab }: DashboardNavbarProps) => {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const dispatch = useDispatch()
 
     const tabs = DASHBOARD_TABS[role];
 
@@ -27,30 +33,50 @@ const DashboardNavbar = ({ role, activeTab }: DashboardNavbarProps) => {
     };
 
     return (
-        <div className="scrollbar-hide flex items-center gap-2 overflow-x-auto">
-            {tabs.map((tab) => {
-                const isActive = activeTab === tab.value;
+        <div className="scrollbar-hide w-full flex items-center gap-2 overflow-x-auto mt-2 justify-between">
+            <div className="gap-2">
+                {tabs.map((tab) => {
+                    const isActive = activeTab === tab.value;
 
-                return (
-                    <button
-                        key={tab.value}
-                        type="button"
-                        onClick={() => handleTabChange(tab.value)}
-                        aria-current={isActive ? "page" : undefined}
-                        className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${isActive
+                    return (
+                        <button
+                            key={tab.value}
+                            type="button"
+                            onClick={() => handleTabChange(tab.value)}
+                            aria-current={isActive ? "page" : undefined}
+                            className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${isActive
                                 ? "bg-emerald-50 text-emerald-600"
                                 : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                            }`}
-                    >
-                        {tab.label}
-                        {typeof tab.badge === "number" && tab.badge > 0 && (
-                            <span className="ml-2 rounded-full bg-slate-900 px-1.5 py-0.5 text-[11px] font-semibold text-white">
-                                {tab.badge}
-                            </span>
-                        )}
-                    </button>
-                );
-            })}
+                                }`}
+                        >
+                            {tab.label}
+                            {typeof tab.badge === "number" && tab.badge > 0 && (
+                                <span className="ml-2 rounded-full bg-slate-900 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+                                    {tab.badge}
+                                </span>
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* dashboard navbar right side action buttons for all roles */}
+            <Model
+                bodyContent={<InviteRecruiterModal />}
+                title="Invite Employees"
+                className="lg:max-w-5xl"
+                triggerCls=""
+                modalId="InviteRecruiterModal"
+            >
+                <button
+                    onClick={() => dispatch(openModal("InviteRecruiterModal"))}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200"
+                >
+                    <Plus className="h-4 w-4" />
+                    Invite Employess
+                </button>
+            </Model>
+
         </div>
     );
 };

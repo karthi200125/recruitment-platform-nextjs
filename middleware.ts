@@ -6,14 +6,14 @@ const PUBLIC_ROUTES = new Set([
   "/companies",
   "/signin",
   "/signup",
-  "/forget-password",
+  "/forgot-password",
   "/reset-password",
 ]);
 
 const AUTH_ROUTES = new Set([
   "/signin",
   "/signup",
-  "/forget-password",
+  "/forgot-password",
   "/reset-password",
 ]);
 

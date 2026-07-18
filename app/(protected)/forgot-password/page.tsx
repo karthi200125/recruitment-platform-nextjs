@@ -20,8 +20,6 @@ import { Input } from "@/components/ui/input";
 import Button from "@/components/Button";
 import FormError from "@/components/ui/FormError";
 
-// ─── Schema ────────────────────────────────────────────────────────────────
-
 const ForgotPasswordSchema = z.object({
     email: z
         .string()
@@ -30,8 +28,6 @@ const ForgotPasswordSchema = z.object({
 });
 
 type ForgotPasswordValues = z.infer<typeof ForgotPasswordSchema>;
-
-// ─── Component ─────────────────────────────────────────────────────────────
 
 export default function ForgotPasswordPage() {
     const [error, setError] = useState("");
@@ -56,7 +52,6 @@ export default function ForgotPasswordPage() {
         });
     };
 
-    // ── Success state ────────────────────────────────────────────────────
 
     if (sent) {
         return (
@@ -104,8 +99,6 @@ export default function ForgotPasswordPage() {
             </div>
         );
     }
-
-    // ── Form state ───────────────────────────────────────────────────────
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4">

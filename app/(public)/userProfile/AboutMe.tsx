@@ -34,6 +34,9 @@ const AboutMe = ({ profileUser, isLoading = false, company, isOrg = false }: Abo
     const SectionIcon = isOrg ? Building2 : FileText;
     const sectionTitle = isOrg ? "About the Company" : "About Me";
 
+    if (isLoading) return <UserAboutMeSkeleton />;
+
+
     return (
         <section className="w-full rounded-2xl border border-slate-200 bg-white overflow-hidden">
 
@@ -44,17 +47,13 @@ const AboutMe = ({ profileUser, isLoading = false, company, isOrg = false }: Abo
             </div>
 
             <div className="p-5 space-y-4">
-                {isLoading ? (
-                    <UserAboutMeSkeleton />
-                ) : isOrg ? (
-                    /* Company about */
+                {isOrg ? (
                     <p className="text-sm text-slate-500 leading-relaxed">
                         {company?.companyAbout || (
                             <span className="italic text-slate-400">No company description provided yet.</span>
                         )}
                     </p>
                 ) : (
-                    /* User about */
                     <>
                         <div>
                             <div
@@ -64,7 +63,7 @@ const AboutMe = ({ profileUser, isLoading = false, company, isOrg = false }: Abo
                                     prose-headings:text-slate-800 prose-headings:font-semibold
                                     prose-li:text-slate-600 prose-strong:text-slate-800
                                     prose-a:text-indigo-600 prose-a:no-underline hover:prose-a:underline
-                                    text-sm text-slate-600 leading-relaxed
+                                    text-[15px] leading-8 text-slate-700 font-normal
                                     transition-all duration-300 overflow-hidden
                                     ${!isExpanded ? "line-clamp-4" : ""}
                                 `}

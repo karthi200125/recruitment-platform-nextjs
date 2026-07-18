@@ -6,155 +6,49 @@ import { db } from "@/lib/db";
 import { sendResetEmail } from "@/lib/auth/mail";
 import { rateLimit } from "@/lib/auth/rateLimit";
 
-// ─────────────────────────────────────────────
-// SCHEMA
-// ─────────────────────────────────────────────
-
-const ForgotPasswordSchema =
-    z.object({
-        email:
-            z.string().email(),
-    });
-
-// ─────────────────────────────────────────────
-// FORGOT PASSWORD
-// ─────────────────────────────────────────────
+const ForgotPasswordSchema = z.object({ email: z.string().email() });
 
 export const forgotPassword =
     async (email: string) => {
         try {
-            // ─────────────────────────────────────
-            // RATE LIMIT
-            // ─────────────────────────────────────
+            await rateLimit(`forgot-password:${email}`);
 
-            await rateLimit(
-                `forgot-password:${email}`
-            );
+            const parsed = ForgotPasswordSchema.safeParse({ email });
 
-            // ─────────────────────────────────────
-            // VALIDATE
-            // ─────────────────────────────────────
+            if (!parsed.success) { return { success: true, } }
 
-            const parsed =
-                ForgotPasswordSchema.safeParse(
-                    {
-                        email,
-                    }
-                );
-
-            if (!parsed.success) {
-                return {
-                    success: true,
-                };
-            }
-
-            // ─────────────────────────────────────
-            // NORMALIZE
-            // ─────────────────────────────────────
-
-            const normalizedEmail =
-                parsed.data.email
-                    .trim()
-                    .toLowerCase();
-
-            // ─────────────────────────────────────
-            // FIND USER
-            // ─────────────────────────────────────
+            const normalizedEmail = parsed.data.email.trim().toLowerCase();
 
             const user =
                 await db.user.findUnique({
-                    where: {
-                        email:
-                            normalizedEmail,
-                    },
-
-                    select: {
-                        id: true,
-                    },
+                    where: { email: normalizedEmail, },
+                    select: { id: true, },
                 });
 
-            // SECURITY:
-            // always return success
+            if (!user) { return { success: true, }; }
 
-            if (!user) {
-                return {
-                    success: true,
-                };
-            }
+            const resetToken = crypto.randomBytes(32).toString("hex");
 
-            // ─────────────────────────────────────
-            // GENERATE TOKEN
-            // ─────────────────────────────────────
+            const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
 
-            const resetToken =
-                crypto
-                    .randomBytes(32)
-                    .toString("hex");
-
-            const hashedToken =
-                crypto
-                    .createHash(
-                        "sha256"
-                    )
-                    .update(resetToken)
-                    .digest("hex");
-
-            // ─────────────────────────────────────
-            // EXPIRY
-            // ─────────────────────────────────────
-
-            const expires =
-                new Date(
-                    Date.now() +
-                    1000 *
-                    60 *
-                    15
-                );
-
-            // ─────────────────────────────────────
-            // SAVE TOKEN
-            // ─────────────────────────────────────
+            const expires = new Date(Date.now() + 1000 * 60 * 15);
 
             await db.user.update({
-                where: {
-                    id: user.id,
-                },
+                where: { id: user.id, },
 
                 data: {
-                    resetPasswordToken:
-                        hashedToken,
-
-                    resetPasswordExpires:
-                        expires,
+                    resetPasswordToken: hashedToken,
+                    resetPasswordExpires: expires,
                 },
             });
 
-            // ─────────────────────────────────────
-            // EMAIL
-            // ─────────────────────────────────────
+            const resetLink = `${process.env.NEXT_PUBLIC_URL}/reset-password?token=${resetToken}`;
 
-            const resetLink =
-                `${process.env.NEXT_PUBLIC_URL}/reset-password?token=${resetToken}`;
+            await sendResetEmail(normalizedEmail, resetLink);
 
-            await sendResetEmail(
-                normalizedEmail,
-                resetLink
-            );
-
-            return {
-                success: true,
-            };
+            return { success: true, };
         } catch (error) {
-            console.error(
-                "[FORGOT_PASSWORD_ERROR]",
-                error
-            );
-
-            // SECURITY:
-            // always success
-
-            return {
-                success: true,
-            };
+            console.error("[FORGOT_PASSWORD_ERROR]", error);
+            return { success: true, };
         }
     };
