@@ -1,66 +1,29 @@
-import { JobStatusListSkeleton } from "@/components/skeletons/JobStatusListSkeleton";
 import JobStatusList from "./JobStatusList";
-import { JobStatusDetailsSkeleton } from "@/components/skeletons/JobStatusDetailsSkeleton";
 import JobStatusDetails from "./JobStatusDetails";
+import { CandidateApplication } from "@/types/candidate-application";
 
-interface Company {
-    companyName: string;
-    companyImage?: string | null;
+interface StatusClientProps {
+    appliedJobs: CandidateApplication[];
+    selectedApplication: CandidateApplication | null;
 }
 
-interface Job {
-    jobTitle: string;
-    mode?: string;
-    company: Company;
-}
-
-interface Application {
-    id: number;
-    jobId: number;
-    status: string;
-    createdAt: Date | null;
-    viewedAt?: Date | null;
-    shortlistedAt?: Date | null;
-    rejectedAt?: Date | null;
-    job: Job;
-}
-
-interface Props {
-    appliedJobs: Application[];
-    selectedApplication: Application | null;
-    isLoading?: boolean;
-}
-
-export default function StatusClient({ appliedJobs, selectedApplication, isLoading = false }: Props) {
+export default function StatusClient({ appliedJobs, selectedApplication }: StatusClientProps) {
     return (
-        <div className="flex h-[calc(100vh-64px)] bg-white overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
-
-            {/* LEFT — list panel */}
-            <div className="w-full md:w-[320px] lg:w-[360px] flex-shrink-0 flex flex-col border-r border-slate-100 overflow-hidden">
-
-                {/* Panel header */}
-                <div className="px-4 py-4 border-b border-slate-100 bg-white flex-shrink-0">
+        <div className="flex h-[calc(100vh-64px)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex w-full flex-shrink-0 flex-col overflow-hidden border-r border-slate-100 md:w-[320px] lg:w-[360px]">
+                <div className="flex-shrink-0 border-b border-slate-100 bg-white px-4 py-4">
                     <h2 className="text-sm font-bold text-slate-800">My Applications</h2>
-                    {!isLoading && (
-                        <p className="text-xs text-slate-400 mt-0.5">{appliedJobs.length} total</p>
-                    )}
+                    <p className="mt-0.5 text-xs text-slate-400">{appliedJobs.length} total</p>
                 </div>
 
-                {/* Scrollable list */}
                 <div className="flex-1 overflow-y-auto">
-                    {isLoading ? <JobStatusListSkeleton /> : <JobStatusList jobs={appliedJobs} />}
+                    <JobStatusList jobs={appliedJobs} />
                 </div>
             </div>
 
-            {/* RIGHT — detail panel */}
-            <div className="hidden md:flex flex-col flex-1 overflow-y-auto bg-slate-50/50">
-                {isLoading ? (
-                    <JobStatusDetailsSkeleton />
-                ) : (
-                    <JobStatusDetails application={selectedApplication} />
-                )}
+            <div className="hidden flex-1 flex-col overflow-y-auto bg-slate-50/50 md:flex">
+                <JobStatusDetails application={selectedApplication} />
             </div>
-
         </div>
     );
 }

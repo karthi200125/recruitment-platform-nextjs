@@ -6,10 +6,8 @@ import Image from "next/image";
 
 import { JobApplicationWithUser, JobWithCompany, User } from "@/types";
 import { ApplicationStatus } from "@prisma/client";
+import DashboardActionButton from "../DashboardActionButton";
 
-// NOTE: field paths below assume JobApplicationWithUser includes `user` and
-// `job.company`, and JobWithCompany includes `company`. Adjust the accessor
-// paths to match your actual type definitions in @/types if they differ.
 
 const STATUS_STYLES: Record<ApplicationStatus, string> = {
     APPLIED: "bg-slate-100 text-slate-700",
@@ -87,7 +85,8 @@ export const jobApplicationColumns: ColumnDef<JobApplicationWithUser>[] = [
         id: "actions",
         header: "",
         cell: ({ row }) => (
-            <Link href={`/applications/${row.original.id}`} className="text-sm font-medium text-blue-600 hover:underline">
+            //  <Link href={`/jobStatus/${row.original.id}`} className="text-sm font-medium text-blue-600 hover:underline">
+            <Link href={`/dashboard/jobStatus`} className="text-sm font-medium text-blue-600 hover:underline">
                 View
             </Link>
         ),
@@ -155,8 +154,21 @@ export const jobColumns: ColumnDef<JobWithCompany>[] = [
         id: "actions",
         header: "",
         cell: ({ row }) => (
-            <Link href={`/jobs/${row.original.id}`} className="text-sm font-medium text-blue-600 hover:underline">
-                View
+            <Link href={`/dashboard/${row.original.id}/applicants/`} className="text-sm font-medium text-blue-600 hover:underline">
+                <DashboardActionButton
+                    navigate={{
+                        href: `/dashboard/${row.original.id}/applicants`,
+                        label: "View Applicants",
+                    }}
+                    edit={{
+                        modalId: "EditJobModal",
+                        onClick: () => setSelectedJob(row.original),
+                    }}
+                    delete={{
+                        modalId: "DeleteJobModal",
+                        onClick: () => setSelectedJob(row.original),
+                    }}
+                />
             </Link>
         ),
     },
@@ -199,7 +211,7 @@ export const userColumns: ColumnDef<User>[] = [
         id: "actions",
         header: "",
         cell: ({ row }) => (
-            <Link href={`/profile/${row.original.username}`} className="text-sm font-medium text-blue-600 hover:underline">
+            <Link href={`/userProfile/${row.original.id}`} className="text-sm font-medium text-blue-600 hover:underline">
                 View Profile
             </Link>
         ),

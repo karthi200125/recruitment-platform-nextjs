@@ -11,7 +11,7 @@ import CompanyVerificationBanner from "@/app/(protected)/create-company/CompanyV
 import CompanyInvitationBanner from "@/app/(protected)/dashboard/(inviteRecruiter)/CompanyInvitationBanner";
 import { PendingCompanyInvitation } from "@/types/company-employee";
 import { DASHBOARD_TABS } from "./config/dashboardTabsConfig";
-import DashboardNavbar from "./dashboard-navbar";
+import DashboardNavbar from "./DashboardNavbar";
 import DashboardContent from "./DashboardContent";
 
 interface DashboardCompany {

@@ -5,16 +5,20 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth/authOptions";
 import { db } from "@/lib/db";
-import { uploadToCloudinary } from "@/lib/upload/upload";
 
-import type { ResumeData } from "@/types/easyApply";
 import type { JobQuestionAnswer } from "@/types/application";
+
+interface ApplyForJobResume {
+  name: string;
+  url: string;
+  publicId: string;
+}
 
 interface ApplyForJobParams {
   jobId: number;
   candidateEmail: string;
   candidateMobile: string;
-  resume: ResumeData;
+  resume: ApplyForJobResume;
   questionAndAnswers: JobQuestionAnswer;
 }
 
@@ -29,89 +33,56 @@ export async function applyForJob({
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return {
-        error: "Unauthorized",
-      };
+      return { error: "Unauthorized" };
+    }
+
+    const userId = Number(session.user.id);
+
+    if (!userId) {
+      return { error: "Unauthorized" };
     }
 
     if (session.user.role === "ORGANIZATION") {
-      return {
-        error: "Organizations cannot apply for jobs.",
-      };
+      return { error: "Organizations cannot apply for jobs." };
+    }
+
+    if (!resume.url) {
+      return { error: "Please upload a resume before applying." };
     }
 
     const job = await db.job.findUnique({
-      where: {
-        id: jobId,
-      },
-      select: {
-        id: true,
-      },
+      where: { id: jobId },
+      select: { id: true },
     });
 
     if (!job) {
-      return {
-        error: "Job not found.",
-      };
+      return { error: "Job not found." };
     }
 
-    const existingApplication =
-      await db.jobApplication.findFirst({
-        where: {
-          userId: session.user.id,
-          jobId,
-        },
-        select: {
-          id: true,
-        },
-      });
+    const existingApplication = await db.jobApplication.findFirst({
+      where: { userId, jobId },
+      select: { id: true },
+    });
 
     if (existingApplication) {
-      return {
-        error: "You have already applied for this job.",
-      };
-    }
-
-    let resumeUrl = resume.url;
-    let resumePublicId = resume.publicId;
-
-    if (resume.file) {
-      const buffer = Buffer.from(
-        await resume.file.arrayBuffer()
-      );
-
-      const uploaded = await uploadToCloudinary(
-        buffer,
-        "jobify"
-      );
-
-      resumeUrl = uploaded.url;
-      resumePublicId = uploaded.publicId;
+      return { error: "You have already applied for this job." };
     }
 
     await db.jobApplication.create({
       data: {
-        userId: session.user.id,
+        userId,
         jobId,
-
         candidateEmail,
         candidateMobile,
-
-        candidateResume: resumeUrl,
-        candidateResumePublicId: resumePublicId,
-
+        candidateResume: resume.url,
+        candidateResumePublicId: resume.publicId,
         questionAndAnswers: questionAndAnswers as unknown as Prisma.InputJsonValue,
       },
     });
 
-    return {
-      success: "Application submitted successfully.",
-    };
+    return { success: "Application submitted successfully." };
   } catch (error) {
     console.error("[APPLY_FOR_JOB]", error);
-
-    return {
-      error: "Failed to submit application.",
-    };
+    return { error: "Failed to submit application." };
   }
 }

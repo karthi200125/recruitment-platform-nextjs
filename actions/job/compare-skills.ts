@@ -4,52 +4,45 @@ export interface SkillsCheckResult {
   missingSkills: string[];
 }
 
-const normalizeSkill = (skill: string): string => {
-  return skill
+const normalizeSkill = (skill: string): string =>
+  skill
     .trim()
     .toLowerCase()
-    .replace(/\.js$/, "") // react.js → react
-    .replace(/\s+/g, ""); // remove spaces
-};
+    .replace(/\.js$/, "")
+    .replace(/\s+/g, "");
 
 export const checkSkills = (
   user?: { skills?: string[] },
   job?: { skills?: string[] }
 ): SkillsCheckResult => {
-  const userSkills = new Set(
-    (user?.skills ?? []).map(normalizeSkill)
+  const userSkillSet = new Set(
+    (user?.skills ?? []).map(normalizeSkill).filter(Boolean)
+  );
+  
+  const uniqueJobSkills = Array.from(
+    new Map(
+      (job?.skills ?? [])
+        .map((label) => [normalizeSkill(label), label] as const)
+        .filter(([key]) => key.length > 0)
+    ).values()
   );
 
-  const jobSkills = Array.from(
-    new Set((job?.skills ?? []).map(normalizeSkill))
-  );
-
-  if (!jobSkills.length) {
-    return {
-      percentage: 0,
-      matchedSkills: [],
-      missingSkills: [],
-    };
+  if (uniqueJobSkills.length === 0) {
+    return { percentage: 0, matchedSkills: [], missingSkills: [] };
   }
 
   const matchedSkills: string[] = [];
   const missingSkills: string[] = [];
 
-  for (const skill of jobSkills) {
-    if (userSkills.has(skill)) {
-      matchedSkills.push(skill);
+  for (const originalLabel of uniqueJobSkills) {
+    if (userSkillSet.has(normalizeSkill(originalLabel))) {
+      matchedSkills.push(originalLabel);
     } else {
-      missingSkills.push(skill);
+      missingSkills.push(originalLabel);
     }
   }
 
-  const percentage = Math.round(
-    (matchedSkills.length / jobSkills.length) * 100
-  );
+  const percentage = Math.round((matchedSkills.length / uniqueJobSkills.length) * 100);
 
-  return {
-    percentage,
-    matchedSkills,
-    missingSkills,
-  };
+  return { percentage, matchedSkills, missingSkills };
 };

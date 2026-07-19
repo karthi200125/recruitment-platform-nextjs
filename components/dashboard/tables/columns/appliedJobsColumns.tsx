@@ -1,17 +1,13 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-
 import { format } from "date-fns";
-
 import DashboardStatusBadge from "@/components/dashboard/tables/DashboardStatusBadge";
 
 export const appliedJobsColumns: ColumnDef<any>[] = [
     {
         accessorKey: "job",
-
         header: "Job",
-
         cell: ({ row }) => {
             const job = row.original.job;
 
@@ -34,9 +30,7 @@ export const appliedJobsColumns: ColumnDef<any>[] = [
 
     {
         accessorKey: "status",
-
         header: "Status",
-
         cell: ({ row }) => (
             <DashboardStatusBadge
                 status={
@@ -48,9 +42,7 @@ export const appliedJobsColumns: ColumnDef<any>[] = [
 
     {
         accessorKey: "salary",
-
         header: "Salary",
-
         cell: ({ row }) => (
             <span>
                 {
@@ -63,9 +55,8 @@ export const appliedJobsColumns: ColumnDef<any>[] = [
 
     {
         accessorKey: "appliedAt",
-
         header: "Applied",
-
+        
         cell: ({ row }) => (
             <span>
                 {format(

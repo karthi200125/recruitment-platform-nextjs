@@ -125,9 +125,9 @@ const UserProfile = () => {
           </>
         )}
 
-        {isOrg && profileData && (
+        {/* {isOrg && profileData && (
           <CompanySlides company={company} profileUser={profileData} />
-        )}
+        )} */}
       </div>
 
       <aside className="hidden md:block md:w-[30%]">

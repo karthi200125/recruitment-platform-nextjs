@@ -25,12 +25,12 @@ export default async function SubscriptionPage() {
 
     if (!user) {
         redirect("/signin");
-    }    
+    }
 
     const subscription = user.subscription ?? null; // ✅ FIXED
 
     return (
-        <div className="w-full max-w-3xl mx-auto py-10 px-4 sm:px-6 space-y-6">
+        <div className="w-full max-w-5xl mx-auto py-10 px-4 sm:px-6 space-y-6">
 
             {/* Page header */}
             <div>
