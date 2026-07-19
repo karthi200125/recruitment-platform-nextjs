@@ -5,7 +5,6 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 import JobCompany from "./JobCompany";
 import JobDescription from "./JobDescription";
-import JobPremium from "./JobPremium";
 import JobRecruiter from "./JobRecruiter";
 import JobTitles from "./JobTitles";
 
@@ -58,9 +57,7 @@ const JobDetails = ({
                     job={job}
                     isPending={false}
                 />
-
-                {!user?.isPro && <JobPremium />}
-
+                
                 {user?.role !== "ORGANIZATION" && (
                     <>
                         <div className="h-px bg-slate-100" />

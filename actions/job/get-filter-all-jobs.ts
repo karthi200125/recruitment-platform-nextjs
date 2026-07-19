@@ -158,6 +158,7 @@ export const getFilteredJobs = cache(
                 include: {
                     company: {
                         select: {
+                            userId: true,
                             id: true,
                             companyName: true,
                             companyImage: true,

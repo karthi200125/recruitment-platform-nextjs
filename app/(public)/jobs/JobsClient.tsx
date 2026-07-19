@@ -31,8 +31,7 @@ const JobsClient = ({
 }: JobsClientProps) => {
 
     const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
-
-    // ✅ Always sync with jobs
+    
     useEffect(() => {
         if (initialJobs.length > 0) {
             setSelectedJobId(initialJobs[0].id);

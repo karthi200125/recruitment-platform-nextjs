@@ -42,7 +42,7 @@ const MODE_STYLES: Record<string, string> = {
   on_site: "bg-amber-50 text-amber-700 border-amber-200",
 };
 
-const JobTitles: React.FC<JobTitlesProps> = ({ user, job, company, isPending, safeSearchParams }) => {
+const JobTitles = ({ user, job, company, isPending, safeSearchParams }: JobTitlesProps) => {
   const skillResult = useMemo(() => {
     if (!user || !job) return null;
     return checkSkills(user, job);
@@ -76,9 +76,9 @@ const JobTitles: React.FC<JobTitlesProps> = ({ user, job, company, isPending, sa
               className="w-full h-full object-cover"
             />
           </div>
-          <span className="text-sm font-semibold text-slate-700 group-hover:text-indigo-600 transition-colors duration-200">
+          <Link href={`/userProfile/${company?.userId}`} className="text-sm font-semibold text-slate-700 group-hover:text-indigo-600 transition-colors duration-200">
             {company?.companyName ?? "Company"}
-          </span>
+          </Link>
         </Link>
         <button aria-label="More options" className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors duration-200">
           <MoreHorizontal className="w-4 h-4" />

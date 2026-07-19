@@ -1,7 +1,7 @@
 'use client';
 
 import JobDescriptionSkeleton from '@/components/skeletons/JobDescriptionSkeleton';
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import { FileText } from 'lucide-react';
 import { useMemo } from 'react';
 

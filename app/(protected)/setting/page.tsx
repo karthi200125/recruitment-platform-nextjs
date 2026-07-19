@@ -1,28 +1,18 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/authOptions";
 import { redirect } from "next/navigation";
-import AccountForm from "@/components/forms/AccountForm";
-import { db } from "@/lib/db";
 
-export default async function AccountSettingsPage() {
-    const session = await getServerSession(authOptions);
+import SettingsClient from "./SettingsClient";
+import { getAccountData } from "@/actions/setting/get-settings-data";
 
-    if (!session) redirect("/signin");
+export default async function SettingsPage() {
+    const user = await getAccountData();
 
-    const getAuthProvider = await db.user.findUnique({
-        where: {
-            id: session.user.id
-        },
-        select: { authProvider: true }
-    });
+    if (!user) {
+        redirect("/signin");
+    }
 
     return (
-        <div className="p-6 max-w-3xl mx-auto">
-            <h1 className="text-xl font-semibold mb-2">Account Settings</h1>
-            <p className="text-sm text-muted-foreground mb-6">
-                Manage your account settings and security.
-            </p>
-            <AccountForm provider={getAuthProvider}/>
+        <div className="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8">
+            <SettingsClient user={user} />
         </div>
     );
 }

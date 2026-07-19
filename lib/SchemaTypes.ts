@@ -47,6 +47,22 @@ export const UserInfoSchema = z.object({
 });
 
 
+export const ChangePasswordSchema = z
+    .object({
+        currentPassword: z.string().min(1, "Current password is required."),
+        newPassword: z
+            .string()
+            .min(8, "Password must be at least 8 characters."),
+        confirmPassword: z.string().min(1, "Confirm your password."),
+    })
+    .refine(
+        (data) => data.newPassword === data.confirmPassword,
+        {
+            path: ["confirmPassword"],
+            message: "Passwords do not match.",
+        }
+    );
+
 export const UserEducationSchema = z.object({
     instituteName: z.string().min(1, {
         message: "Institute Name is required",
@@ -225,17 +241,19 @@ export const CompanySchema = z.object({
     }),
 });
 
-export const ChangePasswordSchema = z.object({
-    oldPassword: z.string().min(6, "Required"),
-    newPassword: z.string().min(6, "Minimum 6 characters"),
-});
-
-export const ChangeEmailSchema = z.object({
-    email: z.string().email("Invalid email"),
+const ChangeEmailSchema = z.object({
+    email: z
+        .string()
+        .min(1, "Email is required.")
+        .email("Invalid email address."),
 });
 
 export const DeleteAccountSchema = z.object({
-    password: z.string().min(6, "Password required"),
+    confirmation: z.literal("DELETE ACCOUNT", {
+        errorMap: () => ({
+            message: 'Type "DELETE ACCOUNT" to continue.',
+        }),
+    }),
 });
 
 export const forgotPasswordSchema = z.object({

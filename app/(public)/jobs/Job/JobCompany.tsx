@@ -1,30 +1,21 @@
 'use client';
 
+import { BadgeCheck, Building2, Users } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Building2, Users, BadgeCheck } from 'lucide-react';
 
 import Batch from '@/components/Batch';
-import JobCompanySkeleton from '@/components/skeletons/JobCompanySkeleton';
 import FollowButton from '@/components/FollowButton';
+import JobCompanySkeleton from '@/components/skeletons/JobCompanySkeleton';
+import { Company } from '@/types';
 import noImage from '../../../../public/noImage.webp';
-
-interface Company {
-    id: number;
-    companyName: string;
-    companyImage?: string | null;
-    companyAbout: string;
-    companyTotalEmployees: string;
-    userId: number;
-}
 
 interface JobCompanyProps {
     company: Company;
     isPending?: boolean;
-    isFollowing?: boolean;
 }
 
-const JobCompany: React.FC<JobCompanyProps> = ({ company, isPending = false, isFollowing }) => {
+const JobCompany = ({ company, isPending = false }: JobCompanyProps) => {
     if (isPending) return <JobCompanySkeleton />;
 
     return (
@@ -90,7 +81,7 @@ const JobCompany: React.FC<JobCompanyProps> = ({ company, isPending = false, isF
 
                 {/* View profile link */}
                 <Link
-                    href={`/company/${company.id}`}
+                    href={`/userProfile/${company.userId}`}
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
                 >
                     View company profile
