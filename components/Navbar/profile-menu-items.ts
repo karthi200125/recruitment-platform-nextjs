@@ -8,10 +8,10 @@ import {
     LogOut,
     MessageSquare,
     Plus,
+    Settings,
     User,
     Users,
 } from 'lucide-react';
-
 
 export interface ProfileMenuItem {
     id: number;
@@ -20,11 +20,10 @@ export interface ProfileMenuItem {
     href: string;
     visible: boolean;
     danger?: boolean;
+    action?: 'signOut';
 }
 
-export const getProfileMenuItems = (
-    user: UserType | null
-): ProfileMenuItem[] => {
+export const getProfileMenuItems = (user: UserType | null): ProfileMenuItem[] => {
     if (!user) {
         return [];
     }
@@ -41,7 +40,6 @@ export const getProfileMenuItems = (
             href: `/userProfile/${user.id}`,
             visible: true,
         },
-
         {
             id: 2,
             title: 'Jobs',
@@ -49,7 +47,6 @@ export const getProfileMenuItems = (
             href: '/jobs',
             visible: isRecruiter || isCandidate,
         },
-
         {
             id: 3,
             title: 'Dashboard',
@@ -57,7 +54,6 @@ export const getProfileMenuItems = (
             href: '/dashboard',
             visible: true,
         },
-
         {
             id: 4,
             title: 'Messages',
@@ -65,7 +61,6 @@ export const getProfileMenuItems = (
             href: '/messages',
             visible: true,
         },
-
         {
             id: 5,
             title: 'Post a Job',
@@ -73,7 +68,6 @@ export const getProfileMenuItems = (
             href: '/createJob',
             visible: isRecruiter || isOrganization,
         },
-
         {
             id: 6,
             title: 'Job Status',
@@ -81,7 +75,6 @@ export const getProfileMenuItems = (
             href: '/dashboard/jobStatus',
             visible: isRecruiter || isCandidate,
         },
-
         {
             id: 7,
             title: 'Employees',
@@ -89,7 +82,6 @@ export const getProfileMenuItems = (
             href: '/dashboard/employees',
             visible: isOrganization,
         },
-
         {
             id: 8,
             title: 'Subscriptions',
@@ -97,14 +89,21 @@ export const getProfileMenuItems = (
             href: '/subscriptions',
             visible: true,
         },
-
         {
             id: 9,
+            title: 'Settings',
+            icon: Settings,
+            href: '/setting',
+            visible: true,
+        },
+        {
+            id: 10,
             title: 'Sign Out',
             icon: LogOut,
             href: '/signin',
             visible: true,
             danger: true,
+            action: 'signOut',
         },
     ];
 };

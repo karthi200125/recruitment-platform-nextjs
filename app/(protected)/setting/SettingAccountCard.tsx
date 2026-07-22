@@ -9,85 +9,47 @@ interface SettingAccountCardProps {
     user: UserProfile;
 }
 
-const SettingAccountCard = ({
-    user,
-}: SettingAccountCardProps) => {
+const ROW_ICON_STYLES = [
+    "bg-indigo-50 text-indigo-600",
+    "bg-sky-50 text-sky-600",
+    "bg-violet-50 text-violet-600",
+    "bg-emerald-50 text-emerald-600",
+];
+
+const SettingAccountCard = ({ user }: SettingAccountCardProps) => {
     const provider =
-        user.authProvider === "google"
-            ? "Google"
-            : user.authProvider === "github"
-                ? "GitHub"
-                : "Email & Password";
+        user.authProvider === "google" ? "Google" : user.authProvider === "github" ? "GitHub" : "Email & Password";
+
+    const rows = [
+        { icon: User2, label: "Username", value: user.username ?? "-" },
+        { icon: Mail, label: "Email", value: user.email },
+        { icon: Shield, label: "Authentication", value: provider },
+        { icon: CalendarDays, label: "Member Since", value: format(new Date(user.createdAt), "dd MMM yyyy") },
+    ];
 
     return (
-        <div className="rounded-2xl border border-slate-200 bg-white">
-            <div className="border-b border-slate-100 px-6 py-5">
-                <h2 className="text-lg font-semibold text-slate-900">
-                    Account
-                </h2>
-
-                <p className="mt-1 text-sm text-slate-500">
-                    View your account information.
-                </p>
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-100">
+            <div className="border-b border-slate-100 px-7 py-6">
+                <h2 className="text-lg font-semibold text-slate-900">Account</h2>
+                <p className="mt-1 text-sm text-slate-500">View your account information.</p>
             </div>
 
             <div className="divide-y divide-slate-100">
-                <InfoRow
-                    icon={<User2 className="h-4 w-4" />}
-                    label="Username"
-                    value={user.username ?? "-"}
-                />
+                {rows.map((row, i) => (
+                    <div key={row.label} className="flex items-center justify-between gap-4 px-7 py-4 transition-colors hover:bg-slate-50/60">
+                        <div className="flex items-center gap-3.5">
+                            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${ROW_ICON_STYLES[i % ROW_ICON_STYLES.length]}`}>
+                                <row.icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                            </div>
+                            <span className="text-sm font-medium text-slate-500">{row.label}</span>
+                        </div>
 
-                <InfoRow
-                    icon={<Mail className="h-4 w-4" />}
-                    label="Email"
-                    value={user.email}
-                />
-
-                <InfoRow
-                    icon={<Shield className="h-4 w-4" />}
-                    label="Authentication"
-                    value={provider}
-                />
-
-                <InfoRow
-                    icon={<CalendarDays className="h-4 w-4" />}
-                    label="Member Since"
-                    value={format(new Date(user.createdAt), "dd MMM yyyy")}
-                />
+                        <span className="text-right text-sm font-semibold text-slate-900">{row.value}</span>
+                    </div>
+                ))}
             </div>
         </div>
     );
 };
-
-interface InfoRowProps {
-    icon: React.ReactNode;
-    label: string;
-    value: string;
-}
-
-function InfoRow({
-    icon,
-    label,
-    value,
-}: InfoRowProps) {
-    return (
-        <div className="flex items-center justify-between gap-4 px-6 py-4">
-            <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
-                    {icon}
-                </div>
-
-                <span className="text-sm font-medium text-slate-600">
-                    {label}
-                </span>
-            </div>
-
-            <span className="text-right text-sm font-semibold text-slate-900">
-                {value}
-            </span>
-        </div>
-    );
-}
 
 export default SettingAccountCard;

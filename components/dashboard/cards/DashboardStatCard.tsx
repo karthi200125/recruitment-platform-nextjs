@@ -5,7 +5,10 @@ import Link from "next/link";
 import { Minus, TrendingDown, TrendingUp } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 
-import type { DashboardAnalyticsData, DashboardStatItem } from "@/types/dashboard";
+import type {
+    DashboardAnalyticsData,
+    DashboardStatItem,
+} from "@/types/dashboard";
 
 interface DashboardStatCardProps {
     item: DashboardStatItem;
@@ -15,30 +18,54 @@ interface DashboardStatCardProps {
     chartData: DashboardAnalyticsData["chartData"];
 }
 
-const DashboardStatCard = ({ item, count, growth, isPositive, chartData }: DashboardStatCardProps) => {
+const DashboardStatCard = ({
+    item,
+    count,
+    growth,
+    isPositive,
+    chartData,
+}: DashboardStatCardProps) => {
     const Icon = item.icon;
+
     const isFlat = growth === 0;
     const magnitude = Math.abs(growth);
 
-    const trendColor = isFlat ? "text-slate-400" : isPositive ? "text-emerald-500" : "text-red-500";
+    const trendColor = isFlat
+        ? "text-slate-400"
+        : isPositive
+            ? "text-emerald-500"
+            : "text-red-500";
 
     const content = (
-        <article className="rounded-[20px] border border-[#EAEAEA] bg-white p-5 transition-shadow duration-200 hover:shadow-md">
-            <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${item.iconBg}`}>
-                        <Icon className={`h-5 w-5 ${item.iconColor}`} />
+        <article className="rounded-2xl border border-slate-200 bg-white p-4 transition-shadow duration-200 hover:shadow-md sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+
+                <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+
+                    <div
+                        className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl sm:h-12 sm:w-12 ${item.iconBg}`}
+                    >
+                        <Icon
+                            className={`h-4 w-4 sm:h-5 sm:w-5 ${item.iconColor}`}
+                        />
                     </div>
 
-                    <div>
-                        <p className="text-[15px] font-semibold text-[#111827]">{item.label}</p>
-                        <h2 className="mt-2 text-[48px] font-bold leading-none tracking-[-2px] text-[#0F172A]">
+                    <div className="min-w-0">
+
+                        <p className="truncate text-sm font-semibold text-slate-900 sm:text-[15px]">
+                            {item.label}
+                        </p>
+
+                        <h2 className="mt-1 text-4xl font-bold leading-none tracking-tight text-slate-900 sm:mt-2 sm:text-5xl">
                             {count.toLocaleString()}
                         </h2>
+
                     </div>
+
                 </div>
 
-                <div className="h-[56px] w-[110px]">
+                <div className="h-10 w-16 flex-shrink-0 sm:h-14 sm:w-28">
+
                     {chartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={chartData}>
@@ -52,12 +79,17 @@ const DashboardStatCard = ({ item, count, growth, isPositive, chartData }: Dashb
                             </AreaChart>
                         </ResponsiveContainer>
                     ) : (
-                        <div className="flex h-full items-center justify-center text-xs text-slate-400">No data</div>
+                        <div className="flex h-full items-center justify-center text-[10px] text-slate-400 sm:text-xs">
+                            No data
+                        </div>
                     )}
+
                 </div>
+
             </div>
 
-            <div className="mt-5 flex items-center gap-1">
+            <div className="mt-4 flex items-center gap-1.5 sm:mt-5">
+
                 {isFlat ? (
                     <Minus className="h-3.5 w-3.5 text-slate-400" />
                 ) : isPositive ? (
@@ -66,9 +98,20 @@ const DashboardStatCard = ({ item, count, growth, isPositive, chartData }: Dashb
                     <TrendingDown className="h-3.5 w-3.5 text-red-500" />
                 )}
 
-                <span className={`text-[13px] font-semibold ${trendColor}`}>{magnitude}%</span>
-                <span className="text-[13px] text-[#6B7280]">vs last 30 days</span>
+                <span className={`text-xs font-semibold sm:text-[13px] ${trendColor}`}>
+                    {magnitude}%
+                </span>
+
+                <span className="text-xs text-slate-500 sm:hidden">
+                    Last 30d
+                </span>
+
+                <span className="hidden text-[13px] text-slate-500 sm:inline">
+                    vs last 30 days
+                </span>
+
             </div>
+
         </article>
     );
 
@@ -77,7 +120,11 @@ const DashboardStatCard = ({ item, count, growth, isPositive, chartData }: Dashb
     }
 
     return (
-        <Link href={item.href} className="block" aria-label={`${item.label}: ${count.toLocaleString()}`}>
+        <Link
+            href={item.href}
+            className="block"
+            aria-label={`${item.label}: ${count.toLocaleString()}`}
+        >
             {content}
         </Link>
     );

@@ -1,65 +1,32 @@
 "use server";
 
-import * as z from "zod";
 import { getServerSession } from "next-auth";
-
 import { authOptions } from "@/lib/auth/authOptions";
 import { db } from "@/lib/db";
-import { DeleteAccountSchema } from "@/lib/SchemaTypes";
-import { ActionResponse } from "@/types/settings";
 
+interface DeleteAccountResult {
+    success?: string;
+    error?: string;
+}
 
-export const deleteAccount = async (
-    values: z.infer<typeof DeleteAccountSchema>
-): Promise<ActionResponse> => {
+export const deleteAccount = async (): Promise<DeleteAccountResult> => {
     try {
         const session = await getServerSession(authOptions);
 
         if (!session?.user?.id) {
-            return {
-                error: "Unauthorized.",
-            };
+            return { error: "Unauthorized" };
         }
 
-        const validated = DeleteAccountSchema.safeParse(values);
-
-        if (!validated.success) {
-            return {
-                error: 'Please type "DELETE ACCOUNT" correctly.',
-            };
+        const userId = Number(session.user.id);
+        if (!userId) {
+            return { error: "Unauthorized" };
         }
 
-        const user = await db.user.findUnique({
-            where: {
-                id: session.user.id,
-            },
-            select: {
-                id: true,
-            },
-        });
+        await db.user.delete({ where: { id: userId } });
 
-        if (!user) {
-            return {
-                error: "User not found.",
-            };
-        }
-
-        await db.user.delete({
-            where: {
-                id: user.id,
-            },
-        });
-
-        return {
-            success: "Account deleted successfully.",
-        };
+        return { success: "Account deleted." };
     } catch (error) {
         console.error("[DELETE_ACCOUNT]", error);
-
-        return {
-            error: "Unable to delete your account.",
-        };
+        return { error: "Failed to delete account. Please try again." };
     }
 };
-
-export { DeleteAccountSchema };

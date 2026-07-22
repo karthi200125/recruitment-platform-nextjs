@@ -5,6 +5,7 @@ import { cache } from "react";
 
 export type CompanyWithJobsCount = {
     id: number;
+    userId: number;
     companyName: string;
     companyImage: string | null;
     companyCity: string;
@@ -19,6 +20,7 @@ export const getCompanies = cache(
                 where: { companyIsVerified: true },
                 select: {
                     id: true,
+                    userId: true,
                     companyName: true,
                     companyImage: true,
                     companyCity: true,
