@@ -12,11 +12,8 @@ export const forgotPassword =
     async (email: string) => {
         try {
             await rateLimit(`forgot-password:${email}`);
-
             const parsed = ForgotPasswordSchema.safeParse({ email });
-
             if (!parsed.success) { return { success: true, } }
-
             const normalizedEmail = parsed.data.email.trim().toLowerCase();
 
             const user =
@@ -28,11 +25,8 @@ export const forgotPassword =
             if (!user) { return { success: true, }; }
 
             const resetToken = crypto.randomBytes(32).toString("hex");
-
             const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
-
             const expires = new Date(Date.now() + 1000 * 60 * 15);
-
             await db.user.update({
                 where: { id: user.id, },
 
@@ -43,9 +37,7 @@ export const forgotPassword =
             });
 
             const resetLink = `${process.env.NEXT_PUBLIC_URL}/reset-password?token=${resetToken}`;
-
             await sendResetEmail(normalizedEmail, resetLink);
-
             return { success: true, };
         } catch (error) {
             console.error("[FORGOT_PASSWORD_ERROR]", error);

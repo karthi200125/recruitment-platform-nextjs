@@ -1,25 +1,14 @@
 'use server';
 
 import bcrypt from "bcryptjs";
-
 import * as z from "zod";
-
 import { db } from "@/lib/db";
-
 import { RegisterSchema } from "@/lib/SchemaTypes";
-
-// ─────────────────────────────────────────────
-// REGISTER
-// ─────────────────────────────────────────────
 
 export const register = async (
     values: z.infer<typeof RegisterSchema>
 ) => {
     try {
-        // ───────────────────────────────────────
-        // VALIDATE INPUT
-        // ───────────────────────────────────────
-
         const validatedFields =
             RegisterSchema.safeParse(values);
 
@@ -29,10 +18,6 @@ export const register = async (
                 error: "Invalid fields",
             };
         }
-
-        // ───────────────────────────────────────
-        // NORMALIZE DATA
-        // ───────────────────────────────────────
 
         const email =
             validatedFields.data.email
@@ -45,10 +30,6 @@ export const register = async (
 
         const password =
             validatedFields.data.password;
-
-        // ───────────────────────────────────────
-        // CHECK EMAIL
-        // ───────────────────────────────────────
 
         const existingEmail =
             await db.user.findUnique({
@@ -69,10 +50,6 @@ export const register = async (
             };
         }
 
-        // ───────────────────────────────────────
-        // CHECK USERNAME
-        // ───────────────────────────────────────
-
         const existingUsername =
             await db.user.findUnique({
                 where: {
@@ -92,16 +69,8 @@ export const register = async (
             };
         }
 
-        // ───────────────────────────────────────
-        // HASH PASSWORD
-        // ───────────────────────────────────────
-
         const hashedPassword =
             await bcrypt.hash(password, 12);
-
-        // ───────────────────────────────────────
-        // CREATE USER
-        // ───────────────────────────────────────
 
         const user =
             await db.user.create({

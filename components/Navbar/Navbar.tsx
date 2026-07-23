@@ -15,6 +15,7 @@ import {
 } from '@/components/skeletons/NavbarSkeletons';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Search } from 'lucide-react';
+import Icon from '../Icon';
 
 const Navbar = () => {
 
@@ -59,14 +60,14 @@ const Navbar = () => {
 
                     {/* Search */}
 
-                    <div className="flex flex-1 justify-center px-2 sm:px-4">
+                    <div className="hidden md:flex flex-1 justify-center px-2 sm:px-4">
                         <button
                             onClick={() => setSearchOpen(true)}
                             aria-label="Open job search"
                             className="group flex w-full max-w-sm sm:max-w-md items-center gap-3 rounded-md bg-white/[0.07] hover:bg-white/[0.11] border border-white/[0.09] hover:border-white/[0.16] px-3.5 h-[38px] transition-all duration-200"
                         >
                             <span className="text-neutral-400 group-hover:text-neutral-300 transition-colors duration-150 shrink-0">
-                                <Search />
+
                             </span>
                             <span className="flex-1 text-left text-[13px] text-neutral-500 group-hover:text-neutral-400 transition-colors duration-150 truncate">
                                 Job title, skills, company...
@@ -81,10 +82,18 @@ const Navbar = () => {
                     </div>
 
                     {/* Right */}
-
                     <div className="ml-auto flex shrink-0 items-center gap-3">
 
-                        <div className="hidden items-center sm:flex">
+                        <div className="flex items-center flex-row">
+                            <button
+                                onClick={() => setSearchOpen(true)}
+                                aria-label="Open job search"
+                                className="flex md:hidden items-center w-[40px] h-[40px] justify-center"
+                            >
+                                <Icon
+                                    icon={<Search strokeWidth={2} className='text-white/60 h-5 w-5' />}
+                                />
+                            </button>
                             <Suspense fallback={<NavIconSkeleton />}>
                                 <NavIcons />
                             </Suspense>

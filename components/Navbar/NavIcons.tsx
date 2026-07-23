@@ -89,7 +89,7 @@ const NavIcons = () => {
     );
 
     return (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center md:gap-3">
             {navItems.map((item) => {
                 const isActive =
                     pathname === item.href ||

@@ -35,7 +35,6 @@ export const getUserById = async (
   id: number
 ): Promise<ActionResponse<ProfileUser>> => {
   try {
-    // ✅ Validation
     if (!id || typeof id !== 'number') {
       return {
         success: false,
@@ -57,7 +56,6 @@ export const getUserById = async (
         experiences: true,
         projects: true,
 
-        // ✅ Relations
         followers: {
           select: { id: true },
         },
@@ -67,7 +65,6 @@ export const getUserById = async (
       },
     });
 
-    // ✅ Handle not found (CRITICAL)
     if (!user) {
       return {
         success: false,
@@ -75,7 +72,6 @@ export const getUserById = async (
       };
     }
 
-    // ✅ Normalize userAbout safely
     const formattedUser: ProfileUser = {
       ...user,
       userAbout:

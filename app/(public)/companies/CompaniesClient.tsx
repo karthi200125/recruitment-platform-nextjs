@@ -17,7 +17,7 @@ const CompaniesClient = ({
     }
 
     return (
-        <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="grid grid-cols-2 gap-6 md:grid-cols-3">
             {companies.map((company) => (
                 <CompanyCard
                     key={company.id}

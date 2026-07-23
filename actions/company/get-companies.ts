@@ -32,7 +32,7 @@ export const getCompanies = cache(
                 orderBy: { createdAt: "desc" },
             });
 
-            return companies.map((c) => ({
+            return companies.map((c:any) => ({
                 ...c,
                 jobsCount: c._count.jobs,
             }));
