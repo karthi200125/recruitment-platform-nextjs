@@ -7,6 +7,8 @@ import { DashboardOverviewData, DashboardStatsMap } from "@/types/dashboard";
 
 import { buildJobOwnershipFilter, buildApplicationOwnershipFilter, buildOwnApplicationsFilter } from "./utils/buildOwnershipFilter";
 import { bucketTimestampsByDay, buildRollingStat } from "./queries/statsQuery";
+import { computeProfileCompletion } from "./computeProfileCompletion ";
+import { getProfileViews } from "./getProfileviews";
 
 const ACTIVITY_WINDOW_DAYS = 14;
 
@@ -180,14 +182,11 @@ export const getDashboardOverview = async (userId: number, role: Role): Promise<
     ]);
 
     const [profileViews, recentApplications, profileCompletion] = await Promise.all([
-        role === "CANDIDATE"
-            ? db.profileView.findMany({
-                where: { profileUserId: userId },
-                include: { viewer: { select: { id: true, username: true, profileImage: true, profession: true } } },
-                orderBy: { createdAt: "desc" },
-                take: 5,
-            })
-            : Promise.resolve(undefined),
+        getProfileViews(
+            userId,
+            role,
+            companyId
+        ),
         db.jobApplication.findMany({
             where: chartFilter,
             include: {
@@ -197,7 +196,7 @@ export const getDashboardOverview = async (userId: number, role: Role): Promise<
             orderBy: { createdAt: "desc" },
             take: 5,
         }),
-        role === "CANDIDATE" ? computeProfileCompletion(userId) : Promise.resolve(undefined),
+        computeProfileCompletion(userId, role, companyId)
     ]);
 
     const recentActivity = recentApplications.map((app) => ({
@@ -216,33 +215,4 @@ export const getDashboardOverview = async (userId: number, role: Role): Promise<
         recentApplications: recentApplications as any,
         recentActivity,
     };
-};
-
-const computeProfileCompletion = async (userId: number) => {
-    const user = await db.user.findUnique({
-        where: { id: userId },
-        select: {
-            userBio: true,
-            resume: true,
-            skills: true,
-            profileImage: true,
-            _count: { select: { educations: true, experiences: true, projects: true } },
-        },
-    });
-
-    if (!user) return undefined;
-
-    const items = [
-        { label: "Profile photo", completed: Boolean(user.profileImage) },
-        { label: "Bio", completed: Boolean(user.userBio) },
-        { label: "Resume uploaded", completed: Boolean(user.resume) },
-        { label: "Skills added", completed: user.skills.length > 0 },
-        { label: "Education added", completed: user._count.educations > 0 },
-        { label: "Experience added", completed: user._count.experiences > 0 },
-        { label: "Projects added", completed: user._count.projects > 0 },
-    ];
-
-    const percentage = Math.round((items.filter((i) => i.completed).length / items.length) * 100);
-
-    return { percentage, items };
 };

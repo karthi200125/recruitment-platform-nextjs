@@ -9,6 +9,7 @@ import RecentActivityCard from "../cards/RecentActivityCard";
 import DashboardActivityChart from "../charts/DashboardActivityChart";
 import ProfileViewsCard from "../cards/ProfileViewCard";
 import DashboardStatusChart from "../charts/DashboardStatusChart";
+import ProfileCompletionBanner from "../cards/ProfileCompletionBanner";
 
 interface DashboardOverviewProps {
   role: Role;
@@ -29,8 +30,7 @@ const DashboardOverview = ({ role, overview, isLoading = false }: DashboardOverv
     recentApplications = [],
     recentActivity,
   } = overview;
-  
-  const hasSidebar = Boolean(profileCompletion || (profileViews && profileViews.length > 0));
+
 
   if (isLoading) {
     return (
@@ -40,14 +40,19 @@ const DashboardOverview = ({ role, overview, isLoading = false }: DashboardOverv
             <CardSkeleton key={i} className="h-28" />
           ))}
         </div>
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
-          <CardSkeleton className="h-[320px] xl:col-span-4" />
-          <CardSkeleton className="h-[320px] xl:col-span-5" />
-          <CardSkeleton className="h-[320px] xl:col-span-3" />
-        </div>
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
-          <CardSkeleton className="h-[360px] xl:col-span-8" />
-          <CardSkeleton className="h-[360px] xl:col-span-4" />
+        <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-12">
+          <div className="space-y-5 xl:col-span-8">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <CardSkeleton className="h-[360px]" />
+              <CardSkeleton className="h-[360px]" />
+            </div>
+            <CardSkeleton className="h-[300px]" />
+            <CardSkeleton className="h-[300px]" />
+          </div>
+          <div className="space-y-5 xl:col-span-4">
+            <CardSkeleton className="h-[420px]" />
+            <CardSkeleton className="h-[280px]" />
+          </div>
         </div>
       </div>
     );
@@ -57,58 +62,44 @@ const DashboardOverview = ({ role, overview, isLoading = false }: DashboardOverv
     <div className="space-y-6">
       <DashboardStats role={role} stats={stats} />
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
-        <div className={hasSidebar ? "xl:col-span-4" : "xl:col-span-6"}>
-          <div className="h-[320px] overflow-hidden rounded-[24px] border border-slate-200 bg-white">
+      <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-12">
+        {/* Main content: 3 explicit rows */}
+        <div className={"space-y-5 xl:col-span-8"}>
+          {/* Row 1 — status donut + recent activity, side by side */}
+          <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2">
             <DashboardStatusChart
               title={charts.statusChart.title}
               total={charts.statusChart.total}
               data={charts.statusChart.data}
             />
-          </div>
-        </div>
-
-        <div className={hasSidebar ? "xl:col-span-5" : "xl:col-span-6"}>
-          <div className="h-[320px] overflow-hidden rounded-[24px] border border-slate-200 bg-white">
-            <DashboardActivityChart title={charts.activityChart.title} data={charts.activityChart.data} />
-          </div>
-        </div>
-
-        {hasSidebar && (
-          <div className="xl:col-span-3">
-            <div className="flex h-full flex-col gap-5">
-              {profileCompletion && (
-                <div className="flex-1 overflow-hidden rounded-[24px] border border-slate-200 bg-white">
-                  <ProfileCompletionCard
-                    percentage={profileCompletion.percentage}
-                    items={profileCompletion.items}
-                  />
-                </div>
-              )}
-
-              {profileViews && profileViews.length > 0 && (
-                <div className="h-[180px] overflow-hidden rounded-[24px] border border-slate-200 bg-white">
-                  <ProfileViewsCard profileViews={profileViews} />
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
-        <div className="xl:col-span-8">
-          <div className="h-[360px] overflow-hidden rounded-[24px] border border-slate-200 bg-white">
-            <RecentApplicationsCard applications={recentApplications} isLoading={false} />
-          </div>
-        </div>
-
-        <div className="xl:col-span-4">
-          <div className="h-[360px] overflow-hidden rounded-[24px] border border-slate-200 bg-white">
             <RecentActivityCard activities={recentActivity} />
           </div>
+
+          {/* Row 2 — bar chart, full width, its own row since it's the big one */}
+          <DashboardActivityChart title={charts.activityChart.title} data={charts.activityChart.data} />
+
+          {/* Row 3 — recent applications */}
+          <RecentApplicationsCard applications={recentApplications} isLoading={false} />
+        </div>
+
+        <div className="space-y-5 xl:col-span-4">
+          <div className="space-y-5 xl:sticky xl:top-6">
+
+            {profileCompletion ? (
+              <ProfileCompletionCard
+                percentage={profileCompletion.percentage}
+                items={profileCompletion.items}
+              />
+            ) : null}
+
+
+            <ProfileViewsCard profileViews={[]} />
+
+          </div>
         </div>
       </div>
+
+      {profileCompletion && <ProfileCompletionBanner percentage={profileCompletion.percentage} />}
     </div>
   );
 };
