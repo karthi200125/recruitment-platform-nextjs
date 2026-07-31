@@ -1,55 +1,46 @@
 
+import { ArrowLeft, Briefcase } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Briefcase } from "lucide-react";
 
 import AuthLeftSide from "../AuthLeftSide";
 import SignUpRightSide from "./SignUpRightSide";
 
-
 export const metadata: Metadata = {
-  title: "Sign Up | Jobify - Access Your Account",
+  title: "Sign Up",
+
   description:
-    "Sign up to Jobify to explore job opportunities, manage applications, and connect with top companies.",
+    "Create your Jobify account to discover jobs, connect with recruiters, build your professional profile, and apply to opportunities from verified companies.",
+
   keywords: [
-    "Jobify signup",
-    "sign in job portal",
-    "developer jobs signup",
-    "recruitment platform signup",
+    "Jobify Sign Up",
+    "Create Account",
+    "Register",
+    "Job Portal Registration",
+    "Candidate Registration",
+    "Recruiter Registration",
   ],
-  authors: [{ name: "Jobify Team" }],
-  creator: "Jobify",
-  metadataBase: new URL("https://yourdomain.com"),
-
-  openGraph: {
-    title: "Sign Up | Jobify",
-    description:
-      "Access your Jobify account to manage jobs and applications.",
-    url: "https://yourdomain.com/sign-in",
-    siteName: "Jobify",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Jobify Sign Up",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-
-  twitter: {
-    card: "summary_large_image",
-    title: "Sign Up | Jobify",
-    description:
-      "Signup to Jobify and manage your career journey.",
-    images: ["/og-image.png"],
-  },
 
   robots: {
     index: false,
     follow: false,
+  },
+
+  alternates: {
+    canonical: "/signup",
+  },
+
+  openGraph: {
+    title: "Sign Up | Jobify",
+    description:
+      "Create your Jobify account and start your job search or hiring journey today.",
+    url: "/signup",
+  },
+
+  twitter: {
+    title: "Sign Up | Jobify",
+    description:
+      "Create your Jobify account and start your job search or hiring journey today.",
   },
 };
 

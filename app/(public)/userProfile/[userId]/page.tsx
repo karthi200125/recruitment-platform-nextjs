@@ -1,140 +1,113 @@
-"use client";
-
-import { useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
-import { useEffect, useMemo, useRef } from "react";
-
-import { updateProfileViews } from "@/actions/user/update-profile-views";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-
-import AboutMe from "../AboutMe";
-import CompanySlides from "../CompanySlides/CompanySlides";
-import Education from "../Educations";
-import Experiences from "../Experiences";
-import MoreProfiles from "../MoreProfiles";
-import Projects from "../project/Projects";
-import UserInfo from "../UserInfo";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 import { getUserProfileUserById } from "@/actions/user/getuser/getUserProfileUserById";
-import { ProfileUser } from "@/types/userProfile";
+import { siteConfig } from "@/config";
 
-const UserProfile = () => {
-  const session = useCurrentUser();
-  const loggedInUser = session?.user;
+import UserProfileClient from "./UserProfileClient";
 
-  const params = useParams();
-  const rawUserId = params?.userId;
+interface UserProfilePageProps {
+  params: {
+    userId: string;
+  };
+}
 
-  const userId = useMemo(() => {
-    if (typeof rawUserId !== "string") return null;
-    if (!/^\d+$/.test(rawUserId)) return null;
-    return Number(rawUserId);
-  }, [rawUserId]);
+export async function generateMetadata({
+  params,
+}: UserProfilePageProps): Promise<Metadata> {
+  const userId = Number(params.userId);
 
-  const hasTrackedView = useRef(false);
+  if (Number.isNaN(userId)) {
+    return {
+      title: "Profile Not Found",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
 
-  const {
-    data: profileData,
-    isPending,
-    isError,
-    refetch,
-  } = useQuery<ProfileUser>({
-    queryKey: ["getUserProfile", userId],
-    queryFn: async () => {
-      if (userId === null) throw new Error("Invalid user ID");
+  const result = await getUserProfileUserById(userId);
 
-      const res = await getUserProfileUserById(userId);
+  if (!result.success || !result.data) {
+    return {
+      title: "Profile Not Found",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
 
-      if (!res.success || !res.data) {
-        throw new Error(res.error || "Failed to fetch user");
-      }
+  const profile = result.data;
 
-      return res.data;
+  const isOrganization = profile.role === "ORGANIZATION";
+
+  const title = isOrganization
+    ? `${profile.company?.companyName ?? profile.username} | Company Profile`
+    : `${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim() ||
+    profile.username;
+
+  const description = isOrganization
+    ? profile.company?.companyBio ??
+    "Explore company information, hiring details, and open opportunities on Jobify."
+    : profile.userBio ??
+    "View professional profile, experience, education, projects, and skills on Jobify.";
+
+  return {
+    title,
+
+    description,
+
+    alternates: {
+      canonical: `/userProfile/${profile.id}`,
     },
-    enabled: userId !== null,
-    staleTime: 1000 * 60 * 2,
-    retry: 1,
-  });
 
-  const company = profileData?.company ?? null;
-  const isOrg = profileData?.role === "ORGANIZATION";
+    openGraph: {
+      title: `${title} | ${siteConfig.name}`,
+      description,
+      url: `/userProfile/${profile.id}`,
+      images: [
+        {
+          url:
+            profile.profileImage ??
+            siteConfig.ogImage,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
 
-  useEffect(() => {
-    if (!loggedInUser?.id || userId === null) return;
-    if (loggedInUser.id === userId) return;
-    if (hasTrackedView.current) return;
+    twitter: {
+      title: `${title} | ${siteConfig.name}`,
+      description,
+      images: [
+        profile.profileImage ??
+        siteConfig.twitterImage,
+      ],
+    },
+  };
+}
 
-    hasTrackedView.current = true;
+export default async function UserProfilePage({
+  params,
+}: UserProfilePageProps) {
+  const userId = Number(params.userId);
 
-    updateProfileViews(loggedInUser.id, userId).catch((err) => {
-      console.error("[UserProfile] Failed to update profile views:", err);
-    });
-  }, [loggedInUser?.id, userId]);
-
-  if (userId === null) {
-    return <div>Invalid Profile ID</div>;
+  if (Number.isNaN(userId)) {
+    notFound();
   }
-  
-  if (isError) {
-    return (
-      <div>
-        Failed to load profile.
-        <button onClick={() => refetch()}>Retry</button>
-      </div>
-    );
-  }
 
-  if (!isPending && !profileData) {
-    return <div>Profile not found.</div>;
+  const result = await getUserProfileUserById(userId);
+
+  if (!result.success || !result.data) {
+    notFound();
   }
 
   return (
-    <main className="min-h-screen w-full flex gap-5 py-5">
-      <div className="w-full md:w-[70%] space-y-5">
-        <UserInfo
-          profileUser={profileData}
-          isLoading={isPending}
-          company={company}
-          isOrg={isOrg}
-        />
-
-        <AboutMe
-          profileUser={profileData}
-          isLoading={isPending}
-          company={company}
-          isOrg={isOrg}
-        />
-
-        {!isOrg && profileData && (
-          <>
-            <Education
-              educations={profileData?.educations}
-              profileUserId={profileData?.id}
-              isLoading={isPending}
-            />
-            <Projects
-              projects={profileData?.projects}
-              profileUserId={profileData?.id}
-              isLoading={isPending}
-            />
-            <Experiences
-              experiences={profileData?.experiences}
-              profileUserId={profileData?.id}
-              isLoading={isPending}
-            />
-          </>
-        )}
-
-        {/* {isOrg && profileData && (
-          <CompanySlides company={company} profileUser={profileData} />
-        )} */}
-      </div>
-
-      <aside className="hidden md:block md:w-[30%]">
-        <MoreProfiles profileUser={profileData} />
-      </aside>
-    </main>
+    <UserProfileClient
+      initialProfile={result.data}
+    />
   );
-};
-
-export default UserProfile;
+}

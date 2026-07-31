@@ -5,23 +5,40 @@ import { getCompanies } from "@/actions/company/get-companies";
 import CompaniesClient from "./CompaniesClient";
 
 export const metadata: Metadata = {
-    title: "Companies | Find Verified Companies Hiring Now",
+    title: "Companies",
+
     description:
-        "Explore verified companies, discover open job opportunities, and learn more about employers hiring across multiple industries.",
+        "Explore verified companies, discover employer profiles, and find exciting job opportunities from organizations hiring across multiple industries.",
+
+    keywords: [
+        "Companies",
+        "Employers",
+        "Hiring Companies",
+        "Verified Companies",
+        "Company Profiles",
+        "Recruiters",
+        "Jobify Companies",
+        "Jobs",
+    ],
+
     alternates: {
         canonical: "/companies",
     },
+
     openGraph: {
-        title: "Companies | Find Verified Companies Hiring Now",
+        title: "Companies | Jobify",
+
         description:
-            "Browse verified companies, explore employer profiles, and discover available job opportunities.",
-        type: "website",
+            "Browse verified companies, explore employer profiles, and discover open job opportunities.",
+
+        url: "/companies",
     },
+
     twitter: {
-        card: "summary_large_image",
-        title: "Companies | Find Verified Companies Hiring Now",
+        title: "Companies | Jobify",
+
         description:
-            "Browse verified companies and discover open positions.",
+            "Browse verified companies and discover exciting career opportunities.",
     },
 };
 

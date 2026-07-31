@@ -1,41 +1,75 @@
+import type { MetadataRoute } from "next";
 
-// import { getJobs } from '@/actions/job/get-jobs';
-// import { getAllUsers } from '@/actions/user/get-all-users';
-// import type { MetadataRoute } from 'next';
+import { routes, siteConfig } from "@/config";
 
-// export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-//     const baseUrl = process.env.NEXT_PUBLIC_URL;
+const currentDate = new Date();
 
-//     const jobs = await getJobs();
-//     const users = await getAllUsers();
 
-//     const staticPages = [
-//         { url: `${baseUrl}/`, lastModified: new Date() },
-//         { url: `${baseUrl}/jobs`, lastModified: new Date() },
-//         { url: `${baseUrl}/companies`, lastModified: new Date() },
-//         { url: `${baseUrl}/createJob`, lastModified: new Date() },
-//         { url: `${baseUrl}/dashboard`, lastModified: new Date() },
-//         { url: `${baseUrl}/dashboard/employees`, lastModified: new Date() },
-//         { url: `${baseUrl}/dashboard/jobStatus`, lastModified: new Date() },
-//         { url: `${baseUrl}/messages`, lastModified: new Date() },
-//         { url: `${baseUrl}/network`, lastModified: new Date() },
-//         { url: `${baseUrl}/subscription`, lastModified: new Date() },
-//         { url: `${baseUrl}/welcome`, lastModified: new Date() },
-//     ];
+const staticRoutes: MetadataRoute.Sitemap = [
+    {
+        url: `${siteConfig.url}${routes.public.home}`,
+        lastModified: currentDate,
+        changeFrequency: "weekly",
+        priority: 1,
+    },
 
-//     const jobPages = jobs
-//         .map((job: any) => ({
-//             url: `${baseUrl}/dashboard/jobCandidates/${job.id}`,
-//             lastModified: new Date(),
-//         }))
-//         .sort((a: any, b: any) => parseInt(a.url.split('/').pop()!) - parseInt(b.url.split('/').pop()!));
+    {
+        url: `${siteConfig.url}${routes.public.jobs}`,
+        lastModified: currentDate,
+        changeFrequency: "daily",
+        priority: 0.9,
+    },
 
-//     const userPages = users
-//         .map((user: any) => ({
-//             url: `${baseUrl}/userProfile/${user.id}`,
-//             lastModified: new Date(),
-//         }))
-//         .sort((a: any, b: any) => parseInt(a.url.split('/').pop()!) - parseInt(b.url.split('/').pop()!));
+    {
+        url: `${siteConfig.url}${routes.public.companies}`,
+        lastModified: currentDate,
+        changeFrequency: "weekly",
+        priority: 0.8,
+    },
+];
 
-//     return [...staticPages, ...jobPages, ...userPages];
-// }
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+    /**
+     * -------------------------------------------------------------------------
+     * Future Dynamic Routes
+     * -------------------------------------------------------------------------
+     *
+     * Example:
+     *
+     * const jobs = await db.job.findMany({
+     *     where: {
+     *         status: "ACTIVE",
+     *         published: true,
+     *     },
+     * });
+     *
+     * const jobRoutes = jobs.map((job) => ({
+     *     url: `${siteConfig.url}/jobs/${job.slug}`,
+     *     lastModified: job.updatedAt,
+     *     changeFrequency: "daily",
+     *     priority: 0.8,
+     * }));
+     *
+     * -------------------------------------------------------------------------
+     *
+     * const companies = await db.company.findMany(...);
+     *
+     * const companyRoutes = ...
+     *
+     * -------------------------------------------------------------------------
+     *
+     * const publicProfiles = ...
+     *
+     * const profileRoutes = ...
+     */
+
+    return [
+        ...staticRoutes,
+
+        // ...jobRoutes,
+
+        // ...companyRoutes,
+
+        // ...profileRoutes,
+    ];
+}

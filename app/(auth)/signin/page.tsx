@@ -1,55 +1,45 @@
 
+import { ArrowLeft, Briefcase } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Briefcase } from "lucide-react";
 
 import AuthLeftSide from "../AuthLeftSide";
 import SigninRightSide from "./SignInRightSide";
 
-
 export const metadata: Metadata = {
-  title: "Sign In | Jobify - Access Your Account",
+  title: "Sign In",
+
   description:
-    "Sign in to Jobify to explore job opportunities, manage applications, and connect with top companies.",
+    "Sign in to your Jobify account to manage applications, connect with recruiters, and continue your job search.",
+
   keywords: [
     "Jobify login",
-    "sign in job portal",
-    "developer jobs login",
-    "recruitment platform login",
+    "Sign In",
+    "Job Portal Login",
+    "Candidate Login",
+    "Recruiter Login",
   ],
-  authors: [{ name: "Jobify Team" }],
-  creator: "Jobify",
-  metadataBase: new URL("https://yourdomain.com"),
-
-  openGraph: {
-    title: "Sign In | Jobify",
-    description:
-      "Access your Jobify account to manage jobs and applications.",
-    url: "https://yourdomain.com/sign-in",
-    siteName: "Jobify",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Jobify Sign In",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-
-  twitter: {
-    card: "summary_large_image",
-    title: "Sign In | Jobify",
-    description:
-      "Login to Jobify and manage your career journey.",
-    images: ["/og-image.png"],
-  },
 
   robots: {
     index: false,
     follow: false,
+  },
+
+  alternates: {
+    canonical: "/signin",
+  },
+
+  openGraph: {
+    title: "Sign In | Jobify",
+    description:
+      "Sign in to your Jobify account to continue your hiring or job search journey.",
+    url: "/signin",
+  },
+
+  twitter: {
+    title: "Sign In | Jobify",
+    description:
+      "Sign in to your Jobify account to continue your hiring or job search journey.",
   },
 };
 

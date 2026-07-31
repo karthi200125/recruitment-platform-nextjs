@@ -9,67 +9,45 @@ import Providers from "@/components/Providers";
 import RootLayoutClient from "@/components/RootLayoutClient";
 import { Toaster } from "@/components/ui/toaster";
 
+import { siteConfig } from "@/config";
+
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
+  preload: true,
+  variable: "--font-inter",
 });
 
-const SITE_NAME = "Jobify";
-const SITE_URL =
-  process.env.NEXT_PUBLIC_APP_URL ??
-  "https://www.jobify.com";
-
-const SITE_DESCRIPTION =
-  "Find your dream job with verified companies. Search thousands of jobs, connect with recruiters, and grow your career with Jobify.";
-
-const OG_IMAGE = `${SITE_URL}/og-image.webp`;
-
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: siteConfig.metadataBase,
 
-  applicationName: SITE_NAME,
+  applicationName: siteConfig.applicationName,
 
   title: {
-    default: "Jobify | Find Your Dream Job",
-    template: `%s | ${SITE_NAME}`,
+    default: siteConfig.title,
+    template: siteConfig.titleTemplate,
   },
 
-  description: SITE_DESCRIPTION,
+  description: siteConfig.description,
 
-  keywords: [
-    "Jobify",
-    "Jobs",
-    "Careers",
-    "Hiring",
-    "Job Board",
-    "Remote Jobs",
-    "Tech Jobs",
-    "Software Engineer",
-    "Developer Jobs",
-    "Recruitment",
-    "Employment",
-    "Companies",
-    "Internships",
-  ],
+  // keywords: siteConfig.keywords,
 
-  authors: [
-    {
-      name: "Jobify",
-      url: SITE_URL,
-    },
-  ],
+  // authors: siteConfig.authors,
 
-  creator: "Jobify",
-  publisher: "Jobify",
+  creator: siteConfig.creator,
+
+  publisher: siteConfig.publisher,
+
+  category: siteConfig.category,
 
   alternates: {
-    canonical: SITE_URL,
+    canonical: siteConfig.url,
   },
 
   robots: {
-    index: true,
-    follow: true,
-    nocache: false,
+    index: siteConfig.robots.index,
+    follow: siteConfig.robots.follow,
+
     googleBot: {
       index: true,
       follow: true,
@@ -79,65 +57,69 @@ export const metadata: Metadata = {
     },
   },
 
+  manifest: siteConfig.manifest,
+
   icons: {
     icon: [
       {
-        url: "/favicon.ico",
-      },
-      {
-        url: "/favicon-16x16.png",
-        sizes: "16x16",
-        type: "image/png",
-      },
-      {
-        url: "/favicon-32x32.png",
-        sizes: "32x32",
-        type: "image/png",
+        url: siteConfig.favicon,
       },
     ],
 
     apple: [
       {
-        url: "/apple-touch-icon.png",
+        url: siteConfig.appleTouchIcon,
         sizes: "180x180",
         type: "image/png",
       },
     ],
 
-    shortcut: "/favicon.ico",
+    shortcut: [
+      {
+        url: siteConfig.favicon,
+      },
+    ],
   },
-
-  manifest: "/manifest.webmanifest",
 
   openGraph: {
     type: "website",
-    locale: "en_US",
-    url: SITE_URL,
-    siteName: SITE_NAME,
-    title: "Jobify | Find Your Dream Job",
-    description: SITE_DESCRIPTION,
+
+    locale: siteConfig.locale,
+
+    url: siteConfig.url,
+
+    siteName: siteConfig.name,
+
+    title: siteConfig.title,
+
+    description: siteConfig.description,
+
     images: [
       {
-        url: OG_IMAGE,
+        url: siteConfig.ogImage,
         width: 1200,
         height: 630,
-        alt: "Jobify",
+        alt: siteConfig.name,
       },
     ],
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "Jobify | Find Your Dream Job",
-    description: SITE_DESCRIPTION,
-    creator: "@jobify",
-    images: [OG_IMAGE],
+
+    title: siteConfig.title,
+
+    description: siteConfig.description,
+
+    images: [siteConfig.twitterImage],
   },
 
   appleWebApp: {
     capable: true,
+
+    title: siteConfig.shortName,
+
     statusBarStyle: "default",
-    title: SITE_NAME,
   },
 
   formatDetection: {
@@ -145,15 +127,18 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-
-  category: "technology",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
+
   initialScale: 1,
-  themeColor: "#6366F1",
+
+  themeColor: siteConfig.themeColor,
+
   colorScheme: "light",
+
+  viewportFit: "cover",
 };
 
 interface RootLayoutProps {
@@ -164,8 +149,13 @@ export default function RootLayout({
   children,
 }: Readonly<RootLayoutProps>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html
+      lang={siteConfig.language}
+      suppressHydrationWarning
+    >
+      <body
+        className={`${inter.variable} ${inter.className} min-h-screen bg-background font-sans antialiased`}
+      >
         <Providers>
           <RootLayoutClient>
             {children}
