@@ -3,13 +3,13 @@ import { Role } from "@prisma/client";
 import { DashboardOverviewData } from "@/types/dashboard";
 
 import DashboardStats from "../cards/DashboardStats";
-import ProfileCompletionCard from "../cards/ProfileCompletionCard";
-import RecentApplicationsCard from "../cards/RecentApplicationsCard";
-import RecentActivityCard from "../cards/RecentActivityCard";
-import DashboardActivityChart from "../charts/DashboardActivityChart";
-import ProfileViewsCard from "../cards/ProfileViewCard";
-import DashboardStatusChart from "../charts/DashboardStatusChart";
 import ProfileCompletionBanner from "../cards/ProfileCompletionBanner";
+import ProfileCompletionCard from "../cards/ProfileCompletionCard";
+import ProfileViewsCard from "../cards/ProfileViewCard";
+import RecentActivityCard from "../cards/RecentActivityCard";
+import RecentApplicationsCard from "../cards/RecentApplicationsCard";
+import DashboardActivityChart from "../charts/DashboardActivityChart";
+import DashboardStatusChart from "../charts/DashboardStatusChart";
 
 interface DashboardOverviewProps {
   role: Role;
@@ -58,7 +58,7 @@ const DashboardOverview = ({ role, overview, isLoading = false }: DashboardOverv
     );
   }
 
-  
+
   return (
     <div className="space-y-6">
       <DashboardStats role={role} stats={stats} />
