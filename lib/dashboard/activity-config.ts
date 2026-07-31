@@ -1,12 +1,12 @@
 import {
     BadgeCheck,
-    Bookmark,
     BriefcaseBusiness,
+    Building2,
     CalendarDays,
     CircleCheckBig,
     Eye,
     LucideIcon,
-    User,
+    UserPlus,
     XCircle,
 } from "lucide-react";
 
@@ -22,58 +22,70 @@ const ACTIVITY_CONFIG: Record<
     DashboardActivityType,
     ActivityConfig
 > = {
-    application: {
+    APPLICATION: {
         icon: BriefcaseBusiness,
         iconClass: "text-sky-600",
         wrapperClass: "bg-sky-50",
     },
 
-    view: {
+    PROFILE_VIEW: {
         icon: Eye,
         iconClass: "text-blue-600",
         wrapperClass: "bg-blue-50",
     },
 
-    saved: {
-        icon: Bookmark,
+    UNDER_REVIEW: {
+        icon: Eye,
         iconClass: "text-amber-600",
         wrapperClass: "bg-amber-50",
     },
 
-    shortlisted: {
+    SHORTLISTED: {
         icon: CircleCheckBig,
         iconClass: "text-emerald-600",
         wrapperClass: "bg-emerald-50",
     },
 
-    interview: {
+    INTERVIEW_SCHEDULED: {
         icon: CalendarDays,
         iconClass: "text-violet-600",
         wrapperClass: "bg-violet-50",
     },
 
-    hired: {
+    INTERVIEWED: {
+        icon: CalendarDays,
+        iconClass: "text-indigo-600",
+        wrapperClass: "bg-indigo-50",
+    },
+
+    HIRED: {
         icon: BadgeCheck,
         iconClass: "text-green-600",
         wrapperClass: "bg-green-50",
     },
 
-    rejected: {
+    REJECTED: {
         icon: XCircle,
         iconClass: "text-red-600",
         wrapperClass: "bg-red-50",
     },
 
-    job: {
-        icon: BriefcaseBusiness,
-        iconClass: "text-indigo-600",
-        wrapperClass: "bg-indigo-50",
+    WITHDRAWN: {
+        icon: XCircle,
+        iconClass: "text-slate-600",
+        wrapperClass: "bg-slate-100",
     },
 
-    profile: {
-        icon: User,
+    COMPANY_VERIFIED: {
+        icon: Building2,
         iconClass: "text-cyan-600",
         wrapperClass: "bg-cyan-50",
+    },
+
+    EMPLOYEE_JOINED: {
+        icon: UserPlus,
+        iconClass: "text-purple-600",
+        wrapperClass: "bg-purple-50",
     },
 };
 

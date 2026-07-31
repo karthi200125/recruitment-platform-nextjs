@@ -38,7 +38,7 @@ function CompanyLogo({ src, name }: { src: string | null; name: string }) {
     return (
         <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
             <Image
-                src={src ?? "/images/company-placeholder.png"}
+                src={src ?? "/noImage.webp"}
                 alt={`${name} logo`}
                 fill
                 sizes="40px"

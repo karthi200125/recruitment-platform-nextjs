@@ -133,26 +133,37 @@ export interface ProfileCompletionData {
 }
 
 export type DashboardActivityType =
-    | "application"
-    | "view"
-    | "saved"
-    | "shortlisted"
-    | "interview"
-    | "hired"
-    | "rejected"
-    | "job"
-    | "profile";
+    | "APPLICATION"
+    | "PROFILE_VIEW"
+    | "SHORTLISTED"
+    | "UNDER_REVIEW"
+    | "INTERVIEW_SCHEDULED"
+    | "INTERVIEWED"
+    | "HIRED"
+    | "REJECTED"
+    | "WITHDRAWN"
+    | "COMPANY_VERIFIED"
+    | "EMPLOYEE_JOINED";
 
 export interface DashboardRecentActivity {
-    id: number;
-    title: string;
+    id: string;
     type: DashboardActivityType;
+
+    title: string;
+    description?: string;
+
     createdAt: Date;
+
     href?: string;
+
+    user?: {
+        id: number;
+        name: string;
+        image?: string | null;
+    };
 }
 
-// unified name: "recentApplications" always means "the applications relevant to viewing this role"
-// candidate -> their own applications; recruiter/org -> applications received on their jobs
+
 export interface DashboardOverviewData {
     stats: DashboardStatsMap;
     charts: DashboardCharts;

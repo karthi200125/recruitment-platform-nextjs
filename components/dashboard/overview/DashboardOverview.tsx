@@ -58,6 +58,7 @@ const DashboardOverview = ({ role, overview, isLoading = false }: DashboardOverv
     );
   }
 
+  
   return (
     <div className="space-y-6">
       <DashboardStats role={role} stats={stats} />
@@ -93,7 +94,9 @@ const DashboardOverview = ({ role, overview, isLoading = false }: DashboardOverv
             ) : null}
 
 
-            <ProfileViewsCard profileViews={[]} />
+            <ProfileViewsCard
+              profileViews={profileViews}
+            />
 
           </div>
         </div>

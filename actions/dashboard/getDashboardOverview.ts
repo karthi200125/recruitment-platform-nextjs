@@ -9,6 +9,8 @@ import { buildJobOwnershipFilter, buildApplicationOwnershipFilter, buildOwnAppli
 import { bucketTimestampsByDay, buildRollingStat } from "./queries/statsQuery";
 import { computeProfileCompletion } from "./computeProfileCompletion ";
 import { getProfileViews } from "./getProfileviews";
+import { getRecentActivities } from "./getRecentActivities";
+import { buildActivityChartData } from "./buildActivityChartData";
 
 const ACTIVITY_WINDOW_DAYS = 14;
 
@@ -142,25 +144,6 @@ const getStatusChart = async (where: Record<string, unknown>) => {
     };
 };
 
-const getActivityChart = async (where: Record<string, unknown>) => {
-    const start = new Date(Date.now() - ACTIVITY_WINDOW_DAYS * 24 * 60 * 60 * 1000);
-    const rows = await db.jobApplication.findMany({
-        where: { ...where, createdAt: { gte: start } },
-        select: { createdAt: true },
-    });
-
-    const bucketed = bucketTimestampsByDay(
-        rows.map((r) => r.createdAt),
-        start,
-        new Date()
-    );
-
-    return {
-        title: "Activity (last 14 days)",
-        data: bucketed.map((b) => ({ name: b.label.slice(5), value: b.value })),
-    };
-};
-
 export const getDashboardOverview = async (userId: number, role: Role): Promise<DashboardOverviewData> => {
     const companyId = await resolveCompanyId(userId, role);
 
@@ -171,22 +154,27 @@ export const getDashboardOverview = async (userId: number, role: Role): Promise<
                 ? buildApplicationOwnershipFilter({ userId, role })
                 : { job: { companyId: companyId ?? -1 } };
 
-    const [stats, statusChart, activityChart] = await Promise.all([
+    const [stats, statusChart] = await Promise.all([
         role === "CANDIDATE"
             ? candidateStats(userId)
             : role === "RECRUITER"
                 ? recruiterStats(userId)
                 : organizationStats(companyId),
         getStatusChart(chartFilter),
-        getActivityChart(chartFilter),
     ]);
 
-    const [profileViews, recentApplications, profileCompletion] = await Promise.all([
+    const [
+        profileViews,
+        recentApplications,
+        profileCompletion,
+        recentActivity,
+    ] = await Promise.all([
         getProfileViews(
             userId,
             role,
             companyId
         ),
+
         db.jobApplication.findMany({
             where: chartFilter,
             include: {
@@ -196,16 +184,27 @@ export const getDashboardOverview = async (userId: number, role: Role): Promise<
             orderBy: { createdAt: "desc" },
             take: 5,
         }),
-        computeProfileCompletion(userId, role, companyId)
+
+        computeProfileCompletion(
+            userId,
+            role,
+            companyId
+        ),
+
+        getRecentActivities(
+            userId,
+            role,
+            companyId
+        ),
     ]);
 
-    const recentActivity = recentApplications.map((app) => ({
-        id: app.id,
-        title: role === "CANDIDATE" ? `Applied to ${app.job?.jobTitle ?? "a job"}` : `${app.user?.username} applied to ${app.job?.jobTitle ?? "a job"}`,
-        type: "application" as const,
-        createdAt: app.createdAt,
-        href: `/applications/${app.id}`,
-    }));
+    const activityChart = {
+        title: `Activity (last ${ACTIVITY_WINDOW_DAYS} days)`,
+        data: buildActivityChartData(
+            recentActivity,
+            ACTIVITY_WINDOW_DAYS
+        ),
+    };
 
     return {
         stats,

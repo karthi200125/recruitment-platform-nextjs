@@ -17,10 +17,8 @@ import {
 } from 'lucide-react';
 
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import noProfile from '../../public/noProfile.webp';
 import { getProfileMenuItems } from './profile-menu-items';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface NavItem {
     id: number;
@@ -74,7 +72,7 @@ const UserProfileCard = () => {
                     className="relative w-9 h-9 rounded-full ring-2 ring-transparent hover:ring-indigo-400 focus-visible:ring-indigo-400 focus-visible:outline-none transition-all duration-200 flex-shrink-0"
                 >
                     <Image
-                        src={user.profileImage || noProfile}
+                        src={user.profileImage || '/noProfile.webp'}
                         alt={user.username || 'Profile'}
                         fill
                         className="object-cover rounded-full"
@@ -97,7 +95,7 @@ const UserProfileCard = () => {
                 <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-100 bg-slate-50/70">
                     <div className="relative w-12 h-12 rounded-full overflow-hidden border border-slate-200 flex-shrink-0">
                         <Image
-                            src={user.profileImage || noProfile}
+                            src={user.profileImage || '/noProfile.webp'}
                             alt={user.username || 'Profile'}
                             fill
                             className="object-cover"
