@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 
 import Model from "@/components/Model";
 import SaveJobButton from "@/components/SaveJobButton";
@@ -25,7 +25,6 @@ import EasyApply from "./EasyApply/EasyApply";
 
 import { checkSkills } from "@/actions/job/compare-skills";
 import { Company, JobWithCompany, SearchParams, User } from "@/types";
-import noImage from "../../../../public/noImage.webp";
 
 interface JobTitlesProps {
   user: User;
@@ -70,7 +69,7 @@ const JobTitles = ({ user, job, company, isPending, safeSearchParams }: JobTitle
         <Link href={`/userProfile/${company?.id}`} className="flex items-center gap-2.5 group">
           <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 flex-shrink-0 bg-white">
             <Image
-              src={company?.companyImage || noImage}
+              src={company?.companyImage || '/noImage.webp'}
               alt={company?.companyName ?? "Company"}
               width={32} height={32}
               className="w-full h-full object-cover"

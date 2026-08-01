@@ -1,6 +1,6 @@
 import { CompanyWithJobs } from "@/types";
 
-import JobList from "../../jobs/JobLists/JobList";
+import JobList from "../../../../components/Job/JobLists/JobList";
 
 interface CompanyJobProfileProps {
     company?: CompanyWithJobs | null;

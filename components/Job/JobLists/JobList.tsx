@@ -8,6 +8,7 @@ interface Props {
   selectedJob?: number | null;
   isHover?: boolean;
   border?: boolean;
+  onSelect?: (id: number) => void;
 }
 
 const MODE_STYLES: Record<string, string> = {
@@ -17,15 +18,18 @@ const MODE_STYLES: Record<string, string> = {
   on_site: "bg-amber-50 text-amber-700 border-amber-200",
 };
 
-const JobList = ({ job, selectedJob, isHover, border }: Props) => {
-  const isSelected = job.id === selectedJob;
-  const modeLower = (job.mode ?? "").toLowerCase().replace(" ", "_");
+const JobList = ({ job, selectedJob, isHover, border, onSelect }: Props) => {
+  const isSelected = job.id === selectedJob;  
+  const modeLower = (job.mode ?? "").toLowerCase().replace(/\s+/g, "_");
   const modeBadge = MODE_STYLES[modeLower];
 
   return (
-    <div
+    <button
+      type="button"
+      onClick={() => onSelect?.(job.id)}
+      aria-current={isSelected ? "true" : undefined}
       className={`
-                relative p-4 border-l-[3px] transition-all duration-200
+                relative w-full p-4 text-left border-l-[3px] transition-all duration-200
                 ${isSelected
           ? "bg-indigo-50/70 border-l-indigo-500"
           : `border-l-transparent ${isHover ? "hover:bg-slate-50" : ""}`
@@ -89,7 +93,7 @@ const JobList = ({ job, selectedJob, isHover, border }: Props) => {
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 };
 

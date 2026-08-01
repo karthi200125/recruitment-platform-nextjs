@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth/authOptions";
 import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import JobsClient from "./JobsClient";
+import { siteConfig } from "@/config";
 
 export interface JobsPageProps {
   searchParams: {
@@ -29,13 +30,7 @@ interface JobFilters {
   page: number;
 }
 
-
-import { siteConfig } from "@/config";
-
-
-export async function generateMetadata({
-  searchParams,
-}: JobsPageProps): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: JobsPageProps): Promise<Metadata> {
   const query = searchParams.q?.trim();
   const location = searchParams.location?.trim();
   const company = searchParams.company?.trim();
@@ -62,9 +57,7 @@ export async function generateMetadata({
 
   return {
     title,
-
     description,
-
     keywords: [
       "Jobs",
       "Job Search",
@@ -80,33 +73,18 @@ export async function generateMetadata({
       jobType,
       experience,
     ].filter(Boolean) as string[],
-
     alternates: {
       canonical: "/jobs",
     },
-
     openGraph: {
       title: `${title} | ${siteConfig.name}`,
-
       description,
-
       url: "/jobs",
-
-      images: [
-        {
-          url: siteConfig.ogImage,
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-      ],
+      images: [{ url: siteConfig.ogImage, width: 1200, height: 630, alt: title }],
     },
-
     twitter: {
       title: `${title} | ${siteConfig.name}`,
-
       description,
-
       images: [siteConfig.twitterImage],
     },
   };
@@ -115,9 +93,7 @@ export async function generateMetadata({
 export default async function JobsPage({ searchParams }: JobsPageProps) {
   const session = await getServerSession(authOptions);
 
-  const userId = session?.user?.id
-    ? session.user.id
-    : undefined;
+  const userId = session?.user?.id ? Number(session.user.id) : undefined;
 
   const currentPage = Math.max(1, Number(searchParams.page) || 1);
 
@@ -135,13 +111,5 @@ export default async function JobsPage({ searchParams }: JobsPageProps) {
 
   const { jobs, count } = await getFilteredJobs(filters);
 
-
-  return (
-    <JobsClient
-      initialJobs={jobs}
-      initialCount={count}
-      searchParams={filters}
-      currentPage={currentPage}
-    />
-  );
+  return <JobsClient initialJobs={jobs} initialCount={count} searchParams={filters} currentPage={currentPage} />;
 }

@@ -117,7 +117,7 @@ const UserProfileClient = ({
         )} */}
             </div>
 
-            <aside className="hidden md:block md:w-[30%]">
+            <aside className="hidden md:block md:w-[30%] sticky top-10">
                 <MoreProfiles profileUser={profileData} />
             </aside>
         </main>

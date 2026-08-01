@@ -8,7 +8,7 @@ import Batch from '@/components/Batch';
 import FollowButton from '@/components/FollowButton';
 import JobCompanySkeleton from '@/components/skeletons/JobCompanySkeleton';
 import { Company } from '@/types';
-import noImage from '../../../../public/noImage.webp';
+
 
 interface JobCompanyProps {
     company: Company;
@@ -36,7 +36,7 @@ const JobCompany = ({ company, isPending = false }: JobCompanyProps) => {
                         {/* Logo */}
                         <div className="w-14 h-14 rounded-xl overflow-hidden border border-slate-200 flex-shrink-0 relative bg-slate-50">
                             <Image
-                                src={company.companyImage || noImage.src}
+                                src={company.companyImage || '/noImage.webp'}
                                 alt={company.companyName}
                                 fill
                                 className="object-cover"

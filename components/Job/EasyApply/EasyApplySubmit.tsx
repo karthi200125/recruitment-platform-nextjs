@@ -12,8 +12,6 @@ import { closeModal } from "@/store/ModalSlice";
 import { JobQuestionAnswer, JobQuestionAnswerItem } from "@/types";
 import { EasyApplyJob, EasyApplyPayload, EasyApplyUser } from "@/types/easyApply";
 
-import noProfile from "../../../../../public/noProfile.webp";
-
 interface EasyApplySubmitProps {
     job: EasyApplyJob;
     applicationData: EasyApplyPayload;
@@ -97,7 +95,7 @@ const EasyApplySubmit = ({ job, applicationData, user, currentStep = 0, onBack, 
 
                 <div className="flex w-full flex-col gap-5 rounded-xl border border-slate-200 p-5 md:flex-row">
                     <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                        <Image src={user?.profileImage || noProfile} alt={displayName} fill className="object-cover" />
+                        <Image src={user?.profileImage || '/noProfile.webp'} alt={displayName} fill className="object-cover" />
                     </div>
 
                     <div className="flex w-full flex-col justify-between gap-4 md:flex-row">

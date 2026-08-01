@@ -7,7 +7,7 @@ import { Briefcase, Users, Building2, LayoutDashboard } from "lucide-react";
 import { getCompaniesEmployees } from "@/actions/user/get-company-employees";
 import EmployeesSkeleton from "@/components/skeletons/EmployeesSkeleton";
 import Employee from "../../../(protected)/dashboard/employees/Employee";
-import JobList from "../../jobs/JobLists/JobList";
+import JobList from "../../../../components/Job/JobLists/JobList";
 import type {
     CompanyWithJobs,
     User,

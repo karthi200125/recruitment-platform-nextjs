@@ -1,18 +1,15 @@
 "use client";
 
-import Image, { StaticImageData } from "next/image";
-import Link from "next/link";
 import {
     ArrowRight,
     BriefcaseBusiness,
     MapPin,
 } from "lucide-react";
-
-import Batch from "@/components/Batch";
-
-import noImage from "../../../public/noImage.webp";
+import Image, { StaticImageData } from "next/image";
+import Link from "next/link";
 
 import type { CompanyWithJobsCount } from "@/actions/company/get-companies";
+import Batch from "@/components/Batch";
 
 interface CompanyCardProps {
     company: CompanyWithJobsCount;
@@ -22,7 +19,7 @@ const CompanyCard = ({
     company,
 }: CompanyCardProps) => {
     const imageSrc: string | StaticImageData =
-        company.companyImage || noImage;
+        company.companyImage || '/noImage.webp';
 
     return (
         <article className="group mx-auto w-full max-w-[340px] rounded-2xl border border-slate-200 bg-white p-3.5 transition-all duration-200 hover:border-slate-300 hover:shadow-md sm:max-w-none sm:p-5">

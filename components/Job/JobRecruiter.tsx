@@ -9,7 +9,7 @@ import { MessageSquare, UserCircle2, Crown, Lock } from 'lucide-react';
 import { getUserById } from '@/actions/auth/get-user-by-id';
 import { openModal } from '@/store/ModalSlice';
 import Model from '@/components/Model';
-import MessageBox from '../../../(protected)/messages/MessageBox';
+import MessageBox from '../../app/(protected)/messages/MessageBox';
 import JobRecruiterSkeleton from '@/components/skeletons/JobRecruiterSkeleton';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 

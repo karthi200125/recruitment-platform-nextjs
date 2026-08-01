@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
 import { JobWithCompany } from '@/actions/job/get-filter-all-jobs';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Jobb from './Job';
+import { usePathname, useSearchParams } from "next/navigation";
 
 interface JobSearchParams {
     userId?: number;
@@ -23,35 +24,49 @@ interface JobsClientProps {
     currentPage: number;
 }
 
-const JobsClient = ({
-    initialJobs,
-    initialCount,
-    searchParams,
-    currentPage,
-}: JobsClientProps) => {
+const setJobIdInUrl = (pathname: string, currentParams: URLSearchParams, jobId: number) => {
+    const params = new URLSearchParams(currentParams.toString());
+    params.set("jobId", String(jobId));
+    window.history.replaceState(null, "", `${pathname}?${params.toString()}`);
+};
 
-    const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
+const JobsClient = ({ initialJobs, initialCount, searchParams, currentPage }: JobsClientProps) => {
+    const pathname = usePathname();
+    const urlSearchParams = useSearchParams();
     
+    const [selectedJobId, setSelectedJobId] = useState<number | null>(() => {
+        if (!initialJobs.length) return null;
+        const jobIdParam = urlSearchParams.get("jobId");
+        const jobIdFromUrl = jobIdParam ? Number(jobIdParam) : null;
+        return initialJobs.find((job) => job.id === jobIdFromUrl)?.id ?? initialJobs[0].id;
+    });
+
     useEffect(() => {
-        if (initialJobs.length > 0) {
-            setSelectedJobId(initialJobs[0].id);
-        } else {
+        if (!initialJobs.length) {
             setSelectedJobId(null);
+            return;
         }
+
+        const stillValid = initialJobs.some((job) => job.id === selectedJobId);
+        const nextSelected = stillValid ? selectedJobId! : initialJobs[0].id;
+
+        setSelectedJobId(nextSelected);
+        setJobIdInUrl(pathname, urlSearchParams, nextSelected);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialJobs]);
 
     const selectedJob = useMemo(() => {
         if (!initialJobs.length) return null;
-
-        return (
-            initialJobs.find(j => j.id === selectedJobId) ??
-            initialJobs[0]
-        );
+        return initialJobs.find((j) => j.id === selectedJobId) ?? initialJobs[0];
     }, [selectedJobId, initialJobs]);
 
-    const handleSelectedJob = useCallback((id: number) => {
-        setSelectedJobId(id);
-    }, []);
+    const handleSelectedJob = useCallback(
+        (id: number) => {
+            setSelectedJobId(id);
+            setJobIdInUrl(pathname, urlSearchParams, id);
+        },
+        [pathname, urlSearchParams]
+    );
 
     if (!initialJobs.length) {
         return <div className="p-10 text-center">No jobs found</div>;

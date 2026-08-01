@@ -9,7 +9,7 @@ import Button from "@/components/Button";
 import { useCustomToast } from "@/lib/CustomToast";
 import { closeModal } from "@/store/ModalSlice";
 
-import JobList from "../../app/(public)/jobs/JobLists/JobList";
+import JobList from "../Job/JobLists/JobList";
 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { JobWithCompany } from "@/types";

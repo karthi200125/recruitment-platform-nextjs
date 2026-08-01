@@ -3,8 +3,8 @@
 import { JobWithCompany } from '@/actions/job/get-filter-all-jobs';
 import FilterNavbar from '@/components/FilterNavbar';
 import { Briefcase } from 'lucide-react';
-import JobDetails from './Job/JobDetails';
-import JobLists from './JobLists/JobLists';
+import JobDetails from '../../../components/Job/JobDetails';
+import JobLists from '../../../components/Job/JobLists/JobLists';
 
 interface Props {
   jobs: JobWithCompany[];
@@ -43,7 +43,7 @@ const Jobb = ({
 }: Props) => {
   return (
     <div className="flex h-[calc(100vh-60px)] flex-col bg-white overflow-hidden">
-      
+
       {/* Filter bar */}
       <div className="border-b border-slate-100 bg-white z-20">
         <FilterNavbar />
