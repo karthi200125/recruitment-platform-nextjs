@@ -83,8 +83,8 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                             disabled={!canMessage}
                             title={!canMessage ? "Upgrade to Premium to message" : `Message ${moreUser.displayName}`}
                             className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-all duration-200 ${canMessage
-                                    ? "border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
-                                    : "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
+                                ? "border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
+                                : "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
                                 }`}
                         >
                             {canMessage ? (
@@ -102,7 +102,16 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                 modalId={`messageModel-${moreUser.id}`}
                 title={`Message ${moreUser.displayName}`}
                 className="min-w-[300px] lg:w-[800px]"
-                bodyContent={<MessageBox receiverId={moreUser.id} chatUser={moreUser} />}
+                bodyContent={
+                    <MessageBox
+                        receiverId={moreUser.id}
+                        chatUser={{
+                            id: moreUser.id,
+                            username: moreUser.displayName,
+                            userImage: moreUser.image,
+                        }}
+                    />
+                }
             >
                 <div />
             </Model>

@@ -28,7 +28,7 @@ import { UploadFile } from "@/components/upload/UploadFile";
 import type { Company } from "@/types";
 
 interface CompanyFormProps {
-    company?: Company;
+    company?: Company | null;
 }
 
 interface SectionProps {

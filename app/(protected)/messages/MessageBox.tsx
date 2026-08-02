@@ -4,18 +4,17 @@ import { getConversation } from "@/actions/message/get-conversation";
 import { markMessagesAsSeen } from "@/actions/message/mark-messages-as-seen ";
 import MessageBoxSkeleton from "@/components/skeletons/MessageBoxSkeleton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { ChatMessage, ChatUserSummary } from "@/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MessageSquare } from "lucide-react";
 import { useEffect } from "react";
 import { ChatButton } from "./ChatButton";
 import { Chats } from "./Chats";
 import { ChatUser } from "./ChatUser";
-import { ChatUser as ChatUserType } from "@/actions/message/get-chat-users";
-import { ChatMessage } from "@/types";
 
 interface MessageBoxProps {
   receiverId?: number;
-  chatUser?: ChatUserType;
+  chatUser?: ChatUserSummary;
   isLoading?: boolean;
   isChatuser?: boolean;
 }
@@ -60,7 +59,7 @@ export const MessageBox = ({
     ),
 
     staleTime: 1000 * 30,
-    
+
     refetchInterval: receiverId
       ? 3000
       : false,

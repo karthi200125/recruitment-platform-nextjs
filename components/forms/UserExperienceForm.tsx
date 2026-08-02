@@ -35,7 +35,7 @@ export function UserExperienceForm({ experience, edit }: ExperienceProps) {
     const dispatch = useDispatch()
 
     const { userId } = useParams()
-    const id = Number(userId) 
+    const id = Number(userId)
 
     const form = useForm<z.infer<typeof UserExperienceSchema>>({
         resolver: zodResolver(UserExperienceSchema),
@@ -44,7 +44,7 @@ export function UserExperienceForm({ experience, edit }: ExperienceProps) {
             position: edit ? experience?.position : "",
             startDate: edit ? experience?.startDate : "",
             endDate: edit ? experience?.endDate : "",
-            description: edit ? experience?.description : "",
+            description: experience?.description ?? "",
         },
     });
 

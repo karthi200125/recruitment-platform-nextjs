@@ -1,18 +1,5 @@
 "use client";
 
-/**
- * ProjectCard
- *
- * Grid card used inside the Projects section. On hover:
- *  - Image shifts to a muted tone via grayscale + brightness filter
- *  - An info overlay slides up from the bottom with name, description
- *    snippet, and quick-action icon buttons (view, link, edit, delete)
- *
- * Owner-only controls (edit / delete) are rendered only when
- * `isCurrentUser` is true, so the component is safe to render for
- * any viewer.
- */
-
 import Image from "next/image";
 import { ExternalLink, Eye, Pencil, Trash2 } from "lucide-react";
 
@@ -29,11 +16,8 @@ export interface ProjectCardProject {
 interface ProjectCardProps {
   project: ProjectCardProject;
   isCurrentUser: boolean;
-  /** Open the detail view for this project */
   onView: () => void;
-  /** Open the edit form for this project */
   onEdit: () => void;
-  /** Trigger delete confirmation for this project */
   onDelete: () => void;
 }
 

@@ -1,29 +1,12 @@
 "use server";
 
 import { db } from "@/lib/db";
-
-interface ConversationData {
-    id: number;
-    messages: {
-        id: number;
-        senderId: number;
-        text?: string | null;
-        image?: string | null;
-        isSeen: boolean;
-        createdAt: string;
-        sender: {
-            id: number;
-            userImage?: string | null;
-        };
-    }[];
-}
-
-type GetConversationResult = ConversationData | null;
+import { ConversationData } from "@/types/chat";
 
 export const getConversation = async (
     currentUserId: number,
     otherUserId: number
-): Promise<GetConversationResult> => {
+): Promise<ConversationData | null> => {
     try {
         if (
             !Number.isInteger(currentUserId) ||
@@ -45,10 +28,10 @@ export const getConversation = async (
             },
             include: {
                 messages: {
-                    take: 30,
                     orderBy: {
                         createdAt: "asc",
                     },
+                    take: 30,
                     include: {
                         sender: {
                             select: {
@@ -61,14 +44,26 @@ export const getConversation = async (
             },
         });
 
-        if (!chat) return null;
+        if (!chat) {
+            return null;
+        }
 
-        // 🔥 IMPORTANT: convert Date → string
         return {
             id: chat.id,
-            messages: chat.messages.map((msg) => ({
-                ...msg,
-                createdAt: msg.createdAt.toISOString(), 
+            messages: chat.messages.map((message) => ({
+                id: message.id,
+                senderId: message.senderId,
+                text: message.text,
+                image: message.image,
+                file: message.file,
+                fileName: message.fileName,
+                fileType: message.fileType,
+                isSeen: message.isSeen,
+                createdAt: message.createdAt.toISOString(),
+                sender: {
+                    id: message.sender.id,
+                    userImage: message.sender.userImage,
+                },
             })),
         };
     } catch (error) {

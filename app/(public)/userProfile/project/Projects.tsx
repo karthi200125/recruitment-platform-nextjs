@@ -277,14 +277,7 @@ export default function Projects({
                         bodyContent={
                             <UserProjectForm
                                 isEdit
-                                project={{
-                                    id: activeEditProject.id,
-                                    proName: activeEditProject.proName,
-                                    proLink: activeEditProject.proLink,
-                                    proImage: activeEditProject.proImage,
-                                    proDesc: activeEditProject.proDesc,
-                                    proImagePublicId: activeEditProject.proImagePublicId,
-                                }}
+                                project={activeEditProject}
                                 onClose={() => setActiveEditId(null)}
                             />
                         }

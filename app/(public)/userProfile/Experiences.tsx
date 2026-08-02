@@ -16,15 +16,8 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 
 import noImage from "@/public/noImage.webp";
 import Image from "next/image";
+import { Experience } from "@/types";
 
-interface Experience {
-  id: number;
-  companyName: string;
-  position: string;
-  startDate: string;
-  endDate: string;
-  description?: string | null;
-}
 
 interface ExperiencesProps {
   experiences?: Experience[];

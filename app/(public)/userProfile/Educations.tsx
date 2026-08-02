@@ -1,28 +1,19 @@
 "use client";
 
-import { useDispatch } from "react-redux";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { UserEducationForm } from "@/components/forms/UserEducationForm";
-import DeleteEducationForm from "@/components/forms/DeleteEducationForm";
-import { openModal } from "@/store/ModalSlice";
 import Button from "@/components/Button";
+import DeleteEducationForm from "@/components/forms/DeleteEducationForm";
+import { UserEducationForm } from "@/components/forms/UserEducationForm";
 import Icon from "@/components/Icon";
 import Model from "@/components/Model";
 import EducationsSkeleton from "@/components/skeletons/EducationsSkeleton";
-import { Plus , Pencil , Trash2  } from "lucide-react";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { openModal } from "@/store/ModalSlice";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { useDispatch } from "react-redux";
 
-import Image from "next/image";
 import noImage from "@/public/noImage.webp";
-
-interface Education {
-    id: number;
-    instituteName: string;
-    degree: string;
-    fieldOfStudy: string;
-    startDate: string;
-    endDate: string;
-    percentage: string;
-}
+import { Education } from "@/types";
+import Image from "next/image";
 
 interface EducationsProps {
     educations?: Education[];

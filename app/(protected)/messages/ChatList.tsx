@@ -4,10 +4,10 @@ import { format } from "date-fns";
 import Image from "next/image";
 
 import noProfile from "@/public/noProfile.webp";
-import { ChatUser } from "@/actions/message/get-chat-users";
+import { ChatUserItem } from "@/types";
 
 interface ChatListProps {
-    chatUser: ChatUser;
+    chatUser: ChatUserItem;
     selectedChatUserId?: number | null;
 }
 

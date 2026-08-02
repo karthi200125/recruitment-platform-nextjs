@@ -1,17 +1,16 @@
 "use client";
 
-import { memo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Briefcase, Users, Building2, LayoutDashboard } from "lucide-react";
+import { Briefcase, Building2, LayoutDashboard, Users } from "lucide-react";
+import { memo, useState } from "react";
 
 import { getCompaniesEmployees } from "@/actions/user/get-company-employees";
 import EmployeesSkeleton from "@/components/skeletons/EmployeesSkeleton";
-import Employee from "../../../(protected)/dashboard/employees/Employee";
-import JobList from "../../../../components/Job/JobLists/JobList";
 import type {
     CompanyWithJobs,
     User,
 } from "@/types";
+import JobList from "../../../../components/Job/JobLists/JobList";
 
 
 const Empty = ({ icon: Icon, text }: { icon: React.ElementType; text: string }) => (
@@ -67,9 +66,9 @@ export const CompanyEmployees = memo(({ employeeIds }: { employeeIds?: number[] 
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {data.map((emp: User) => (
+            {/* {data.map((emp: User) => (
                 <Employee key={emp.id} user={emp} isVerify={false} />
-            ))}
+            ))} */}
         </div>
     );
 });

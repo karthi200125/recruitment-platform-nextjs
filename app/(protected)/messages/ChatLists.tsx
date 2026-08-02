@@ -5,10 +5,11 @@ import { MessageSquare } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { ChatList } from "./ChatList";
 import { MessageBox } from "./MessageBox";
-import { ChatUser } from "@/actions/message/get-chat-users";
+import { ChatUserItem } from "@/types";
+
 
 interface ChatListsProps {
-  chatUsers: ChatUser[];
+  chatUsers: ChatUserItem[];
   isPending?: boolean;
   onSelectedChatUserId?: (id: number) => void;
   defaultChatUserId?: number | null;

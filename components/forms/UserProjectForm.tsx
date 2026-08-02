@@ -18,12 +18,13 @@ import { UserProjectSchema } from "@/lib/SchemaTypes";
 import { closeModal } from "@/store/ModalSlice";
 import { Project } from "@/types";
 import { UploadFile } from "../upload/UploadFile";
+import { ProjectCardProject } from "@/app/(public)/userProfile/project/ProjectCard";
 
 type FormValues = z.infer<typeof UserProjectSchema>;
 
 interface UserProjectProps {
     isEdit?: boolean;
-    project?: Project;
+    project?: ProjectCardProject;
     onSuccess?: (project: Project) => void;
     onClose?: () => void;
 }
