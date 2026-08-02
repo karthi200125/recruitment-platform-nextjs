@@ -4,8 +4,7 @@ import { meiliClient } from '@/lib/meilisearch';
 
 export async function configureJobIndex() {
     const index = meiliClient.index('jobs');
-
-    // Searchable fields
+    
     await index.updateSearchableAttributes([
         'jobTitle',
         'jobDesc',
@@ -15,8 +14,7 @@ export async function configureJobIndex() {
         'state',
         'country',
     ]);
-
-    // Filterable fields
+    
     await index.updateFilterableAttributes([
         'city',
         'state',
@@ -26,13 +24,11 @@ export async function configureJobIndex() {
         'experience',
         'isEasyApply',
     ]);
-
-    // Sortable
+    
     await index.updateSortableAttributes([
         'createdAt',
     ]);
 
-    // Ranking
     await index.updateRankingRules([
         'words',
         'typo',

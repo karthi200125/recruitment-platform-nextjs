@@ -72,12 +72,12 @@ export default function ForgotPasswordPage() {
                                 <span className="font-medium text-slate-700">
                                     {form.getValues("email")}
                                 </span>{" "}
-                                is registered, you'll receive a password reset link shortly.
+                                is registered, you&apos;ll receive a password reset link shortly.
                             </p>
                         </div>
 
                         <p className="text-xs text-slate-400">
-                            Didn't receive it? Check your spam folder or{" "}
+                            Didn&apos;t receive it? Check your spam folder or
                             <button
                                 onClick={() => { setSent(false); setError(""); }}
                                 className="text-indigo-600 font-medium hover:underline"
@@ -114,7 +114,7 @@ export default function ForgotPasswordPage() {
                             Forgot password?
                         </h1>
                         <p className="text-sm text-slate-500 leading-relaxed">
-                            No worries — enter your email and we'll send you a reset link.
+                            No worries — enter your email and we&apos;ll send you a reset link.
                         </p>
                     </div>
 

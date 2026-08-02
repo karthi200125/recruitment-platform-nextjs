@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     Select,
     SelectContent,
@@ -39,17 +39,21 @@ const CustomSelect: React.FC<SelectProps> = ({
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [filteredOptions, setFilteredOptions] = useState<string[]>(options || []);
 
-    const debounceSearch = debounce((term: string) => {
-        setFilteredOptions(
-            options.filter(option =>
-                option.toLowerCase().includes(term.toLowerCase())
-            )
-        );
-    }, 300);
+    const debounceSearch = useMemo(
+        () =>
+            debounce((term: string) => {
+                setFilteredOptions(
+                    options.filter((option) =>
+                        option.toLowerCase().includes(term.toLowerCase())
+                    )
+                );
+            }, 300),
+        [options]
+    );
 
     useEffect(() => {
         debounceSearch(searchTerm);
-    }, [searchTerm, options]);
+    }, [searchTerm, debounceSearch]);
 
     const handleValueChange = (value: string) => {
         field.onChange(value);

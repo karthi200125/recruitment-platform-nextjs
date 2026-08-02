@@ -28,10 +28,15 @@ export const getActionTakenJobs = async (
                 jobApplications: {
                     some: {
                         userId,
-                        OR: [
-                            { isSelected: true },
-                            { isApplicationViewed: true }, // 👈 add this (better UX)
-                        ],
+                        status: {
+                            in: [
+                                "VIEWED",
+                                "SHORTLISTED",
+                                "INTERVIEW_SCHEDULED",
+                                "INTERVIEWED",
+                                "HIRED",
+                            ],
+                        },
                     },
                 },
             },

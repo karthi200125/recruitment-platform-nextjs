@@ -1,5 +1,4 @@
 import React, { ButtonHTMLAttributes, ReactNode } from "react";
-
 import Loader from "./loader/Loader";
 
 interface ButtonProps {

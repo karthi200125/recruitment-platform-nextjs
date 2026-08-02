@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 const STATUS_OPTIONS = [
     { label: "All statuses", value: "" },
@@ -53,7 +53,7 @@ export function ApplicantsFilterBar() {
             } else {
                 params.delete(key);
             }
-            params.delete("applicantId"); 
+            params.delete("applicantId");
             router.push(`${pathname}?${params.toString()}`);
         },
         [pathname, router, searchParams]
@@ -61,9 +61,13 @@ export function ApplicantsFilterBar() {
 
     useEffect(() => {
         if (searchInput === urlSearch) return;
-        const timeout = setTimeout(() => updateParam("search", searchInput), SEARCH_DEBOUNCE_MS);
-        return () => clearTimeout(timeout);        
-    }, [searchInput]);
+
+        const timeout = setTimeout(() => {
+            updateParam("search", searchInput);
+        }, SEARCH_DEBOUNCE_MS);
+
+        return () => clearTimeout(timeout);
+    }, [searchInput, urlSearch, updateParam]);
 
     return (
         <div className="space-y-3 border-b border-slate-100 p-4">

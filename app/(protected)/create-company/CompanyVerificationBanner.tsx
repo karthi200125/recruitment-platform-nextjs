@@ -40,10 +40,9 @@ export default function CompanyVerificationBanner({
                     </div>
 
                     {/* Body */}
-                    <p className="mt-1 text-sm leading-relaxed text-amber-700
-                        dark:text-amber-300">
+                    <p className="mt-1 text-sm leading-relaxed text-amber-700 dark:text-amber-300">
                         Your profile is under review. You can update your company info,
-                        but job posts are paused until you're verified.
+                        but job posts are paused until you&apos;re verified.
                     </p>
 
                     {/* Progress steps */}

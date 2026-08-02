@@ -1,6 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
+import Image from "next/image";
 
 export const profileViewsColumns: ColumnDef<any>[] = [
     {
@@ -14,12 +15,14 @@ export const profileViewsColumns: ColumnDef<any>[] = [
 
             return (
                 <div className="flex items-center gap-3">
-                    <img
+                    <Image
                         src={
                             viewer?.userImage
                         }
                         alt="viewer"
                         className="h-10 w-10 rounded-full object-cover"
+                        fill
+                        sizes="40px"
                     />
 
                     <div>

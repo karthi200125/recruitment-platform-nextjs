@@ -38,18 +38,23 @@ export async function indexJobs() {
             createdAt: job.createdAt,
         }));
 
-        await meiliClient
-            .index("jobs")
-            .addDocuments(formattedJobs);
+        const index = meiliClient.index("jobs");
+
+        await index.deleteAllDocuments();
+        await index.addDocuments(formattedJobs);
+
+        console.log(`✅ Indexed ${formattedJobs.length} jobs into Meilisearch.`);
 
         return {
             success: true,
+            count: formattedJobs.length,
         };
     } catch (error) {
         console.error("[INDEX_JOBS]", error);
 
         return {
             success: false,
+            count: 0,
         };
     }
 }

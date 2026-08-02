@@ -124,7 +124,7 @@ export function UploadFile({
 
             onFileSelect?.(file);
         },
-        [config, isImageKind, onFileSelect, onUploadError]
+        [config, isImageKind, onFileSelect, onUploadError, reset]
     );
 
     const handleFilesChosen = useCallback(
@@ -217,7 +217,7 @@ export function UploadFile({
         setErrorMessage(null);
         reset();
         onRemove?.();
-    }, [onRemove]);
+    }, [onRemove, reset]);
 
     const handleCancelUpload = useCallback(() => {
         cancelUpload();
@@ -227,13 +227,13 @@ export function UploadFile({
 
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-useEffect(() => {
-    return () => {
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-    };
-}, []);
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     // handle submit
     const handleSubmit = useCallback(async () => {
@@ -245,11 +245,11 @@ useEffect(() => {
                 type,
                 fields,
             });
-            setStatus("success");            
+            setStatus("success");
             timeoutRef.current = setTimeout(() => {
-    onUploadSuccess?.(result);
-    // onClose?.();
-}, 800);            
+                onUploadSuccess?.(result);
+                onClose?.();
+            }, 800);
         } catch (err) {
             const message =
                 err instanceof Error
@@ -268,6 +268,7 @@ useEffect(() => {
         onUploadSuccess,
         onUploadError,
         onClose,
+        fields
     ]);
 
     // ── Existing-file action handlers ──

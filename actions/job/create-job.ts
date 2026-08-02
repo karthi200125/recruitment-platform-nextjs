@@ -1,15 +1,17 @@
 'use server';
 
-import * as z from 'zod';
 import { getServerSession } from 'next-auth';
+import * as z from 'zod';
 
-import { db } from '@/lib/db';
 import { authOptions } from '@/lib/auth/authOptions';
-import { CreateJobSchema } from '@/lib/SchemaTypes';
 import { FEATURES } from '@/lib/dashboard/proFeatures';
+import { db } from '@/lib/db';
+import { meiliClient } from "@/lib/meilisearch";
+import { CreateJobSchema } from '@/lib/SchemaTypes';
 import { JobQuestionType } from '@/types';
 import { Prisma } from '@prisma/client';
-import { getCurrentUserCompany } from '../company/get-current-user-company.ts';
+import { getCurrentUserCompany } from '../company/get-current-user-company';
+
 
 interface CreateJobProps {
     values: z.infer<typeof CreateJobSchema>;
@@ -136,6 +138,10 @@ export const createJobAction = async ({
                 },
             });
 
+            await meiliClient
+                .index("jobs")
+                .updateDocuments([updatedJob]);
+
             return { success: 'Job updated', data: updatedJob };
         }
 
@@ -151,6 +157,10 @@ export const createJobAction = async ({
                 status: 'ACTIVE',
             },
         });
+
+        await meiliClient
+            .index("jobs")
+            .addDocuments([newJob]);
 
         return { success: 'Job created successfully', data: newJob };
     } catch (error) {

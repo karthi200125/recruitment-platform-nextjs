@@ -185,7 +185,7 @@ export default function CreateJobClient({
                 </p>
 
                 <p className="text-sm leading-relaxed text-slate-500">
-                  You've reached the maximum number of active jobs
+                  You&apos;ve reached the maximum number of active jobs
                   or monthly postings for your current plan.
                   Upgrade to continue posting.
                 </p>

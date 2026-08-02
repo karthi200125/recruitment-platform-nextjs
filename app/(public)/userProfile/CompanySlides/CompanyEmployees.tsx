@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { memo } from "react";
 
 import { getCompaniesEmployees } from "@/actions/user/get-company-employees";
-import Employee from "@/app/(protected)/dashboard/employees/Employee";
 import EmployeesSkeleton from "@/components/skeletons/EmployeesSkeleton";
 
 interface CompanyEmployeesProps {
@@ -35,13 +34,13 @@ const CompanyEmployees = ({
 
       {!isPending && data.length > 0 && (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {data.map((emp: EmployeeType) => (
+          {/* {data.map((emp: EmployeeType) => (
             <Employee
               key={emp.id}
               user={emp}
               isVerify={false}
             />
-          ))}
+          ))} */}
         </div>
       )}
     </div>

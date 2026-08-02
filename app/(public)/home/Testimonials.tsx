@@ -1,6 +1,7 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { testimonialsdata } from "@/lib/data/testimonial-data";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
 
 function Avatar({
@@ -13,10 +14,12 @@ function Avatar({
   return (
     <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.03]">
       {image ? (
-        <img
+        <Image
           src={image}
           alt={name}
           className="h-full w-full object-cover"
+          fill
+          sizes="48px"
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-white/70">

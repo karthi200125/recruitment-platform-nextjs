@@ -1,10 +1,10 @@
-import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
+import { getCurrentUserCompany } from "@/actions/company/get-current-user-company";
 import { authOptions } from "@/lib/auth/authOptions";
 import { db } from "@/lib/db";
 import { FEATURES } from "@/types/features";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 import CreateJobClient from "./CreateJobClient";
-import { getCurrentUserCompany } from "@/actions/company/get-current-user-company.ts";
 
 export default async function CreateJobPage() {
     const session = await getServerSession(authOptions);

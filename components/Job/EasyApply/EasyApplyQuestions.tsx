@@ -78,7 +78,7 @@ const EasyApplyQuestions = ({
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Additional Questions</h2>
-          <p className="mt-1 text-sm text-slate-500">Please answer the employer's required questions.</p>
+          <p className="mt-1 text-sm text-slate-500">Please answer the employer&apos;s required questions.</p>
         </div>
 
         {questions.map((question) => (

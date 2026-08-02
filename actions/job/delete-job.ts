@@ -1,8 +1,9 @@
 'use server';
 
-import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/authOptions';
 import { db } from '@/lib/db';
+import { meiliClient } from '@/lib/meilisearch';
+import { getServerSession } from 'next-auth';
 
 export const deleteJob = async (jobId: number) => {
     try {
@@ -27,6 +28,10 @@ export const deleteJob = async (jobId: number) => {
         await db.job.delete({
             where: { id: jobId },
         });
+
+        await meiliClient
+            .index("jobs")
+            .deleteDocument(jobId);
 
         return { success: 'Job deleted successfully' };
     } catch (error) {

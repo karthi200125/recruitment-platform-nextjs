@@ -3,6 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 import { format } from "date-fns";
+import Image from "next/image";
 
 // ─────────────────────────────────────────────
 // Types
@@ -47,13 +48,15 @@ export const hiredCandidatesColumns: ColumnDef<HiredCandidateRow>[] =
 
                 return (
                     <div className="flex items-center gap-3">
-                        <img
+                        <Image
                             src={
                                 user?.userImage ??
                                 "/placeholder.png"
                             }
                             alt="candidate"
                             className="h-10 w-10 rounded-full object-cover"
+                            fill
+                            sizes="40px"
                         />
 
                         <div className="space-y-1">

@@ -6,6 +6,7 @@ import {
     ApplicationStatus,
 } from "@prisma/client";
 import DashboardStatusBadge from "@/components/dashboard/tables/DashboardStatusBadge";
+import Image from "next/image";
 
 interface ApplicantUser {
     username?: string | null;
@@ -46,13 +47,15 @@ export const applicantsColumns: ColumnDef<ApplicantRow>[] =
 
                 return (
                     <div className="flex items-center gap-3">
-                        <img
+                        <Image
                             src={
                                 user?.userImage ??
                                 "/placeholder.png"
                             }
                             alt="candidate"
                             className="h-10 w-10 rounded-full object-cover"
+                            fill
+                            sizes="40px"
                         />
 
                         <div className="space-y-1">

@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 import {
-  Mail,
   ArrowRight,
+  Mail,
 } from 'lucide-react';
+import Image from 'next/image';
 
 const PERKS = [
   'Personalized job alerts',
@@ -178,10 +179,12 @@ export default function Newsletter() {
                       key={index}
                       className="relative h-10 w-10 overflow-hidden rounded-full border border-black"
                     >
-                      <img
+                      <Image
                         src={avatar}
                         alt="Subscriber"
-                        className="h-full w-full object-cover"
+                        fill
+                        sizes="40px"
+                        className="object-cover"
                       />
                     </div>
                   ))}

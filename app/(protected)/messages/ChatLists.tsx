@@ -51,7 +51,7 @@ export const ChatLists = ({ chatUsers, isPending = false, onSelectedChatUserId, 
           <MessageSquare className="w-5 h-5 text-slate-400" strokeWidth={1.75} />
         </div>
         <p className="text-sm font-medium text-slate-500">No conversations yet</p>
-        <p className="text-xs text-slate-400">Start a conversation from a user's profile.</p>
+        <p className="text-xs text-slate-400">Start a conversation from a user&apos;s profile.</p>
       </div>
     );
   }

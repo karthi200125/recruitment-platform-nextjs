@@ -22,14 +22,18 @@ const PHONE_REGEX = /^[0-9]{10}$/;
 const EasyApplyUserInfo = ({ user, currentStep = 0, initialContactInfo, onNext, onUserdata }: EasyApplyUserInfoProps) => {
     const [email, setEmail] = useState(initialContactInfo?.email ?? "");
     const [phone, setPhone] = useState(initialContactInfo?.phone ?? "");
-    
+
     useEffect(() => {
         if (initialContactInfo?.email || initialContactInfo?.phone) return;
         if (!user) return;
 
         setEmail(user.email ?? "");
         setPhone(user.phoneNo ?? "");
-    }, [user]);
+    }, [
+        user,
+        initialContactInfo?.email,
+        initialContactInfo?.phone,
+    ]);
 
     const location = [user?.city, user?.state, user?.country].filter(Boolean).join(", ");
 
@@ -52,7 +56,7 @@ const EasyApplyUserInfo = ({ user, currentStep = 0, initialContactInfo, onNext, 
             <div>
                 <h2 className="text-lg font-semibold text-slate-900">Contact Information</h2>
                 <p className="mt-1 text-sm text-slate-500">
-                    We've pre-filled your contact details from your profile. You can edit them for this application if needed.
+                    We&apos;ve pre-filled your contact details from your profile. You can edit them for this application if needed.
                 </p>
             </div>
 

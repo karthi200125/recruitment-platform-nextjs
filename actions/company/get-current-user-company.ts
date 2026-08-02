@@ -10,7 +10,7 @@ export const getCurrentUserCompany = cache(
     async (
         userId: number
     ): Promise<Company | null> => {
-        try {            
+        try {
             const ownedCompany =
                 await db.company.findUnique({
                     where: {
@@ -21,7 +21,7 @@ export const getCurrentUserCompany = cache(
             if (ownedCompany) {
                 return ownedCompany;
             }
-            
+
             const membership =
                 await db.companyEmployee.findFirst({
                     where: {

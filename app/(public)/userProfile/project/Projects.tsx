@@ -45,7 +45,7 @@ function EmptyProjects({ isCurrentUser }: { isCurrentUser: boolean }) {
                 </>
             ) : (
                 <p className="mt-1 text-sm text-neutral-400">
-                    This user hasn't added any projects.
+                    This user hasn&apos;t added any projects.
                 </p>
             )}
         </div>
@@ -73,7 +73,7 @@ function DeleteConfirm({
         >
             <p className="text-sm text-red-800">
                 Delete <span className="font-semibold">{projectName}</span>? This
-                can't be undone.
+                can&apos;t be undone.
             </p>
             <div className="flex items-center gap-2">
                 <button

@@ -33,7 +33,7 @@ const setJobIdInUrl = (pathname: string, currentParams: URLSearchParams, jobId: 
 const JobsClient = ({ initialJobs, initialCount, searchParams, currentPage }: JobsClientProps) => {
     const pathname = usePathname();
     const urlSearchParams = useSearchParams();
-    
+
     const [selectedJobId, setSelectedJobId] = useState<number | null>(() => {
         if (!initialJobs.length) return null;
         const jobIdParam = urlSearchParams.get("jobId");
@@ -59,6 +59,18 @@ const JobsClient = ({ initialJobs, initialCount, searchParams, currentPage }: Jo
         if (!initialJobs.length) return null;
         return initialJobs.find((j) => j.id === selectedJobId) ?? initialJobs[0];
     }, [selectedJobId, initialJobs]);
+
+    
+    useEffect(() => {
+        if (!selectedJob) return;
+
+        const previousTitle = document.title;
+        document.title = `${selectedJob.jobTitle} at ${selectedJob.company?.companyName ?? "a company"} | Jobify`;
+
+        return () => {
+            document.title = previousTitle;
+        };
+    }, [selectedJob]);
 
     const handleSelectedJob = useCallback(
         (id: number) => {

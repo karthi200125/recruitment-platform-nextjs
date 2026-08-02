@@ -3,8 +3,8 @@
 import { getSkills } from '@/actions/user/get-skills';
 import { debounce } from '@/hooks/useDebounce';
 import { useQuery } from '@tanstack/react-query';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { X, Search, Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, Search, X } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 interface JobSkillsProps {
     onSkills?: (value: string[]) => void;
@@ -17,15 +17,15 @@ const JobSkills = ({ onSkills, alreadySkills }: JobSkillsProps) => {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [selectedSkills, setSelectedSkills] = useState<string[]>(alreadySkills ?? []);
     const containerRef = useRef<HTMLDivElement>(null);
-
-    // Debounce
-    const debounceFn = useCallback(
+    
+    const debounceFn = useMemo(
+    () =>
         debounce((q: string) => {
             setDebouncedQuery(q);
             setShowSuggestions(!!q.trim());
         }, 400),
-        []
-    );
+    []
+);
 
     useEffect(() => { debounceFn(query); }, [query, debounceFn]);
 
@@ -128,7 +128,7 @@ const JobSkills = ({ onSkills, alreadySkills }: JobSkillsProps) => {
                                         onClick={() => addSkill(query)}
                                         className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
                                     >
-                                        Add "{query}"
+                                        Add &quot;{query}&quot;
                                     </button>
                                 )}
                             </div>
