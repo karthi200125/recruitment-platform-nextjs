@@ -1,16 +1,19 @@
 "use server";
 
+import { ApplicationStatus } from "@prisma/client";
+
 import { db } from "@/lib/db";
 
 interface GetApplicantsResult {
     success: true;
     data: {
         totalApplicants: number;
-        selectedApplicants: number;
+        shortlistedApplicants: number;
     };
 }
 
 interface GetApplicantsError {
+    success: false;
     error: string;
 }
 
@@ -18,10 +21,7 @@ export async function getTotalAndSelectedApplicants(
     jobId: number
 ): Promise<GetApplicantsResult | GetApplicantsError> {
     try {
-        const [
-            totalApplicants,
-            selectedApplicants,
-        ] = await Promise.all([
+        const [totalApplicants, shortlistedApplicants] = await Promise.all([
             db.jobApplication.count({
                 where: {
                     jobId,
@@ -31,7 +31,7 @@ export async function getTotalAndSelectedApplicants(
             db.jobApplication.count({
                 where: {
                     jobId,
-                    isSelected: true,
+                    status: ApplicationStatus.SHORTLISTED,
                 },
             }),
         ]);
@@ -40,7 +40,7 @@ export async function getTotalAndSelectedApplicants(
             success: true,
             data: {
                 totalApplicants,
-                selectedApplicants,
+                shortlistedApplicants,
             },
         };
     } catch (error) {
@@ -50,8 +50,8 @@ export async function getTotalAndSelectedApplicants(
         );
 
         return {
-            error:
-                "Failed to retrieve applicants.",
+            success: false,
+            error: "Failed to retrieve applicants.",
         };
     }
 }

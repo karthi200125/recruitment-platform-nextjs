@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle } from "lucide-react";
+import { useState } from "react";
 
 import { getEasyApplyUser } from "@/actions/user/getuser/getEasyApplyUser";
 
 import { Progress } from "@/components/ui/progress";
 
-import EasyApplyUserInfo from "./EasyApplyUserInfo";
-import EasyApplyResume from "./EasyApplyResume";
 import EasyApplyQuestions from "./EasyApplyQuestions";
+import EasyApplyResume from "./EasyApplyResume";
 import EasyApplySubmit from "./EasyApplySubmit";
+import EasyApplyUserInfo from "./EasyApplyUserInfo";
 
 import type {
     ContactInfo,

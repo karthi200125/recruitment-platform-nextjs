@@ -1,11 +1,11 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { getChatUsers } from "@/actions/message/get-chat-users";
+import { ChatUser, getChatUsers } from "@/actions/message/get-chat-users";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { Search, RefreshCw } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { RefreshCw, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { ChatLists, ChatUser } from "./ChatLists";
+import { ChatLists } from "./ChatLists";
 import MessageBox from "./MessageBox";
 
 const Messages = () => {

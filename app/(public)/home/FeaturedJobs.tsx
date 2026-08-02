@@ -7,11 +7,13 @@ import { memo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
 
-import { getFeaturedJobs } from "@/actions/job/get-featured-jobs";
+import {
+    getFeaturedJobs,
+    type FeaturedJob,
+} from "@/actions/job/get-featured-jobs";
 
 import CtaButton from "@/components/ui/CtaButton";
 import noImage from "@/public/noImage.webp";
-import { JobWithCompanyAndCount } from "@/types";
 
 const stripHtml = (html: string) =>
     html.replace(/<[^>]*>/g, "");
@@ -125,7 +127,7 @@ const JobCard = memo(
         job,
         featured,
     }: {
-        job: JobWithCompanyAndCount;
+        job: FeaturedJob;
         featured?: boolean;
     }) => {
         const imageSrc:

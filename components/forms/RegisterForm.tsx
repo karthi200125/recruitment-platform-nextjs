@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { Lock, LockOpen } from "lucide-react";
-import { register } from "@/actions/auth/register";
+import { register } from "@/actions/auth/register_action";
 import { RegisterSchema } from "@/lib/SchemaTypes";
 import Button from "@/components/Button";
 import FormError from "@/components/ui/FormError";

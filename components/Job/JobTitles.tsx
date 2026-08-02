@@ -25,6 +25,7 @@ import EasyApply from "./EasyApply/EasyApply";
 
 import { checkSkills } from "@/actions/job/compare-skills";
 import { Company, JobWithCompany, SearchParams, User } from "@/types";
+import { Question } from "@/types/easyApply";
 
 interface JobTitlesProps {
   user: User;
@@ -60,6 +61,7 @@ const JobTitles = ({ user, job, company, isPending, safeSearchParams }: JobTitle
 
   const modeLower = (job.mode ?? "").toLowerCase().replace(" ", "_");
   const modeBadge = MODE_STYLES[modeLower] ?? "bg-slate-100 text-slate-600 border-slate-200";
+
 
   return (
     <div className="space-y-5">
@@ -170,7 +172,14 @@ const JobTitles = ({ user, job, company, isPending, safeSearchParams }: JobTitle
               <>
                 {job.isEasyApply ? (
                   <Model
-                    bodyContent={<EasyApply job={job} safeSearchParams={safeSearchParams} />}
+                    bodyContent={
+                      <EasyApply
+                        job={{
+                          id: job.id,
+                          jobTitle: job.jobTitle,
+                          questions: (job.questions ?? []) as unknown as Question[],
+                        }}
+                      />}
                     title={`Apply to ${company?.companyName}`}
                     modalId="easyapplyModal"
                     className="max-w-5xl"

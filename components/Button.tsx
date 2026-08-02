@@ -1,5 +1,5 @@
 import React, { ButtonHTMLAttributes, ReactNode } from "react";
-import Loader from "./loader/Loader";
+import Loader from "./loader/CustomLoader";
 
 interface ButtonProps {
     children: ReactNode;

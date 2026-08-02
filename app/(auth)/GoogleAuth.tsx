@@ -4,7 +4,7 @@ import {  useCallback, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import Loader from '@/components/loader/Loader';
+import Loader from '@/components/loader/CustomLoader';
 
 const GoogleAuth = () => {
     const pathname = usePathname();

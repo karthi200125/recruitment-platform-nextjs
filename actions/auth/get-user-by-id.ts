@@ -23,10 +23,15 @@ export type ProfileUser = Prisma.UserGetPayload<{
     projects: true;
 
     followers: {
-      select: { id: true };
+      select: {
+        followerId: true;
+      };
     };
+
     following: {
-      select: { id: true };
+      select: {
+        followingId: true;
+      };
     };
   };
 }>;
@@ -57,10 +62,15 @@ export const getUserById = async (
         projects: true,
 
         followers: {
-          select: { id: true },
+          select: {
+            followerId: true,
+          },
         },
+
         following: {
-          select: { id: true },
+          select: {
+            followingId: true,
+          },
         },
       },
     });

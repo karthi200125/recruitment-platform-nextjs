@@ -1,21 +1,11 @@
 'use client';
 
 import { JobWithCompany } from '@/actions/job/get-filter-all-jobs';
+import { JobSearchParams } from '@/types';
+import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Jobb from './Job';
-import { usePathname, useSearchParams } from "next/navigation";
 
-interface JobSearchParams {
-    userId?: number;
-    q?: string;
-    location?: string;
-    type?: string;
-    experiencelevel?: string;
-    dateposted?: string;
-    easyApply?: string;
-    company?: string;
-    page: number;
-}
 
 interface JobsClientProps {
     initialJobs: JobWithCompany[];

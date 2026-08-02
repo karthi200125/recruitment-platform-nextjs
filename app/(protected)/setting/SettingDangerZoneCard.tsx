@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import { AlertTriangle } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
+import { deleteAccount } from "@/actions/settings";
 import Button from "@/components/Button";
 import { Input } from "@/components/ui/input";
 import { useCustomToast } from "@/lib/CustomToast";
-import { deleteAccount } from "@/actions/settings";
 
 const CONFIRM_TEXT = "DELETE";
 
@@ -17,6 +17,7 @@ const SettingDangerZoneCard = () => {
     const [isPending, startTransition] = useTransition();
     const { showErrorToast } = useCustomToast();
     const router = useRouter();
+    const [password, setPassword] = useState("");
 
     const canDelete = confirmText === CONFIRM_TEXT;
 
@@ -24,13 +25,16 @@ const SettingDangerZoneCard = () => {
         if (!canDelete || isPending) return;
 
         startTransition(async () => {
-            const result = await deleteAccount();
+            const result = await deleteAccount({
+                confirmText,
+                password,
+            });
 
             if (result.error) {
                 showErrorToast(result.error);
                 return;
             }
-            
+
             await signOut({ redirect: false });
             router.push("/signin");
         });
@@ -66,6 +70,13 @@ const SettingDangerZoneCard = () => {
                     <label className="text-sm font-medium text-slate-700">
                         Type <span className="font-bold text-red-600">{CONFIRM_TEXT}</span> to confirm.
                     </label>
+
+                    <Input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password"
+                    />
 
                     <Input
                         value={confirmText}

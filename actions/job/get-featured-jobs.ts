@@ -9,7 +9,7 @@ type ActionResponse<T> = {
     error?: string;
 };
 
-type FeaturedJobsPayload = Prisma.JobGetPayload<{
+export type FeaturedJob = Prisma.JobGetPayload<{
     include: {
         company: {
             select: {
@@ -21,7 +21,9 @@ type FeaturedJobsPayload = Prisma.JobGetPayload<{
             };
         };
     };
-}>[];
+}>;
+
+export type FeaturedJobsPayload = FeaturedJob[];
 
 export const getFeaturedJobs = async (): Promise<
     ActionResponse<FeaturedJobsPayload>

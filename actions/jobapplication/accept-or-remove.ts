@@ -1,61 +1,53 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { ApplicationStatus } from "@prisma/client";
 
 export const AcceptOrRemove = async (
-    JobApplicationId: number,
+    jobApplicationId: number,
     action: "accept" | "remove"
 ) => {
     try {
-        if (!JobApplicationId || !action) {
-            return { error: "Invalid input parameters." };
+        if (!jobApplicationId) {
+            return {
+                error: "Invalid job application.",
+            };
         }
-
 
         if (action === "accept") {
             await db.jobApplication.update({
-                where: { id: JobApplicationId },
-                data: { isSelected: true },
+                where: {
+                    id: jobApplicationId,
+                },
+                data: {
+                    status: ApplicationStatus.SHORTLISTED,
+                    shortlistedAt: new Date(),
+                },
             });
-            const JA = await db.jobApplication.findUnique({
-                where: { id: JobApplicationId }
-            })
 
-            // check jobapplication isApplicationViewed true if not then make it true
-            if (JA?.isApplicationViewed !== true) {
-                await db.jobApplication.update({
-                    where: {
-                        id: JobApplicationId,
-                    },
-                    data: {
-                        isApplicationViewed: true,
-                        ApplicationViewedUpdatedAt: new Date()
-                    }
-                });
-            } else {
-                await db.jobApplication.update({
-                    where: {
-                        id: JobApplicationId,
-                    },
-                    data: {
-                        isSelected: true,
-                        SelectedUpdatedAt: new Date()
-                    }
-                });
-            }
-
-            return { success: "Candidate has been selected." };
-        } else if (action === "remove") {
-            await db.jobApplication.update({
-                where: { id: JobApplicationId },
-                data: { isNotIntrested: true },
-            });
-            return { success: "Candidate has been removed." };
-        } else {
-            return { error: "Invalid action type." };
+            return {
+                success: "Candidate shortlisted successfully.",
+            };
         }
+
+        await db.jobApplication.update({
+            where: {
+                id: jobApplicationId,
+            },
+            data: {
+                status: ApplicationStatus.REJECTED,
+                rejectedAt: new Date(),
+            },
+        });
+
+        return {
+            success: "Candidate rejected successfully.",
+        };
     } catch (error) {
-        console.error("Database error:", error);
-        return { error: "Failed to update candidate status." };
+        console.error("[ACCEPT_OR_REMOVE]", error);
+
+        return {
+            error: "Failed to update candidate.",
+        };
     }
 };

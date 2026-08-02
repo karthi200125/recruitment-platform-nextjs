@@ -13,7 +13,7 @@ export default async function CreateJobPage() {
         redirect("/signin");
     }
 
-    const userId = Number(session.user.id);
+    const userId = session.user.id;
     const user = await db.user.findUnique({
         where: {
             id: userId,

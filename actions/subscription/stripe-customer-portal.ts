@@ -33,28 +33,38 @@ export async function StripeCustomerPortal(
 
         // 🔐 Fetch user from DB (never trust form data)
         const user = await db.user.findUnique({
-            where: { email: session.user.email },
+            where: {
+                email: session.user.email,
+            },
             include: {
                 subscription: true,
             },
         });
 
         if (!user) {
-            return { error: "User not found" };
+            return {
+                error: "User not found",
+            };
         }
 
-        const subscription = user.subscription?.[0];
+        if (!user.subscription) {
+            return {
+                error: "No active subscription found.",
+            };
+        }
 
-        // 🔐 Ensure the customer ID belongs to this user
-        if (!subscription || subscription.stripeCustomerId !== stripeCustomerId) {
-            return { error: "Invalid customer access" };
+        if (user.stripeCustomerId !== stripeCustomerId) {
+            return {
+                error: "Invalid customer access.",
+            };
         }
 
         // ✅ Create Stripe portal session
-        const portalSession = await stripe.billingPortal.sessions.create({
-            customer: stripeCustomerId,
-            return_url: `${process.env.NEXT_PUBLIC_URL}/subscription`,
-        });
+        const portalSession =
+            await stripe.billingPortal.sessions.create({
+                customer: stripeCustomerId,
+                return_url: `${process.env.NEXT_PUBLIC_URL}/subscriptions`,
+            });
 
         return { sessionUrl: portalSession.url };
 

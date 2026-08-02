@@ -40,8 +40,12 @@ export const getNetworkusers = async (
         // ✅ Extract IDs safely
         const ids =
             type === "followers"
-                ? currentUser.followers ?? []
-                : currentUser.followings ?? [];
+                ? (currentUser.followers ?? []).map(
+                    (follow) => follow.followerId
+                )
+                : (currentUser.following ?? []).map(
+                    (follow) => follow.followingId
+                );
 
         // ✅ Early return (important for performance)
         if (ids.length === 0) {

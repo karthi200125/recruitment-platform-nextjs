@@ -1,8 +1,8 @@
 'use client';
 
-import { JobWithCompany } from "@/actions/job/get-filter-all-jobs";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
+import { JobSearchParams, JobWithCompany } from "@/types";
 import JobCompany from "./JobCompany";
 import JobDescription from "./JobDescription";
 import JobRecruiter from "./JobRecruiter";
@@ -10,7 +10,7 @@ import JobTitles from "./JobTitles";
 
 interface JobDetailsProps {
     job: JobWithCompany;
-    safeSearchParams?: Record<string, string | string[] | undefined>;
+    safeSearchParams?: JobSearchParams;
 }
 
 const JobDetails = ({

@@ -31,7 +31,7 @@ import {
 import { Prisma } from '@prisma/client';
 
 interface Props {
-  job?: JobWithCompany;
+  job?: JobWithCompany | null;
   recruiterCompany?: Company | null;
   isEdit?: boolean;
 }
@@ -114,7 +114,7 @@ const CreateJobForm = ({ job, isEdit = false, recruiterCompany }: Props) => {
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}         
+        onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-8"
       >
 

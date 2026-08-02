@@ -38,3 +38,15 @@ export interface JobQuestionType {
     required: boolean;
     type: "text";
 }
+
+export interface JobSearchParams {
+    userId?: number;
+    q?: string;
+    location?: string;
+    type?: string;
+    experiencelevel?: string;
+    dateposted?: string;
+    easyApply?: string;
+    company?: string;
+    page: number;
+}
