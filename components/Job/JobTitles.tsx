@@ -24,13 +24,14 @@ import JobTitlesSkeleton from "@/components/skeletons/JobTitlesSkeleton";
 import EasyApply from "./EasyApply/EasyApply";
 
 import { checkSkills } from "@/actions/job/compare-skills";
-import { Company, JobWithCompany, SearchParams, User } from "@/types";
+import { FilteredJob } from "@/actions/job/get-filter-all-jobs";
+import { Company, SearchParams, User } from "@/types";
 import { Question } from "@/types/easyApply";
 
 interface JobTitlesProps {
   user: User;
-  job: JobWithCompany;
-  company: Company;
+  job: FilteredJob;
+  company: FilteredJob["company"];
   isPending: boolean;
   safeSearchParams?: SearchParams;
 }

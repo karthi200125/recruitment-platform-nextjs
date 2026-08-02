@@ -1,6 +1,6 @@
 'use client';
 
-import { JobWithCompany } from '@/actions/job/get-filter-all-jobs';
+import { FilteredJob } from '@/actions/job/get-filter-all-jobs';
 import { JobSearchParams } from '@/types';
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -8,7 +8,7 @@ import Jobb from './Job';
 
 
 interface JobsClientProps {
-    initialJobs: JobWithCompany[];
+    initialJobs: FilteredJob[];
     initialCount: number;
     searchParams: JobSearchParams;
     currentPage: number;
@@ -50,7 +50,7 @@ const JobsClient = ({ initialJobs, initialCount, searchParams, currentPage }: Jo
         return initialJobs.find((j) => j.id === selectedJobId) ?? initialJobs[0];
     }, [selectedJobId, initialJobs]);
 
-    
+
     useEffect(() => {
         if (!selectedJob) return;
 

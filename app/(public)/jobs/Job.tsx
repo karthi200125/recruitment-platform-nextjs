@@ -1,15 +1,15 @@
 'use client';
 
-import { JobWithCompany } from '@/actions/job/get-filter-all-jobs';
 import FilterNavbar from '@/components/FilterNavbar';
-import { JobSearchParams } from '@/types';
+import type { FilteredJob } from "@/actions/job/get-filter-all-jobs";
+import type { JobSearchParams } from "@/types";
 import { Briefcase } from 'lucide-react';
 import JobDetails from '../../../components/Job/JobDetails';
 import JobLists from '../../../components/Job/JobLists/JobLists';
 
 interface Props {
-  jobs: JobWithCompany[];
-  job: JobWithCompany | null;
+  jobs: FilteredJob[];
+  job: FilteredJob | null;
   isPending: boolean;
   onSelectedJob: (id: number) => void;
   count: number;

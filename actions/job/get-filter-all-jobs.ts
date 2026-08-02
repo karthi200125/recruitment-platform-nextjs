@@ -2,43 +2,45 @@ import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { cache } from "react";
 import { searchJobs } from "../meili/search-jobs";
+import { SearchParams } from "@/types";
 
-interface GetFilteredJobsParams {
-    userId?: number;
-    page?: number;
-    q?: string;
-    easyApply?: string;
-    dateposted?: string;
-    experiencelevel?: string;
-    type?: string;
-    location?: string;
-    company?: string;
-}
-
-export type JobWithCompany = Prisma.JobGetPayload<{
+export type FilteredJob = Prisma.JobGetPayload<{
     include: {
         company: {
             select: {
-                id: true;
-                companyName: true;
-                companyImage: true;
-            };
-        };
+                id: true,
+                userId: true,
+
+                companyName: true,
+                companyImage: true,
+
+                companyAbout: true,
+                companyTotalEmployees: true,
+                companyIsVerified: true,
+            },
+        },
+
+        jobApplications: {
+            select: {
+                userId: true,
+            },
+        },
+
         _count: {
             select: {
-                jobApplications: true;
-            };
-        };
-    };
+                jobApplications: true,
+            },
+        },
+    }
 }>;
 
 const ITEM_PER_PAGE = 10;
 
 export const getFilteredJobs = cache(
     async (
-        params: GetFilteredJobsParams
+        params: SearchParams
     ): Promise<{
-        jobs: JobWithCompany[];
+        jobs: FilteredJob[];
         count: number;
     }> => {
         const {
@@ -158,12 +160,24 @@ export const getFilteredJobs = cache(
                 include: {
                     company: {
                         select: {
-                            userId: true,
                             id: true,
+                            userId: true,
+
                             companyName: true,
                             companyImage: true,
+
+                            companyAbout: true,
+                            companyTotalEmployees: true,
+                            companyIsVerified: true,
                         },
                     },
+
+                    jobApplications: {
+                        select: {
+                            userId: true,
+                        },
+                    },
+
                     _count: {
                         select: {
                             jobApplications: true,

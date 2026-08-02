@@ -4,14 +4,14 @@ import { BadgeCheck, Building2, Users } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { FilteredJob } from '@/actions/job/get-filter-all-jobs';
 import Batch from '@/components/Batch';
 import FollowButton from '@/components/FollowButton';
 import JobCompanySkeleton from '@/components/skeletons/JobCompanySkeleton';
-import { Company } from '@/types';
 
 
 interface JobCompanyProps {
-    company: Company;
+    company: FilteredJob["company"];
     isPending?: boolean;
 }
 

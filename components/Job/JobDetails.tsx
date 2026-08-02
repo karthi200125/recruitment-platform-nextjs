@@ -2,14 +2,15 @@
 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
-import { JobSearchParams, JobWithCompany } from "@/types";
+import { FilteredJob } from "@/actions/job/get-filter-all-jobs";
+import { JobSearchParams } from "@/types";
 import JobCompany from "./JobCompany";
 import JobDescription from "./JobDescription";
 import JobRecruiter from "./JobRecruiter";
 import JobTitles from "./JobTitles";
 
 interface JobDetailsProps {
-    job: JobWithCompany;
+    job: FilteredJob;
     safeSearchParams?: JobSearchParams;
 }
 
@@ -57,7 +58,7 @@ const JobDetails = ({
                     job={job}
                     isPending={false}
                 />
-                
+
                 {user?.role !== "ORGANIZATION" && (
                     <>
                         <div className="h-px bg-slate-100" />
