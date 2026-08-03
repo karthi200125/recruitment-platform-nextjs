@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { LoginSchema } from "@/lib/SchemaTypes";
+import { Role } from "@prisma/client";
 
 import bcrypt from "bcryptjs";
 
@@ -234,7 +235,7 @@ export const authOptions: NextAuthOptions = {
                 session.user.id = token.id as number;
                 session.user.email = token.email as string;
                 session.user.username = token.username as string;
-                session.user.role = token.role as string;
+                session.user.role = token.role as Role | null;
                 session.user.isPro = token.isPro as boolean;
                 session.user.profileImage = token.profileImage as string | null;
             }
