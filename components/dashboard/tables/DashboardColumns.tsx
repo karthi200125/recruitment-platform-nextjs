@@ -160,14 +160,14 @@ export const jobColumns: ColumnDef<JobWithCompany>[] = [
                         href: `/dashboard/${row.original.id}/applicants`,
                         label: "View Applicants",
                     }}
-                    edit={{
-                        modalId: "EditJobModal",
-                        onClick: () => setSelectedJob(row.original),
-                    }}
-                    delete={{
-                        modalId: "DeleteJobModal",
-                        onClick: () => setSelectedJob(row.original),
-                    }}
+                    // edit={{
+                    //     modalId: "EditJobModal",
+                    //     onClick: () => setSelectedJob(row.original),
+                    // }}
+                    // delete={{
+                    //     modalId: "DeleteJobModal",
+                    //     onClick: () => setSelectedJob(row.original),
+                    // }}
                 />
             </Link>
         ),

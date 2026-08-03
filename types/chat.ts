@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
 
 export type Chat = Prisma.ChatsGetPayload<{}>;
 
@@ -50,6 +50,9 @@ export interface ChatUserSummary {
   id: number;
   username: string;
   userImage: string | null;
+  profession?: string | null;
+  role?: Role | null;
+  isPro?: boolean;
 }
 
 export interface ChatUserItem extends ChatUserSummary {

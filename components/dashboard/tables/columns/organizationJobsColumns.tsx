@@ -4,9 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 
 import { format } from "date-fns";
 
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
+
 
 interface Recruiter {
     username?: string | null;
@@ -36,9 +34,7 @@ export interface OrganizationJobRow {
     };
 }
 
-// ─────────────────────────────────────────────
-// Columns
-// ─────────────────────────────────────────────
+
 
 export const organizationJobsColumns: ColumnDef<OrganizationJobRow>[] =
     [

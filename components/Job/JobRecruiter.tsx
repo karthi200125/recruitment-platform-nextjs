@@ -109,11 +109,10 @@ const JobRecruiter: React.FC<JobRecruiterProps> = ({ job, company, isPending = f
                     onClick={() => canMessage && dispatch(openModal(`messageModel-${recruiter.id}`))}
                     disabled={!canMessage}
                     title={!canMessage ? "Upgrade to Premium to message recruiters" : `Message ${recruiter.username}`}
-                    className={`flex-shrink-0 inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold border transition-all duration-200 ${
-                        canMessage
+                    className={`flex-shrink-0 inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold border transition-all duration-200 ${canMessage
                             ? "bg-white border-slate-200 text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700"
                             : "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed"
-                    }`}
+                        }`}
                 >
                     {canMessage
                         ? <MessageSquare className="w-3.5 h-3.5" strokeWidth={2} />
@@ -141,7 +140,19 @@ const JobRecruiter: React.FC<JobRecruiterProps> = ({ job, company, isPending = f
                 modalId={`messageModel-${recruiter.id}`}
                 title={`Message ${recruiter.username}`}
                 className="min-w-[300px] lg:w-[800px]"
-                bodyContent={<MessageBox receiverId={recruiter.id} chatUser={recruiter} />}
+                bodyContent={
+                    <MessageBox
+                        receiverId={recruiter.id}
+                        chatUser={{
+                            id: recruiter.id,
+                            username: recruiter.username,
+                            userImage: recruiter.profileImage ?? null,
+                            profession: recruiter.profession ?? null,
+                            role: recruiter.role,
+                            isPro: recruiter.isPro,
+                        }}
+                    />
+                }
             >
                 <div />
             </Model>

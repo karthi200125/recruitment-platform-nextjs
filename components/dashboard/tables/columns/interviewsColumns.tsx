@@ -5,9 +5,7 @@ import { format } from "date-fns";
 import { ApplicationStatus } from "@prisma/client";
 import DashboardStatusBadge from "@/components/dashboard/tables/DashboardStatusBadge";
 
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
+
 
 interface InterviewJob {
     jobTitle: string;
@@ -23,9 +21,7 @@ export interface InterviewRow {
     job: InterviewJob;
 }
 
-// ─────────────────────────────────────────────
-// Columns
-// ─────────────────────────────────────────────
+
 
 export const interviewsColumns: ColumnDef<InterviewRow>[] = [
     {

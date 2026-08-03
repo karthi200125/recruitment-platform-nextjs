@@ -1,13 +1,12 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { FilteredJob } from '@/actions/job/get-filter-all-jobs';
 import CustomPagination from '@/components/CustomPagination';
-import JobList from './JobList';
-import { JobWithCompany } from '@/actions/job/get-filter-all-jobs';
 import { Briefcase } from 'lucide-react';
+import JobList from './JobList';
 
 interface Props {
-  jobs: JobWithCompany[];
+  jobs: FilteredJob[];
   count: number;
   currentPage: number;
   isLoading: boolean;

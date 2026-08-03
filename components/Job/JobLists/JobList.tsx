@@ -1,10 +1,10 @@
-import { JobWithCompany } from "@/types";
+import { FilteredJob } from "@/actions/job/get-filter-all-jobs";
 import { formatDistanceToNow } from "date-fns";
 import { Clock, MapPin, Users } from 'lucide-react';
 import Image from 'next/image';
 
 interface Props {
-  job: JobWithCompany;
+  job: FilteredJob;
   selectedJob?: number | null;
   isHover?: boolean;
   border?: boolean;
@@ -19,7 +19,7 @@ const MODE_STYLES: Record<string, string> = {
 };
 
 const JobList = ({ job, selectedJob, isHover, border, onSelect }: Props) => {
-  const isSelected = job.id === selectedJob;  
+  const isSelected = job.id === selectedJob;
   const modeLower = (job.mode ?? "").toLowerCase().replace(/\s+/g, "_");
   const modeBadge = MODE_STYLES[modeLower];
 

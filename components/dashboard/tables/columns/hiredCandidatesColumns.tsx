@@ -5,9 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import Image from "next/image";
 
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
+
 
 interface HiredUser {
     username?: string | null;
@@ -31,9 +29,7 @@ export interface HiredCandidateRow {
     job: HiredJob;
 }
 
-// ─────────────────────────────────────────────
-// Columns
-// ─────────────────────────────────────────────
+
 
 export const hiredCandidatesColumns: ColumnDef<HiredCandidateRow>[] =
     [

@@ -36,7 +36,9 @@ export const credentialsProvider = CredentialsProvider({
             const role = credentials.role;
 
             const existingUser = await db.user.findUnique({
-                where: { email },
+                where: {
+                    email,
+                },
                 select: {
                     id: true,
                     email: true,
@@ -68,7 +70,8 @@ export const credentialsProvider = CredentialsProvider({
             return {
                 id: existingUser.id,
                 email: existingUser.email,
-                name: existingUser.username,
+                name: existingUser.username, 
+                username: existingUser.username, 
                 role: existingUser.role,
                 isPro: existingUser.isPro,
                 profileImage: existingUser.profileImage,

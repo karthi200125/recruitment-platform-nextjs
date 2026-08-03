@@ -1,3 +1,4 @@
+import { FilteredJob } from "@/actions/job/get-filter-all-jobs";
 import { Prisma } from "@prisma/client";
 
 export type Company = Prisma.CompanyGetPayload<{}>;
@@ -8,16 +9,10 @@ export type CompanyWithOwner = Prisma.CompanyGetPayload<{
     };
 }>;
 
-export type CompanyWithJobs = Prisma.CompanyGetPayload<{
-    include: {
-        jobs: {
-            include: {
-                company: true;
-                jobApplications: true;
-            };
-        };
+export type CompanyWithJobs =
+    Omit<Company, "jobs"> & {
+        jobs: FilteredJob[];
     };
-}>;
 
 export type CompanyCard = Prisma.CompanyGetPayload<{
     select: {

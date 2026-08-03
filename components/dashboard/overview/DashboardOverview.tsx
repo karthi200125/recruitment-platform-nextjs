@@ -95,7 +95,7 @@ const DashboardOverview = ({ role, overview, isLoading = false }: DashboardOverv
 
 
             <ProfileViewsCard
-              profileViews={profileViews}
+              profileViews={profileViews ?? []}
             />
 
           </div>

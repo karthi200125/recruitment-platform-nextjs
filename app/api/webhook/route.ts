@@ -34,7 +34,6 @@ export async function POST(req: Request) {
     return new Response('Invalid signature', { status: 400 });
   }
 
-
   try {
     switch (event.type) {
 

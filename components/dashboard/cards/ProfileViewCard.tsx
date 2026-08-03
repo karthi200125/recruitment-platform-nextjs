@@ -1,11 +1,10 @@
 "use client";
 
+import { formatDistanceToNow } from "date-fns";
 import Image from "next/image";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
 
 import { ProfileViewWithViewer } from "@/types";
-import { Lock } from "lucide-react";
 
 interface ProfileViewsCardProps {
     profileViews: ProfileViewWithViewer[];

@@ -4,10 +4,8 @@ export const DASHBOARD_TABLE_CONFIG: Record<
     string,
     DashboardTableConfig
 > = {
-    /* -------------------------------------------------------------------------- */
-    /* Candidate                                                                  */
-    /* -------------------------------------------------------------------------- */
-
+    
+    
     applied: {
         title: "Applied Jobs",
         description: "Track all jobs you've applied for.",
@@ -62,10 +60,8 @@ export const DASHBOARD_TABLE_CONFIG: Record<
             "Start following professionals to stay updated.",
     },
 
-    /* -------------------------------------------------------------------------- */
-    /* Recruiter                                                                  */
-    /* -------------------------------------------------------------------------- */
-
+    
+    
     postedJobs: {
         title: "Posted Jobs",
         description: "Manage all your published jobs.",
@@ -94,10 +90,8 @@ export const DASHBOARD_TABLE_CONFIG: Record<
             "You haven't hired anyone yet.",
     },
 
-    /* -------------------------------------------------------------------------- */
-    /* Organization                                                               */
-    /* -------------------------------------------------------------------------- */
-
+    
+    
     jobs: {
         title: "Jobs",
         description: "Manage organization jobs.",
