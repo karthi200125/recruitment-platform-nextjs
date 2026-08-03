@@ -1,10 +1,6 @@
-
-
 import DashboardDataTable from "@/components/dashboard/tables/DashboardDataTable";
 import { interviewsColumns } from "../tables/columns/interviewsColumns";
 import { DashboardData } from "@/types/dashboard";
-
-
 
 interface InterviewsTabProps {
     dashboardData: DashboardData;
@@ -14,8 +10,9 @@ const InterviewsTab = ({
     dashboardData,
 }: InterviewsTabProps) => {
     const interviews =
-        dashboardData?.interviews
-            ?.data ?? [];
+        dashboardData.role !== "ORGANIZATION"
+            ? dashboardData.tables.interviews?.data ?? []
+            : [];
 
     return (
         <DashboardDataTable

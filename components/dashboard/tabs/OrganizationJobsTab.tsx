@@ -1,4 +1,3 @@
-
 import DashboardDataTable from "@/components/dashboard/tables/DashboardDataTable";
 import { organizationJobsColumns } from "../tables/columns/organizationJobsColumns";
 import { DashboardData } from "@/types/dashboard";
@@ -11,14 +10,13 @@ const OrganizationJobsTab = ({
     dashboardData,
 }: OrganizationJobsTabProps) => {
     const jobs =
-        dashboardData?.jobs?.data ??
-        [];
+        dashboardData.role === "ORGANIZATION"
+            ? dashboardData.tables.postedJobs?.data ?? []
+            : [];
 
     return (
         <DashboardDataTable
-            columns={
-                organizationJobsColumns
-            }
+            columns={organizationJobsColumns}
             data={jobs}
             emptyTitle="No jobs found"
             emptyDescription="No organization jobs are available yet."

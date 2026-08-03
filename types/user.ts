@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 
 export type User = Prisma.UserGetPayload<{}>;
 
@@ -51,10 +52,22 @@ export type UserProfile = Prisma.UserGetPayload<{
     include: {
         followers: true;
         following: true;
-    };    
+    };
 }>;
+
 
 export type SessionUser = Pick<
     User,
     "id" | "username" | "role" | "isPro" | "profileImage"
 >;
+
+export type UserSettings = Prisma.UserGetPayload<{
+    select: {
+        id: true;
+        username: true;
+        email: true;
+        authProvider: true;
+        role: true;
+        createdAt: true;
+    };
+}>;

@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, ShieldCheck, User2 } from "lucide-react";
+import { useState } from "react";
 
 import SettingAccountCard from "./SettingAccountCard";
-import SettingSecurityCard from "./SettingSecurityCard";
 import SettingDangerZoneCard from "./SettingDangerZoneCard";
+import SettingSecurityCard from "./SettingSecurityCard";
 
-import type { UserProfile } from "@/types";
+import type { UserSettings } from "@/types";
 
 interface SettingsClientProps {
-    user: UserProfile;
+    user: UserSettings;
 }
 
 type SettingsSection = "account" | "security" | "danger";

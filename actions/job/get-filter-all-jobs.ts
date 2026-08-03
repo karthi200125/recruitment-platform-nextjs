@@ -26,11 +26,11 @@ export type FilteredJob = Prisma.JobGetPayload<{
             },
         },
 
-        _count: {
-            select: {
-                jobApplications: true,
-            },
-        },
+        // _count: {
+        //     select: {
+        //         jobApplications: true,
+        //     },
+        // },
     }
 }>;
 

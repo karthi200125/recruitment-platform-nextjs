@@ -110,7 +110,7 @@ const Menu = () => {
 
                                 <div className="min-w-0 flex-1 space-y-1">
                                     <h4 className="truncate text-[15px] font-semibold leading-tight">{user.username}</h4>
-                                    <p className="truncate text-xs text-zinc-500">{user.email}</p>
+                                    <p className="truncate text-xs text-zinc-500">{user.role}</p>
                                     {roleLabel && (
                                         <span
                                             className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${roleStyle}`}

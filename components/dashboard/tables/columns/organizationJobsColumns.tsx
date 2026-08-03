@@ -1,5 +1,6 @@
 "use client";
 
+import { JobWithCompany } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { format } from "date-fns";
@@ -12,31 +13,31 @@ interface Recruiter {
     email?: string | null;
 }
 
-export interface OrganizationJobRow {
-    id: number;
+// export interface OrganizationJobRow {
+//     id: number;
 
-    jobTitle: string;
+//     jobTitle: string;
 
-    jobType: string;
+//     jobType: string;
 
-    salary?: string | null;
+//     salary?: string | null;
 
-    city?: string | null;
+//     city?: string | null;
 
-    country?: string | null;
+//     country?: string | null;
 
-    createdAt: Date;
+//     createdAt: Date;
 
-    user?: Recruiter | null;
+//     user?: Recruiter | null;
 
-    _count: {
-        jobApplications: number;
-    };
-}
+//     _count: {
+//         jobApplications: number;
+//     };
+// }
 
 
 
-export const organizationJobsColumns: ColumnDef<OrganizationJobRow>[] =
+export const organizationJobsColumns: ColumnDef<JobWithCompany>[] =
     [
         {
             accessorKey: "jobTitle",
@@ -65,31 +66,31 @@ export const organizationJobsColumns: ColumnDef<OrganizationJobRow>[] =
             },
         },
 
-        {
-            accessorKey: "user",
+        // {
+        //     accessorKey: "user",
 
-            header: "Recruiter",
+        //     header: "Recruiter",
 
-            cell: ({ row }) => {
-                const recruiter =
-                    row.original.user;
+        //     cell: ({ row }) => {
+        //         const recruiter =
+        //             row.original.user;
 
-                return (
-                    <div className="space-y-1">
-                        <p className="font-medium text-slate-800">
-                            {recruiter?.username ??
-                                "Unknown"}
-                        </p>
+        //         return (
+        //             <div className="space-y-1">
+        //                 <p className="font-medium text-slate-800">
+        //                     {recruiter?.username ??
+        //                         "Unknown"}
+        //                 </p>
 
-                        <p className="text-sm text-slate-500">
-                            {
-                                recruiter?.email
-                            }
-                        </p>
-                    </div>
-                );
-            },
-        },
+        //                 <p className="text-sm text-slate-500">
+        //                     {
+        //                         recruiter?.email
+        //                     }
+        //                 </p>
+        //             </div>
+        //         );
+        //     },
+        // },
 
         {
             accessorKey: "jobType",
@@ -100,7 +101,7 @@ export const organizationJobsColumns: ColumnDef<OrganizationJobRow>[] =
                 <span className="text-sm text-slate-600">
                     {
                         row.original
-                            .jobType
+                            .type
                     }
                 </span>
             ),
@@ -121,18 +122,13 @@ export const organizationJobsColumns: ColumnDef<OrganizationJobRow>[] =
         },
 
         {
-            accessorKey:
-                "_count.jobApplications",
+            id: "applicants",
 
             header: "Applicants",
 
             cell: ({ row }) => (
                 <span className="font-medium text-slate-700">
-                    {
-                        row.original
-                            ._count
-                            .jobApplications
-                    }
+                    {row.original.jobApplications.length}
                 </span>
             ),
         },

@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import { Eye, EyeOff, LockKeyhole, ShieldCheck } from "lucide-react";
+import { useState, useTransition } from "react";
 
+import { changePassword } from "@/actions/setting/change-password";
 import Button from "@/components/Button";
 import { Input } from "@/components/ui/input";
 import { useCustomToast } from "@/lib/CustomToast";
-import { changePassword } from "@/actions/setting/change-password";
 
-import type { UserProfile } from "@/types";
+import type { UserSettings } from "@/types";
 
 interface SettingSecurityCardProps {
-    user: UserProfile;
+    user: UserSettings;
 }
 
 const PasswordField = ({

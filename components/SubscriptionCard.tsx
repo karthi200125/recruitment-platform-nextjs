@@ -1,7 +1,7 @@
 'use client';
 
 import { createCheckoutSession } from "@/actions/subscription/stripe";
-import { PLANS } from "@/lib/data/subscription-plans";
+import { getPlans } from "@/lib/data/subscription-plans";
 import { useTransition } from "react";
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function SubscriptionPlans({ role, userId }: Props) {
-    const plans = PLANS[role];
+    const plans = getPlans()[role];
     const [isPending, startTransition] = useTransition();
 
     const handleSubscribe = (priceId: string) => {

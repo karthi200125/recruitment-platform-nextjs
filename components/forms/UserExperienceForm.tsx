@@ -54,6 +54,11 @@ export function UserExperienceForm({ experience, edit }: ExperienceProps) {
             const expId = experience?.id
             const isEdit = edit ? true : false
 
+            if (!userId) {
+                setErr("User not found.");
+                return;
+            }
+
             userExperienceAction(values, userId, isEdit, expId)
                 .then((data: any) => {
                     if (data.success) {

@@ -5,12 +5,12 @@ import { Role } from "@prisma/client";
 import { db } from "@/lib/db";
 import { DashboardOverviewData, DashboardStatsMap } from "@/types/dashboard";
 
-import { buildJobOwnershipFilter, buildApplicationOwnershipFilter, buildOwnApplicationsFilter } from "./utils/buildOwnershipFilter";
-import { bucketTimestampsByDay, buildRollingStat } from "./queries/statsQuery";
+import { buildActivityChartData } from "./buildActivityChartData";
 import { computeProfileCompletion } from "./computeProfileCompletion ";
 import { getProfileViews } from "./getProfileviews";
 import { getRecentActivities } from "./getRecentActivities";
-import { buildActivityChartData } from "./buildActivityChartData";
+import { buildRollingStat } from "./queries/statsQuery";
+import { buildApplicationOwnershipFilter, buildJobOwnershipFilter, buildOwnApplicationsFilter } from "./utils/buildOwnershipFilter";
 
 const ACTIVITY_WINDOW_DAYS = 14;
 

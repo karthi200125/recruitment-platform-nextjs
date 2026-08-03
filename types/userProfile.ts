@@ -13,10 +13,21 @@ export type ProfileUser = Prisma.UserGetPayload<{
         experiences: true;
         projects: true;
         followers: {
-            select: { id: true };
-        };
+            select: {
+                id: true,
+                createdAt: true,
+                followerId: true,
+                followingId: true,
+            },
+        },
+
         following: {
-            select: { id: true };
-        };
+            select: {
+                id: true,
+                createdAt: true,
+                followerId: true,
+                followingId: true,
+            },
+        },
     };
 }>;

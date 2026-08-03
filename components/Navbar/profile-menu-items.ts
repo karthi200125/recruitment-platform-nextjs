@@ -1,4 +1,4 @@
-import { User as UserType } from '@/types';
+import { SessionUser } from '@/types';
 import type { LucideIcon } from 'lucide-react';
 import {
     Briefcase,
@@ -23,7 +23,7 @@ export interface ProfileMenuItem {
     action?: 'signOut';
 }
 
-export const getProfileMenuItems = (user: UserType | null): ProfileMenuItem[] => {
+export const getProfileMenuItems = (user: SessionUser | null): ProfileMenuItem[] => {
     if (!user) {
         return [];
     }

@@ -106,7 +106,7 @@ const UserProfileCard = () => {
                         <p className="text-sm font-bold text-slate-800 truncate capitalize leading-snug">
                             {user.username}
                         </p>
-                        <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                        <p className="text-xs text-slate-400 truncate">{user.role}</p>
 
                         {/* Role + Pro badge */}
                         <div className="flex items-center gap-1.5 mt-1 flex-wrap">

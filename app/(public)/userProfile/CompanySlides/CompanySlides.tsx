@@ -92,11 +92,11 @@ const CompanySlides = ({ company, profileUser }: CompanySlidesProps) => {
     const [tab, setTab] = useState<TabKey>("Home");
 
     const jobCount = company?.jobs?.length ?? 0;
-    const empCount = profileUser?.employees?.length ?? 0;
+    // const empCount = profileUser?.employees?.length ?? 0;
 
     const countMap: Record<TabKey, number | null> = {
         Home: null,
-        Employees: empCount,
+        Employees: 1, // empCount,
         Jobs: jobCount,
     };
 
@@ -132,7 +132,7 @@ const CompanySlides = ({ company, profileUser }: CompanySlidesProps) => {
             {/* Tab content */}
             <div className="p-5">
                 {tab === "Home" && <AboutCompanyProfile company={company} />}
-                {tab === "Employees" && <CompanyEmployees employeeIds={profileUser?.employees} />}
+                {/* {tab === "Employees" && <CompanyEmployees employeeIds={profileUser?.employees} />} */}
                 {tab === "Jobs" && <CompanyJobProfile company={company} />}
             </div>
         </div>

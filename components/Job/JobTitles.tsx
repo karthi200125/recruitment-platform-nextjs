@@ -25,11 +25,11 @@ import EasyApply from "./EasyApply/EasyApply";
 
 import { checkSkills } from "@/actions/job/compare-skills";
 import { FilteredJob } from "@/actions/job/get-filter-all-jobs";
-import { Company, SearchParams, User } from "@/types";
+import { SearchParams, User } from "@/types";
 import { Question } from "@/types/easyApply";
 
 interface JobTitlesProps {
-  user: User;
+  user: any;
   job: FilteredJob;
   company: FilteredJob["company"];
   isPending: boolean;

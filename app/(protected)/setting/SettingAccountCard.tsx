@@ -3,10 +3,10 @@
 import { CalendarDays, Mail, Shield, User2 } from "lucide-react";
 import { format } from "date-fns";
 
-import type { UserProfile } from "@/types";
+import type { UserSettings } from "@/types";
 
 interface SettingAccountCardProps {
-    user: UserProfile;
+    user: UserSettings;
 }
 
 const ROW_ICON_STYLES = [

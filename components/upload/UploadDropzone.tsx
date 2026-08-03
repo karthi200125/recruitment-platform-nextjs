@@ -3,8 +3,8 @@
 import { useRef, useState } from "react";
 
 import { CloudUploadIcon } from "./FileIcon";
-import { UploadType } from "@/lib/upload/upload-types";
-import { getUploadTypeConfig } from ".";
+import { getUploadTypeConfig, UploadType } from "@/lib/upload/upload-types";
+
 
 interface UploadDropzoneProps {
     type: UploadType;
@@ -23,8 +23,7 @@ const UploadDropzone = ({
     const [dragging, setDragging] =
         useState(false);
 
-    const config =
-        getUploadTypeConfig(type);
+    const config = getUploadTypeConfig(type);
 
     const handleFiles = (
         files: FileList | null

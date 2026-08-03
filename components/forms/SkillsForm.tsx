@@ -8,16 +8,14 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCustomToast } from "@/lib/CustomToast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
-import { useParams, usePathname } from "next/navigation";
 import { ChangeEvent, FormEvent, KeyboardEvent, useEffect, useState, useTransition } from "react";
-
 interface SkillsFormProps {
     skillsData?: string[];
     onClose?: () => void;
 }
 
 export function SkillsForm({ skillsData = [], onClose }: SkillsFormProps) {
-    const { user } = useCurrentUser()    
+    const { user } = useCurrentUser()
     const queryClient = useQueryClient();
     const { showSuccessToast } = useCustomToast();
 
@@ -34,9 +32,7 @@ export function SkillsForm({ skillsData = [], onClose }: SkillsFormProps) {
         return () => clearTimeout(handler);
     }, [searchTerm]);
 
-    const pathname = usePathname();
-    const params = useParams();
-    const userId = pathname === "/welcome" ? user?.id : Number(params.userId);
+    const userId = user?.id;
 
     const { data: allSkills = [], isFetching } = useQuery<string[]>({
         queryKey: ["getSkills", debouncedSearchTerm],
@@ -46,11 +42,15 @@ export function SkillsForm({ skillsData = [], onClose }: SkillsFormProps) {
 
     const onSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        if (!userId) {
+            setError("User not found.");
+            return;
+        }
         startTransition(() => {
             userSkillAction(skills, userId)
                 .then((data) => {
                     if (data?.success) {
-                        queryClient.invalidateQueries({ queryKey: ["getuser", userId] });                        
+                        queryClient.invalidateQueries({ queryKey: ["getuser", userId] });
                         showSuccessToast(data?.success);
                         onClose?.();
                     }
@@ -140,7 +140,7 @@ export function SkillsForm({ skillsData = [], onClose }: SkillsFormProps) {
 
             <FormError message={error} />
             <Button isLoading={isLoading} className="!w-full">
-                {pathname === "/welcome" ? "Add Skills" : "Edit Skills"}
+                Save Skills
             </Button>
         </form>
     );

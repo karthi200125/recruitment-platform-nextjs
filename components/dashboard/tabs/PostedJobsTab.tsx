@@ -1,8 +1,6 @@
-
 import DashboardDataTable from "@/components/dashboard/tables/DashboardDataTable";
 import { postedJobsColumns } from "../tables/columns/postedJobsColumns";
 import { DashboardData } from "@/types/dashboard";
-
 
 interface PostedJobsTabProps {
     dashboardData: DashboardData;
@@ -11,9 +9,14 @@ interface PostedJobsTabProps {
 const PostedJobsTab = ({
     dashboardData,
 }: PostedJobsTabProps) => {
-    const postedJobs =
-        dashboardData?.postedJobs
-            ?.data ?? [];
+    if (
+        dashboardData.role !== "RECRUITER" &&
+        dashboardData.role !== "ORGANIZATION"
+    ) {
+        return null;
+    }
+
+    const postedJobs = dashboardData.tables.postedJobs?.data ?? [];
 
     return (
         <DashboardDataTable

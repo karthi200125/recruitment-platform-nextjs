@@ -298,7 +298,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
 
             {/* Message modal */}
             <Model
-                bodyContent={<MessageBox receiverId={profileUser?.id} chatUser={profileUser} />}
+                bodyContent={<MessageBox receiverId={profileUser?.id} chatUser={profileUser ?? undefined} />}
                 title={`Message ${profileUser?.username || "User"}`}
                 className="lg:w-[800px]"
                 modalId={`messageModel-${profileUser?.id}`}
