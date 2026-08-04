@@ -4,7 +4,7 @@ import * as z from "zod";
 import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/lib/auth/authOptions";
+import { authOptions } from "@/lib/authentication/authOptions";
 import { db } from "@/lib/db";
 import { ChangePasswordSchema } from "@/lib/SchemaTypes";
 import { ActionResponse } from "@/types/settings";

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Building2 } from "lucide-react";
 
 import CompanyForm from "@/components/forms/CompanyForm";
-import { authOptions } from "@/lib/auth/authOptions";
+import { authOptions } from "@/lib/authentication/authOptions";
 import { db } from "@/lib/db";
 
 export const metadata: Metadata = {

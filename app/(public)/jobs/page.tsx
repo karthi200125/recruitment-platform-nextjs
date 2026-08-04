@@ -1,5 +1,5 @@
 import { getFilteredJobs } from "@/actions/job/get-filter-all-jobs";
-import { authOptions } from "@/lib/auth/authOptions";
+import { authOptions } from "@/lib/authentication/authOptions";
 import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import JobsClient from "./JobsClient";

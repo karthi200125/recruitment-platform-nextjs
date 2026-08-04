@@ -2,7 +2,7 @@
 
 import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/lib/auth/authOptions";
+import { authOptions } from "@/lib/authentication/authOptions";
 import { ADMIN_EMAIL } from "@/lib/admin";
 import { db } from "@/lib/db";
 

@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 
 
 import { getChatUsers } from "@/actions/message/get-chat-users";
-import { authOptions } from "@/lib/auth/authOptions";
+import { authOptions } from "@/lib/authentication/authOptions";
 import MessagesClient from "./MessageClient";
 
 const MessagesPage = async () => {

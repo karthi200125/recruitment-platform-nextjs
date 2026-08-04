@@ -3,7 +3,7 @@
 import { getServerSession } from 'next-auth';
 import * as z from 'zod';
 
-import { authOptions } from '@/lib/auth/authOptions';
+import { authOptions } from '@/lib/authentication/authOptions';
 import { FEATURES } from '@/lib/dashboard/proFeatures';
 import { db } from '@/lib/db';
 import { meiliClient } from "@/lib/meilisearch";

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/upload/upload";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/authOptions";
+import { authOptions } from "@/lib/authentication/authOptions";
 import { getUploadConfig, parseUploadType } from "@/lib/upload/upload-config";
 import type { Company, Project, JobApplication, User } from "@prisma/client";
 import type { UploadType } from "@/lib/upload/upload-types";

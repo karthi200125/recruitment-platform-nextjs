@@ -3,7 +3,7 @@
 import { getServerSession } from "next-auth";
 import { CompanyEmployeeStatus } from "@prisma/client";
 
-import { authOptions } from "@/lib/auth/authOptions";
+import { authOptions } from "@/lib/authentication/authOptions";
 import { db } from "@/lib/db";
 
 export async function getPendingCompanyInvitation() {

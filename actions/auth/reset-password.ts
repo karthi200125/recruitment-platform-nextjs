@@ -8,7 +8,7 @@ import * as z from "zod";
 
 import { db } from "@/lib/db";
 
-import { rateLimit } from "@/lib/auth/rateLimit";
+import { rateLimit } from "@/lib/authentication/rateLimit";
 
 // ─────────────────────────────────────────────
 // PASSWORD SCHEMA

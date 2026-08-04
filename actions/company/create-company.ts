@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { Prisma } from "@prisma/client";
 import * as z from "zod";
 
-import { authOptions } from "@/lib/auth/authOptions";
+import { authOptions } from "@/lib/authentication/authOptions";
 import { db } from "@/lib/db";
 import { CompanySchema } from "@/lib/SchemaTypes";
 

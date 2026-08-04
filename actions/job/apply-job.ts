@@ -3,7 +3,7 @@
 import { Prisma } from "@prisma/client";
 import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/lib/auth/authOptions";
+import { authOptions } from "@/lib/authentication/authOptions";
 import { db } from "@/lib/db";
 
 import type { JobQuestionAnswer } from "@/types/application";

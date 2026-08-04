@@ -3,8 +3,8 @@
 import crypto from "crypto";
 import * as z from "zod";
 import { db } from "@/lib/db";
-import { sendResetEmail } from "@/lib/auth/mail";
-import { rateLimit } from "@/lib/auth/rateLimit";
+import { sendResetEmail } from "@/lib/authentication/mail";
+import { rateLimit } from "@/lib/authentication/rateLimit";
 
 const ForgotPasswordSchema = z.object({ email: z.string().email() });
 

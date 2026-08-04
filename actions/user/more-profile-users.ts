@@ -3,7 +3,7 @@
 import { Prisma, Role } from "@prisma/client";
 import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/lib/auth/authOptions";
+import { authOptions } from "@/lib/authentication/authOptions";
 import { db } from "@/lib/db";
 
 export interface MoreProfileUser {

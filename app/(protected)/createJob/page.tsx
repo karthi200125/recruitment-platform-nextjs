@@ -1,5 +1,5 @@
 import { getCurrentUserCompany } from "@/actions/company/get-current-user-company";
-import { authOptions } from "@/lib/auth/authOptions";
+import { authOptions } from "@/lib/authentication/authOptions";
 import { db } from "@/lib/db";
 import { FEATURES } from "@/types/features";
 import { getServerSession } from "next-auth";

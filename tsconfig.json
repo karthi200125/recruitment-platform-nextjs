@@ -25,19 +25,14 @@
       "@/*": [
         "./*"
       ]
-    },
-    "typeRoots": [
-      "./node_modules/@types",
-      "./@types",
-      "./lib"
-    ]
+    }
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "@types/**/*"
+    "types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules"

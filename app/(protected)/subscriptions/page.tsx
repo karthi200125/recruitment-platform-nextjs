@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/authOptions";
+import { authOptions } from "@/lib/authentication/authOptions";
 import CurrentSubscription from "./CurrentSubscription";
 import SubscriptionPlans from "./SubscriptionPlans";
 import { getPlans } from "@/lib/data/subscription-plans";

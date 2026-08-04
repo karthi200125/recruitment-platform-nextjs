@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { Building2, CalendarDays, Mail, MapPin } from "lucide-react";
 import { format } from "date-fns";
 
-import { authOptions } from "@/lib/auth/authOptions";
+import { authOptions } from "@/lib/authentication/authOptions";
 import { getPendingCompanies } from "@/actions/admin/get-pending-companies";
 import { ADMIN_EMAIL } from "@/lib/admin";
 import ApproveCompanyButton from "./ApproveCompanyButton";
