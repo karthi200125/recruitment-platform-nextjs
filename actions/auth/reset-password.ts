@@ -1,18 +1,11 @@
 "use server";
 
 import crypto from "crypto";
-
 import bcrypt from "bcryptjs";
-
 import * as z from "zod";
-
 import { db } from "@/lib/db";
-
 import { rateLimit } from "@/lib/authentication/rateLimit";
 
-// ─────────────────────────────────────────────
-// PASSWORD SCHEMA
-// ─────────────────────────────────────────────
 
 const ResetPasswordSchema = z.object({
     token: z.string().min(1),

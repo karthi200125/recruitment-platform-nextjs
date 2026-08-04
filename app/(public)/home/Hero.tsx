@@ -2,6 +2,7 @@
 import JobsSearchBar from "@/components/JobsSearchBar";
 import CtaButton from "@/components/ui/CtaButton";
 import Image from "next/image";
+import { Suspense } from "react";
 
 
 const HeroSection = () => {
@@ -83,7 +84,7 @@ const HeroSection = () => {
                         >
                             Hire Talent
                         </CtaButton>
-                        
+
                     </div>
 
                     {/* SEARCH BAR */}
@@ -91,7 +92,9 @@ const HeroSection = () => {
                         className="mt-10 w-full max-w-5xl"
                     >
                         <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-2 shadow-2xl shadow-indigo-500/5 backdrop-blur-2xl">
-                            <JobsSearchBar className="rounded-2xl border-0 bg-transparent text-white" />
+                            <Suspense fallback={null}>
+                                <JobsSearchBar className="rounded-2xl border-0 bg-transparent text-white" />
+                            </Suspense>
                         </div>
                     </div>
 
