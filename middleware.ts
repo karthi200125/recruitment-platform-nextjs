@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PUBLIC_ROUTES = new Set([
+const PUBLIC_ROUTES = [
   "/",
   "/jobs",
   "/companies",
@@ -8,14 +8,14 @@ const PUBLIC_ROUTES = new Set([
   "/signup",
   "/forgot-password",
   "/reset-password",
-]);
+];
 
-const AUTH_ROUTES = new Set([
+const AUTH_ROUTES = [
   "/signin",
   "/signup",
   "/forgot-password",
   "/reset-password",
-]);
+];
 
 function isPathMatch(
   pathname: string,
@@ -27,21 +27,15 @@ function isPathMatch(
   );
 }
 
-function isPublicRoute(
-  pathname: string
-) {
-  return [...PUBLIC_ROUTES].some(
-    (route) =>
-      isPathMatch(pathname, route)
+function isPublicRoute(pathname: string) {
+  return PUBLIC_ROUTES.some((route) =>
+    isPathMatch(pathname, route)
   );
 }
 
-function isAuthRoute(
-  pathname: string
-) {
-  return [...AUTH_ROUTES].some(
-    (route) =>
-      isPathMatch(pathname, route)
+function isAuthRoute(pathname: string) {
+  return AUTH_ROUTES.some((route) =>
+    isPathMatch(pathname, route)
   );
 }
 
