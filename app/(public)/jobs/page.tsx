@@ -93,7 +93,7 @@ export async function generateMetadata({ searchParams }: JobsPageProps): Promise
 export default async function JobsPage({ searchParams }: JobsPageProps) {
   const session = await getServerSession(authOptions);
 
-  const userId = session?.user?.id ? Number(session.user.id) : undefined;
+  const userId = session?.user?.id ? session.user.id : undefined;
 
   const currentPage = Math.max(1, Number(searchParams.page) || 1);
 

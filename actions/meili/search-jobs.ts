@@ -13,11 +13,12 @@ export async function searchJobs(
         return [];
     }
 
+    if (!meiliClient) {
+        return [];
+    }
+
     try {
-        const index =
-            meiliClient.index<JobSearchDocument>(
-                "jobs"
-            );
+        const index = meiliClient.index<JobSearchDocument>("jobs");
 
         const results =
             await index.search(query, {
