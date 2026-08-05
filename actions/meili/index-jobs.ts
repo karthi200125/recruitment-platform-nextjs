@@ -4,6 +4,15 @@ import { db } from "@/lib/db";
 import { meiliClient } from "@/lib/meilisearch";
 
 export async function indexJobs() {
+    if (!meiliClient) {
+        console.warn("Meilisearch is not configured. Skipping job indexing.");
+
+        return {
+            success: false,
+            count: 0,
+        };
+    }
+
     try {
         const jobs = await db.job.findMany({
             include: {

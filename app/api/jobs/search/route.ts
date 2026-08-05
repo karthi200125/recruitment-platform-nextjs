@@ -10,6 +10,14 @@ export async function GET(req: NextRequest) {
         const query = searchParams.get('q') || '';
         const location = searchParams.get('location') || '';
 
+        if (!meiliClient) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: 'Search service is not configured',
+                },                
+            );
+        }
         const index = meiliClient.index('jobs');
 
         const filters = [];

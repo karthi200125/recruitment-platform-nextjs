@@ -138,9 +138,11 @@ export const createJobAction = async ({
                 },
             });
 
-            await meiliClient
-                .index("jobs")
-                .updateDocuments([updatedJob]);
+            if (meiliClient) {
+                await meiliClient
+                    .index("jobs")
+                    .updateDocuments([updatedJob]);
+            }
 
             return { success: 'Job updated', data: updatedJob };
         }
@@ -158,9 +160,11 @@ export const createJobAction = async ({
             },
         });
 
-        await meiliClient
-            .index("jobs")
-            .addDocuments([newJob]);
+        if (meiliClient) {
+            await meiliClient
+                .index("jobs")
+                .addDocuments([newJob]);
+        }
 
         return { success: 'Job created successfully', data: newJob };
     } catch (error) {

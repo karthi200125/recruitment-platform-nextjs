@@ -4,9 +4,11 @@ import { meiliClient } from '@/lib/meilisearch';
 
 export async function createJobIndex() {
     try {
-        await meiliClient.createIndex('jobs', {
-            primaryKey: 'id',
-        });
+        if (meiliClient) {
+            await meiliClient.createIndex('jobs', {
+                primaryKey: 'id',
+            });
+        }
 
         console.log('Jobs index created');
     } catch (error) {

@@ -29,9 +29,11 @@ export const deleteJob = async (jobId: number) => {
             where: { id: jobId },
         });
 
-        await meiliClient
-            .index("jobs")
-            .deleteDocument(jobId);
+        if (meiliClient) {
+            await meiliClient
+                .index("jobs")
+                .deleteDocument(jobId);
+        }
 
         return { success: 'Job deleted successfully' };
     } catch (error) {
