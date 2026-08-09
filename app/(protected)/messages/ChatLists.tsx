@@ -1,11 +1,9 @@
 "use client";
 
-import BottomDrawer from "@/components/BottomDrawer";
+import { ChatUserItem } from "@/types";
 import { MessageSquare } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { ChatList } from "./ChatList";
-import { MessageBox } from "./MessageBox";
-import { ChatUserItem } from "@/types";
 
 
 interface ChatListsProps {
@@ -69,15 +67,6 @@ export const ChatLists = ({ chatUsers, isPending = false, onSelectedChatUserId, 
             onClick={() => handleSelect(chatUser.id)}
             className="cursor-pointer"
           >
-            {/* Mobile → bottom drawer */}
-            <div className="md:hidden">
-              <BottomDrawer
-                body={<MessageBox receiverId={chatUser.id} chatUser={chatUser} isLoading={isPending} isChatuser />}
-              >
-                {row}
-              </BottomDrawer>
-            </div>
-            {/* Desktop */}
             <div className="hidden md:block">{row}</div>
           </div>
         );

@@ -24,9 +24,6 @@ const MessagesClient = ({
     const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
     const [q, setQ] = useState("");
 
-    /*
-     * Fetch user's conversations.
-     */
     const {
         data: chatUsers = [],
         isPending,
@@ -34,40 +31,20 @@ const MessagesClient = ({
         refetch,
     } = useQuery<ChatUserItem[]>({
         queryKey: ["chatUsers", currentUserId, q],
-
         queryFn: () => getChatUsers(currentUserId, q),
-
         initialData: initialChatUsers,
-
         staleTime: 1000 * 60,
-
         refetchInterval: 5000,
-
         refetchOnWindowFocus: true,
-
         refetchOnReconnect: true,
     });
 
-    /*
-     * Keep the selected conversation synchronized
-     * with the currently available conversation list.
-     */
     useEffect(() => {
-        /*
-         * No conversation is selected yet,
-         * but conversations exist.
-         *
-         * Automatically select the first conversation.
-         */
         if (!selectedId && chatUsers.length > 0) {
             setSelectedId(chatUsers[0].id);
             return;
         }
 
-        /*
-         * The currently selected conversation may disappear
-         * after searching/refetching.
-         */
         if (
             selectedId &&
             !chatUsers.some(
@@ -79,37 +56,22 @@ const MessagesClient = ({
         }
     }, [chatUsers, selectedId]);
 
-    /*
-     * Get the currently selected conversation user.
-     */
     const selectedUser = useMemo(() => {
         return chatUsers.find(
             (chatUser) => chatUser.id === selectedId
         );
     }, [chatUsers, selectedId]);
 
-    /*
-     * Select a conversation.
-     */
     const handleSelectedChatUser = (id: number) => {
         setSelectedId(id);
 
-        /*
-         * On mobile/tablet, open the conversation drawer.
-         */
         setIsMobileChatOpen(true);
     };
 
-    /*
-     * Control mobile drawer state.
-     */
     const handleCloseMobileChat = (open: boolean) => {
         setIsMobileChatOpen(open);
     };
 
-    /*
-     * Error state.
-     */
     if (isError) {
         return (
             <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
@@ -134,11 +96,8 @@ const MessagesClient = ({
     }
 
     return (
-        <div className="flex h-[calc(100vh-68px)] w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex mt-3 h-[calc(100vh-78px)] w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 
-            {/* =========================================================
-                LEFT — Conversation list
-            ========================================================== */}
 
             <div className="flex w-full min-w-0 flex-shrink-0 flex-col border-r border-slate-100 md:w-[300px] lg:w-[340px]">
 
@@ -183,11 +142,8 @@ const MessagesClient = ({
 
             </div>
 
-            {/* =========================================================
-                RIGHT — Desktop conversation
-            ========================================================== */}
 
-            <div className="hidden min-w-0 flex-1 flex-col overflow-hidden md:flex">
+            <div className="hidden min-w-0 flex-1 flex-col overflow-hidden md:flex ">
 
                 <MessageBox
                     receiverId={selectedUser?.id}
@@ -199,9 +155,6 @@ const MessagesClient = ({
 
             </div>
 
-            {/* =========================================================
-                MOBILE / TABLET — Bottom drawer
-            ========================================================== */}
 
             <div className="lg:hidden">
 

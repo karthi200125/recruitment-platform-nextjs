@@ -69,10 +69,7 @@ const Jobb = ({
 
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
-
-        {/* LEFT — Job list. Full width until `lg` (covers mobile + tablet),
-            fixed sidebar width from `lg` up, where the inline detail panel
-            also appears alongside it. */}
+        
         <div className="w-full lg:w-[420px] flex-shrink-0 flex flex-col border-r border-slate-100 overflow-hidden bg-white">
           <JobLists
             jobs={jobs}
@@ -92,11 +89,7 @@ const Jobb = ({
           }
         </div>
       </div>
-
-      {/* Mobile/tablet — job details in a bottom drawer instead of a
-          hidden panel. Only mounted below `lg`; on desktop this whole
-          block is inert since isMobileDetailsOpen never gets acted on
-          visually (Drawer itself isn't rendered outside this wrapper). */}
+      
       <div className="lg:hidden">
         <BottomDrawer
           open={isMobileDetailsOpen && !!job}
