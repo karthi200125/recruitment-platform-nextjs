@@ -1,22 +1,25 @@
 "use client";
 
 import { getConversation } from "@/actions/message/get-conversation";
-import { markMessagesAsSeen } from "@/actions/message/mark-messages-as-seen ";
 import MessageBoxSkeleton from "@/components/skeletons/MessageBoxSkeleton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ChatMessage, ChatUserSummary } from "@/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageSquare } from "lucide-react";
 import { useEffect } from "react";
+
+import { markMessagesAsSeen } from "@/actions/message/mark-messages-as-seen ";
 import { ChatButton } from "./ChatButton";
 import { Chats } from "./Chats";
 import { ChatUser } from "./ChatUser";
+import ConversationEmptyState from "./ConversationEmptyState";
+import ConversationTipBanner from "./ConversationTipBanner";
 
 interface MessageBoxProps {
   receiverId?: number;
   chatUser?: ChatUserSummary;
   isLoading?: boolean;
   isChatuser?: boolean;
+  hasChatUsers: boolean;
 }
 
 interface Conversation {
@@ -24,11 +27,12 @@ interface Conversation {
   messages: ChatMessage[];
 }
 
-export const MessageBox = ({
+const MessageBox = ({
   receiverId,
   chatUser,
   isLoading = false,
   isChatuser = false,
+  hasChatUsers,
 }: MessageBoxProps) => {
   const { user } = useCurrentUser();
   const queryClient = useQueryClient();
@@ -85,7 +89,6 @@ export const MessageBox = ({
           );
 
         if (result?.success) {
-          // ✅ refresh unread navbar count
           queryClient.invalidateQueries({
             queryKey: [
               "getUnreadMessagesCount",
@@ -93,10 +96,10 @@ export const MessageBox = ({
             ],
           });
         }
-      } catch (err) {
+      } catch (error) {
         console.error(
-          "[markSeen]",
-          err
+          "[MARK_MESSAGES_AS_SEEN]",
+          error
         );
       }
     };
@@ -109,65 +112,67 @@ export const MessageBox = ({
     queryClient,
   ]);
 
-  if (isPending || isLoading) {
+  if (isLoading) {
+    return <MessageBoxSkeleton />;
+  }
+
+  if (!hasChatUsers) {
     return (
-      <div className="h-full flex flex-col">
-        <MessageBoxSkeleton />
+      <div className="flex h-full min-h-0 flex-col bg-white">
+        <div className="flex min-h-0 flex-1 items-center justify-center">
+          <ConversationEmptyState />
+        </div>
+        <ConversationTipBanner />
       </div>
     );
   }
 
   if (!receiverId) {
+    return <MessageBoxSkeleton />;
+  }
+
+  if (isPending) {
+    return <MessageBoxSkeleton />;
+  }
+
+  if (
+    !conversation ||
+    conversation.messages.length === 0
+  ) {
     return (
-      <div className="h-full flex flex-col items-center justify-center gap-3 text-center px-8">
-
-        <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
-          <MessageSquare
-            className="w-6 h-6 text-slate-300"
-            strokeWidth={1.5}
-          />
-        </div>
-
-        <p className="text-sm font-semibold text-slate-600">
-          No conversation selected
-        </p>
-
-        <p className="text-xs text-slate-400">
-          Select a chat from the left to
-          start messaging.
-        </p>
+      <div className="flex h-full min-h-0 flex-col bg-white">
+        <ConversationEmptyState />
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-white">
 
-      {/* TOP USER */}
+      {/* User header */}
       <ChatUser
         chatUser={chatUser}
         isChatuser={isChatuser}
       />
 
-      {/* MESSAGES */}
-      <div className="flex-1 overflow-hidden flex flex-col">
+      {/* Messages */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <Chats
-          messages={
-            conversation?.messages ?? []
-          }
+          messages={conversation.messages}
           currentUserId={user?.id}
           user={user}
           isChatuser={isChatuser}
         />
       </div>
 
-      {/* INPUT */}
+      {/* Message input */}
       {user?.id && (
         <ChatButton
           userId={user.id}
           receiverId={receiverId}
         />
       )}
+
     </div>
   );
 };

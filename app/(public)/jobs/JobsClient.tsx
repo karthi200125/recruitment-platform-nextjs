@@ -70,9 +70,9 @@ const JobsClient = ({ initialJobs, initialCount, searchParams, currentPage }: Jo
         [pathname, urlSearchParams]
     );
 
-    if (!initialJobs.length) {
-        return <div className="p-10 text-center">No jobs found</div>;
-    }
+    // if (!initialJobs.length) {
+    //     return <div className="p-10 text-center">No jobs found</div>;
+    // }
 
     return (
         <Jobb
