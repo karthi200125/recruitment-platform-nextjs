@@ -11,12 +11,12 @@ import { closeModal } from "@/store/ModalSlice";
 
 import JobList from "../Job/JobLists/JobList";
 
+import { FilteredJob } from "@/actions/job/get-filter-all-jobs";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { JobWithCompany } from "@/types";
 
 
 interface DeleteJobFormProps {
-  job: JobWithCompany;
+  job: FilteredJob;
 }
 
 interface DeleteJobResponse {
