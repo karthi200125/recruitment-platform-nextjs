@@ -14,7 +14,7 @@ const ConversationTipBanner = () => {
 
             <div className="min-w-0">
                 <p className="text-sm font-semibold text-slate-700">
-                    Tip: You can also start a conversation from a user's profile
+                    Tip: You can also start a conversation from a user&apos;s profile
                 </p>
 
                 <p className="mt-1 text-sm leading-5 text-slate-500">

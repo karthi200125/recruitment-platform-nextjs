@@ -1,32 +1,32 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { useDispatch } from 'react-redux';
-import { useQuery } from '@tanstack/react-query';
-import { MessageSquare, UserCircle2, Crown, Lock } from 'lucide-react';
+import Image from "next/image";
+import Link from "next/link";
+import { useDispatch } from "react-redux";
+import {
+    Crown,
+    Lock,
+    MessageSquare,
+    UserCircle2,
+} from "lucide-react";
 
-import { getUserById } from '@/actions/auth/get-user-by-id';
-import { openModal } from '@/store/ModalSlice';
-import Model from '@/components/Model';
-import MessageBox from '../../app/(protected)/messages/MessageBox';
-import JobRecruiterSkeleton from '@/components/skeletons/JobRecruiterSkeleton';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { openModal } from "@/store/ModalSlice";
+import Model from "@/components/Model";
+import MessageBox from "../../app/(protected)/messages/MessageBox";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
-type Role = 'CANDIDATE' | 'RECRUITER' | 'ORGANIZATION';
+type Role =
+    | "CANDIDATE"
+    | "RECRUITER"
+    | "ORGANIZATION";
 
 interface RecruiterUser {
     id: number;
     username: string;
-    profileImage?: string | null;
-    profession?: string | null;
-    role: Role;
+    profileImage: string | null;
+    profession: string | null;
+    role: Role | null;
     isPro: boolean;
-}
-
-interface Job {
-    id: number;
-    userId: number;
 }
 
 interface Company {
@@ -35,107 +35,202 @@ interface Company {
 }
 
 interface JobRecruiterProps {
-    job: Job;
-    company: Company | undefined;
-    isPending?: boolean;
+    recruiter: RecruiterUser;
+    company?: Company;
 }
 
-const JobRecruiter: React.FC<JobRecruiterProps> = ({ job, company, isPending = false }) => {
+const JobRecruiter = ({
+    recruiter,
+    company,
+}: JobRecruiterProps) => {
     const dispatch = useDispatch();
-    const { user: currentUser } = useCurrentUser();
 
-    const { data: recruiter, isLoading, isError } = useQuery<RecruiterUser>({
-        queryKey: ['recruiter', job.userId],
-        queryFn: async () => {
-            const { data } = await getUserById(job.userId);
-            return data as RecruiterUser;
-        },
-        enabled: !!job?.userId,
-        staleTime: 1000 * 60 * 5,
-    });
+    const { user: currentUser } =
+        useCurrentUser();
 
-    if (isLoading || isPending) return <JobRecruiterSkeleton />;
-    if (isError || !recruiter) return null;
+    /*
+    |--------------------------------------------------------------------------
+    | Messaging permission
+    |--------------------------------------------------------------------------
+    */
 
-    const canMessage = !!currentUser?.isPro;
+    const canMessage =
+        !!currentUser?.isPro;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Render
+    |--------------------------------------------------------------------------
+    */
 
     return (
-        <div className="w-full rounded-2xl border border-slate-200 bg-white p-5 space-y-4">
+        <div className="w-full space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
 
-            {/* Header */}
+            {/* =====================================================
+                HEADER
+            ====================================================== */}
+
             <div className="flex items-center gap-2">
-                <UserCircle2 className="w-4 h-4 text-slate-500" strokeWidth={1.75} />
-                <h3 className="text-sm font-bold text-slate-800">Meet the Hiring Team</h3>
+                <UserCircle2
+                    className="h-4 w-4 text-slate-500"
+                    strokeWidth={1.75}
+                />
+
+                <h3 className="text-sm font-bold text-slate-800">
+                    Meet the Hiring Team
+                </h3>
             </div>
 
-            {/* Recruiter card */}
+            {/* =====================================================
+                RECRUITER
+            ====================================================== */}
+
             <div className="flex items-start gap-3">
+
                 {/* Avatar */}
-                <Link href={`/userProfile/${recruiter.id}`} className="flex-shrink-0">
+
+                <Link
+                    href={`/userProfile/${recruiter.id}`}
+                    className="flex-shrink-0"
+                    aria-label={`View ${recruiter.username}'s profile`}
+                >
                     <div className="relative">
+
                         <Image
-                            src={recruiter.profileImage || '/noProfile.webp'}
-                            alt={recruiter.username}
+                            src={
+                                recruiter.profileImage ||
+                                "/noProfile.webp"
+                            }
+                            alt={`${recruiter.username} profile`}
                             width={48}
                             height={48}
-                            className="w-12 h-12 rounded-full object-cover border border-slate-200"
+                            className="h-12 w-12 rounded-full border border-slate-200 object-cover"
                         />
+
+                        {/* Pro badge */}
+
                         {recruiter.isPro && (
-                            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center">
-                                <Crown className="w-2.5 h-2.5 text-white" strokeWidth={2.5} />
+                            <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-amber-400">
+                                <Crown
+                                    className="h-2.5 w-2.5 text-white"
+                                    strokeWidth={2.5}
+                                />
                             </div>
                         )}
+
                     </div>
                 </Link>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
+                {/* =================================================
+                    RECRUITER INFO
+                ================================================== */}
+
+                <div className="min-w-0 flex-1">
+
                     <Link
                         href={`/userProfile/${recruiter.id}`}
-                        className="text-sm font-bold text-slate-800 hover:text-indigo-600 transition-colors duration-200 block truncate"
+                        className="block truncate text-sm font-bold text-slate-800 transition-colors duration-200 hover:text-indigo-600"
                     >
                         {recruiter.username}
                     </Link>
-                    <p className="text-xs text-slate-500 mt-0.5 truncate">
-                        {recruiter.profession || 'Recruiter'}{company?.companyName ? ` · ${company.companyName}` : ''}
+
+                    <p className="mt-0.5 truncate text-xs text-slate-500">
+                        {recruiter.profession ||
+                            "Recruiter"}
+
+                        {company?.companyName &&
+                            ` · ${company.companyName}`}
                     </p>
-                    <span className="inline-block mt-1 text-[11px] font-medium text-indigo-500 bg-indigo-50 border border-indigo-100 rounded-full px-2 py-0.5">
+
+                    <span className="mt-1 inline-block rounded-full border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-500">
                         Job poster
                     </span>
+
                 </div>
 
-                {/* Message button */}
+                {/* =================================================
+                    MESSAGE BUTTON
+                ================================================== */}
+
                 <button
-                    onClick={() => canMessage && dispatch(openModal(`messageModel-${recruiter.id}`))}
+                    type="button"
+                    onClick={() => {
+                        if (!canMessage) {
+                            return;
+                        }
+
+                        dispatch(
+                            openModal(
+                                `messageModel-${recruiter.id}`
+                            )
+                        );
+                    }}
                     disabled={!canMessage}
-                    title={!canMessage ? "Upgrade to Premium to message recruiters" : `Message ${recruiter.username}`}
-                    className={`flex-shrink-0 inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold border transition-all duration-200 ${canMessage
-                            ? "bg-white border-slate-200 text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700"
-                            : "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed"
+                    title={
+                        canMessage
+                            ? `Message ${recruiter.username}`
+                            : "Upgrade to Premium to message recruiters"
+                    }
+                    aria-label={
+                        canMessage
+                            ? `Message ${recruiter.username}`
+                            : "Upgrade to Premium to message recruiters"
+                    }
+                    className={`inline-flex flex-shrink-0 items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-all duration-200 ${canMessage
+                            ? "border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
+                            : "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
                         }`}
                 >
-                    {canMessage
-                        ? <MessageSquare className="w-3.5 h-3.5" strokeWidth={2} />
-                        : <Lock className="w-3.5 h-3.5" strokeWidth={2} />
-                    }
+                    {canMessage ? (
+                        <MessageSquare
+                            className="h-3.5 w-3.5"
+                            strokeWidth={2}
+                        />
+                    ) : (
+                        <Lock
+                            className="h-3.5 w-3.5"
+                            strokeWidth={2}
+                        />
+                    )}
+
                     Message
                 </button>
             </div>
 
-            {/* Premium lock hint */}
+            {/* =====================================================
+                PREMIUM MESSAGE
+            ====================================================== */}
+
             {!canMessage && (
-                <div className="flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5">
-                    <Crown className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" strokeWidth={2} />
+                <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
+
+                    <Crown
+                        className="h-3.5 w-3.5 flex-shrink-0 text-amber-500"
+                        strokeWidth={2}
+                    />
+
                     <p className="text-xs text-amber-700">
-                        <span className="font-semibold">Premium</span> members can message recruiters directly.{" "}
-                        <Link href="/subscription" className="underline underline-offset-2 hover:text-amber-800 transition-colors">
+                        <span className="font-semibold">
+                            Premium
+                        </span>{" "}
+                        members can message recruiters
+                        directly.{" "}
+
+                        <Link
+                            href="/subscription"
+                            className="underline underline-offset-2 transition-colors hover:text-amber-800"
+                        >
                             Upgrade
                         </Link>
                     </p>
+
                 </div>
             )}
 
-            {/* Message modal */}
+            {/* =====================================================
+                MESSAGE MODAL
+            ====================================================== */}
+
             <Model
                 modalId={`messageModel-${recruiter.id}`}
                 title={`Message ${recruiter.username}`}
@@ -145,9 +240,12 @@ const JobRecruiter: React.FC<JobRecruiterProps> = ({ job, company, isPending = f
                         receiverId={recruiter.id}
                         chatUser={{
                             id: recruiter.id,
-                            username: recruiter.username,
-                            userImage: recruiter.profileImage ?? null,
-                            profession: recruiter.profession ?? null,
+                            username:
+                                recruiter.username,
+                            userImage:
+                                recruiter.profileImage,
+                            profession:
+                                recruiter.profession,
                             role: recruiter.role,
                             isPro: recruiter.isPro,
                         }}
@@ -156,6 +254,7 @@ const JobRecruiter: React.FC<JobRecruiterProps> = ({ job, company, isPending = f
             >
                 <div />
             </Model>
+
         </div>
     );
 };

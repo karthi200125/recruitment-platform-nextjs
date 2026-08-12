@@ -6,6 +6,17 @@ import { SearchParams } from "@/types";
 
 export type FilteredJob = Prisma.JobGetPayload<{
     include: {
+        user: {
+            select: {
+                id: true;
+                username: true;
+                profileImage: true;
+                profession: true;
+                role: true;
+                isPro: true;
+            };
+        };
+
         company: {
             select: {
                 id: true,
@@ -158,6 +169,16 @@ export const getFilteredJobs = cache(
                 skip: (currentPage - 1) * ITEM_PER_PAGE,
 
                 include: {
+                    user: {
+                        select: {
+                            id: true,
+                            username: true,
+                            profileImage: true,
+                            profession: true,
+                            role: true,
+                            isPro: true,
+                        },
+                    },
                     company: {
                         select: {
                             id: true,

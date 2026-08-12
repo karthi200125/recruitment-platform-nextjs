@@ -19,7 +19,7 @@ interface MessageBoxProps {
   chatUser?: ChatUserSummary;
   isLoading?: boolean;
   isChatuser?: boolean;
-  hasChatUsers: boolean;
+  // hasChatUsers: boolean;
 }
 
 interface Conversation {
@@ -32,7 +32,7 @@ const MessageBox = ({
   chatUser,
   isLoading = false,
   isChatuser = false,
-  hasChatUsers,
+  
 }: MessageBoxProps) => {
   const { user } = useCurrentUser();
   const queryClient = useQueryClient();
@@ -116,16 +116,16 @@ const MessageBox = ({
     return <MessageBoxSkeleton />;
   }
 
-  if (!hasChatUsers) {
-    return (
-      <div className="flex h-full min-h-0 flex-col bg-white">
-        <div className="flex min-h-0 flex-1 items-center justify-center">
-          <ConversationEmptyState />
-        </div>
-        <ConversationTipBanner />
-      </div>
-    );
-  }
+  // if (!hasChatUsers) {
+  //   return (
+  //     <div className="flex h-full min-h-0 flex-col bg-white">
+  //       <div className="flex min-h-0 flex-1 items-center justify-center">
+  //         <ConversationEmptyState />
+  //       </div>
+  //       <ConversationTipBanner />
+  //     </div>
+  //   );
+  // }
 
   if (!receiverId) {
     return <MessageBoxSkeleton />;

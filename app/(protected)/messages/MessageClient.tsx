@@ -150,7 +150,7 @@ const MessagesClient = ({
                     chatUser={selectedUser}
                     isLoading={isPending}
                     isChatuser
-                    hasChatUsers={chatUsers.length > 0}
+                    // hasChatUsers={chatUsers.length > 0}
                 />
 
             </div>
@@ -183,7 +183,7 @@ const MessagesClient = ({
                             chatUser={selectedUser}
                             isLoading={isPending}
                             isChatuser
-                            hasChatUsers={chatUsers.length > 0}
+                            // hasChatUsers={chatUsers.length > 0}
                         />
                     )}
 

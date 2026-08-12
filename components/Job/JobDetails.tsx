@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 import { FilteredJob } from "@/actions/job/get-filter-all-jobs";
 import { JobSearchParams } from "@/types";
+
 import JobCompany from "./JobCompany";
 import JobDescription from "./JobDescription";
 import JobRecruiter from "./JobRecruiter";
@@ -24,7 +25,9 @@ const JobDetails = ({
 
     return (
         <div className="h-full w-full overflow-y-auto">
+
             <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-slate-100 bg-white/90 px-6 py-3 backdrop-blur-sm">
+
                 <div className="min-w-0">
                     <p className="truncate text-sm font-bold capitalize text-slate-800">
                         {job.jobTitle}
@@ -34,31 +37,39 @@ const JobDetails = ({
                         {company.companyName}
                     </p>
                 </div>
+
             </div>
 
             <div className="space-y-5 p-6">
+
+                {/* Job title / actions */}
                 <JobTitles
                     user={user}
                     job={job}
                     company={company}
                     isPending={false}
-                    safeSearchParams={safeSearchParams}
+                    safeSearchParams={
+                        safeSearchParams
+                    }
                 />
 
                 <div className="h-px bg-slate-100" />
 
+                {/* Hiring team */}
                 <JobRecruiter
-                    job={job}
+                    recruiter={job.user}
                     company={company}
                 />
 
                 <div className="h-px bg-slate-100" />
 
+                {/* Description */}
                 <JobDescription
                     job={job}
                     isPending={false}
                 />
 
+                {/* Company */}
                 {user?.role !== "ORGANIZATION" && (
                     <>
                         <div className="h-px bg-slate-100" />
@@ -69,6 +80,7 @@ const JobDetails = ({
                         />
                     </>
                 )}
+
             </div>
         </div>
     );
