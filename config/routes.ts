@@ -1,31 +1,4 @@
-/**
- * -----------------------------------------------------------------------------
- * Application Routes
- * -----------------------------------------------------------------------------
- *
- * Single source of truth for all application routes.
- *
- * Used by:
- * - Navigation
- * - Sidebar
- * - Breadcrumbs
- * - Redirects
- * - Middleware
- * - Sitemap
- * - Metadata
- *
- * NOTE:
- * This file contains only application page routes.
- * API endpoints and framework routes are intentionally excluded.
- * -----------------------------------------------------------------------------
- */
-
-export const routes = {
-    /**
-     * -------------------------------------------------------------------------
-     * Public Routes
-     * -------------------------------------------------------------------------
-     */
+export const routes = {    
     public: {
         home: "/",
         jobs: "/jobs",
@@ -33,12 +6,7 @@ export const routes = {
 
         userProfile: (userId: string) => `/userProfile/${userId}`,
     },
-
-    /**
-     * -------------------------------------------------------------------------
-     * Authentication
-     * -------------------------------------------------------------------------
-     */
+    
     auth: {
         signin: "/signin",
         signup: "/signup",
@@ -46,12 +14,7 @@ export const routes = {
         forgotPassword: "/forgot-password",
         resetPassword: "/reset-password",
     },
-
-    /**
-     * -------------------------------------------------------------------------
-     * Shared Protected Routes
-     * -------------------------------------------------------------------------
-     */
+    
     dashboard: {
         root: "/dashboard",
 
@@ -65,42 +28,22 @@ export const routes = {
 
         admin: "/admin",
     },
-
-    /**
-     * -------------------------------------------------------------------------
-     * Candidate
-     * -------------------------------------------------------------------------
-     */
+    
     candidate: {
         jobStatus: "/dashboard/jobStatus",
     },
-
-    /**
-     * -------------------------------------------------------------------------
-     * Recruiter
-     * -------------------------------------------------------------------------
-     */
+    
     recruiter: {
         createJob: "/createJob",
 
         applicants: (jobId: string) =>
             `/dashboard/${jobId}/applicants`,
     },
-
-    /**
-     * -------------------------------------------------------------------------
-     * Organization
-     * -------------------------------------------------------------------------
-     */
+    
     organization: {
         createCompany: "/create-company",
     },
-
-    /**
-     * -------------------------------------------------------------------------
-     * Network
-     * -------------------------------------------------------------------------
-     */
+    
     network: {
         profile: (userId: string) => `/network/${userId}`,
     },

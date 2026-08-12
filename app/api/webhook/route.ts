@@ -6,7 +6,7 @@ import Stripe from 'stripe';
 import { getPlans } from "@/lib/data/subscription-plans";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27.acacia',
+  apiVersion: '2025-02-24.acacia',
 });
 
 export async function POST(req: Request) {
@@ -15,14 +15,14 @@ export async function POST(req: Request) {
 
   const PLANS = getPlans();
 
-  console.log("🔥 WEBHOOK HIT");  
+  console.log("🔥 WEBHOOK HIT");
 
   if (!signature) {
     return new Response('Missing Stripe signature', { status: 400 });
   }
 
   let event: Stripe.Event;
-  
+
   try {
     event = stripe.webhooks.constructEvent(
       body,
