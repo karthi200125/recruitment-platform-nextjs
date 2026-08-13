@@ -73,7 +73,7 @@ const JobCategories = () => {
                                 }
                             >
                                 <Link
-                                    href={`/jobs/${category.slug}`}
+                                    href={`/jobs`}
                                     aria-label={`Browse ${category.name} jobs`}
                                     className={`
                                         group relative flex h-full flex-col overflow-hidden rounded-[28px]

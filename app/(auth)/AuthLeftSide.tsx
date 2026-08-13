@@ -1,5 +1,7 @@
+import AvatarGroup from "@/components/AvatarGroup";
 import Logo from "@/components/Logo";
 import { Briefcase, Users, Zap } from "lucide-react";
+import Image from "next/image";
 
 const FEATURES = [
     { icon: Zap, text: "AI-matched job recommendations" },
@@ -71,16 +73,7 @@ export default function AuthLeftSide() {
 
             {/* Social proof */}
             <div className="relative flex items-center gap-3">
-                <div className="flex -space-x-2">
-                    {AVATARS.map((initials, i) => (
-                        <div
-                            key={i}
-                            className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-zinc-900 bg-indigo-500/20 text-[10px] font-semibold text-indigo-300"
-                        >
-                            {initials}
-                        </div>
-                    ))}
-                </div>
+                <AvatarGroup />
 
                 <div>
                     <p className="text-xs font-semibold text-white">

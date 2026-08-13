@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from "next/navigation";
-import Navbar from "@/components/Navbar/NavbarComponent";
+import Navbar from "@/components/Navbar/Navbar";
 import LpNavbar from "@/components/Navbar/LandingPageNavbar";
 
 interface RootLayoutClientProps {

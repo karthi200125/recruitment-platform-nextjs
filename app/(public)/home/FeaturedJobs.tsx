@@ -287,7 +287,7 @@ const JobCard = memo(
                         </span>
 
                         <Link
-                            href="/jobs"
+                            href={`/jobs?jobId=${job.id}`}
                             className="group/link inline-flex items-center gap-2 text-sm font-medium text-indigo-300 transition-colors duration-300 hover:text-indigo-200"
                             aria-label={`View ${job.jobTitle} job`}
                         >

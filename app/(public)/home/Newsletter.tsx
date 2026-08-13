@@ -8,6 +8,7 @@ import {
   Mail,
 } from 'lucide-react';
 import Image from 'next/image';
+import AvatarGroup from '@/components/AvatarGroup';
 
 const PERKS = [
   'Personalized job alerts',
@@ -168,27 +169,7 @@ export default function Newsletter() {
               <div className="mt-12 flex flex-wrap items-center gap-4">
 
                 {/* AVATARS */}
-                <div className="flex -space-x-3">
-                  {[
-                    '/avatar1.webp',
-                    '/avatar2.webp',
-                    '/avatar3.webp',
-                    '/avatar4.webp',
-                  ].map((avatar, index) => (
-                    <div
-                      key={index}
-                      className="relative h-10 w-10 overflow-hidden rounded-full border border-black"
-                    >
-                      <Image
-                        src={avatar}
-                        alt="Subscriber"
-                        fill
-                        sizes="40px"
-                        className="object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
+                <AvatarGroup />
 
                 <p className="text-sm text-white/45">
                   Joined by{' '}

@@ -164,7 +164,7 @@ const RegisterForm = () => {
                 <div className="flex justify-end">
                     <Link
                         href="/forgot-password"
-                        className="text-sm text-blue-500 hover:text-white transition"
+                        className="text-sm text-indigo-400 font-medium hover:text-indigo-300 transition"
                     >
                         Forgot password?
                     </Link>

@@ -2,14 +2,14 @@ import Image from "next/image";
 import Marquee from "react-fast-marquee";
 
 const companies = [
-    { src: "/trustedby/netflix.png", alt: "Netflix" },
-    { src: "/trustedby/nvidia.png", alt: "NVIDIA" },
-    { src: "/trustedby/apple.png", alt: "Apple" },
-    { src: "/trustedby/google.png", alt: "Google" },
-    { src: "/trustedby/microsoft.png", alt: "Microsoft" },
-    { src: "/trustedby/amazon.png", alt: "Amazon" },
-    { src: "/trustedby/meta.png", alt: "Meta" },
-    { src: "/trustedby/stripe.png", alt: "Stripe" },
+    { src: "/trustedby/netflix.webp", alt: "Netflix" },
+    { src: "/trustedby/ubar.webp", alt: "Ubar" },
+    { src: "/trustedby/upwork.webp", alt: "UpWork" },
+    { src: "/trustedby/google.webp", alt: "Google" },
+    { src: "/trustedby/shopify.webp", alt: "Shopify" },
+    { src: "/trustedby/amazon.webp", alt: "Amazon" },
+    { src: "/trustedby/meta.webp", alt: "Meta" },
+    { src: "/trustedby/stripe.webp", alt: "Stripe" },
 ];
 
 const stats = [
@@ -104,8 +104,8 @@ const TrustedBy = () => {
                                             src={company.src}
                                             alt={`${company.alt} logo`}
                                             width={120}
-                                            height={40}
-                                            className="h-8 w-auto object-contain grayscale transition-all duration-300 hover:grayscale-0"
+                                            height={60}
+                                            className="h-10 w-auto object-contain grayscale transition-all duration-300 hover:grayscale-0"
                                         />
                                     </div>
                                 )
