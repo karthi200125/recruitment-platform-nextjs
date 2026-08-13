@@ -7,19 +7,17 @@ import { ChatMessage, ChatUserSummary } from "@/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-import { markMessagesAsSeen } from "@/actions/message/mark-messages-as-seen ";
 import { ChatButton } from "./ChatButton";
 import { Chats } from "./Chats";
 import { ChatUser } from "./ChatUser";
 import ConversationEmptyState from "./ConversationEmptyState";
-import ConversationTipBanner from "./ConversationTipBanner";
+import { markMessagesAsSeen } from "@/actions/message/mark-messages-as-seen ";
 
 interface MessageBoxProps {
   receiverId?: number;
   chatUser?: ChatUserSummary;
   isLoading?: boolean;
   isChatuser?: boolean;
-  // hasChatUsers: boolean;
 }
 
 interface Conversation {
@@ -32,67 +30,81 @@ const MessageBox = ({
   chatUser,
   isLoading = false,
   isChatuser = false,
-  
 }: MessageBoxProps) => {
   const { user } = useCurrentUser();
+
   const queryClient = useQueryClient();
+
+  const currentUserId = user?.id;
 
   const {
     data: conversation,
     isPending,
+    isError,
+    error,
   } = useQuery<Conversation | null>({
     queryKey: [
       "conversation",
-      user?.id,
+      currentUserId,
       receiverId,
     ],
 
     queryFn: async () => {
-      if (!user?.id || !receiverId) {
+      if (
+        !currentUserId ||
+        !receiverId
+      ) {
         return null;
       }
 
-      return await getConversation(
-        user.id,
+      return getConversation(
+        currentUserId,
         receiverId
       );
     },
 
-    enabled: Boolean(
-      user?.id && receiverId
-    ),
+    enabled:
+      Boolean(
+        currentUserId &&
+        receiverId
+      ),
 
-    staleTime: 1000 * 30,
+    staleTime: 30_000,
 
-    refetchInterval: receiverId
-      ? 3000
-      : false,
+    refetchInterval:
+      receiverId
+        ? 5_000
+        : false,
 
     refetchOnWindowFocus: true,
+
     refetchOnReconnect: true,
   });
 
+  /*
+   * Mark messages as seen
+   */
   useEffect(() => {
-    const handleMarkSeen = async () => {
-      if (
-        !conversation?.id ||
-        !user?.id
-      ) {
-        return;
-      }
+    if (
+      !conversation?.id ||
+      !currentUserId
+    ) {
+      return;
+    }
 
+    const markSeen = async () => {
       try {
         const result =
           await markMessagesAsSeen(
             conversation.id,
-            user.id
+            currentUserId
           );
 
         if (result?.success) {
           queryClient.invalidateQueries({
             queryKey: [
               "getUnreadMessagesCount",
-              user.id,
+              currentUserId,
             ],
           });
         }
@@ -104,71 +116,115 @@ const MessageBox = ({
       }
     };
 
-    handleMarkSeen();
+    markSeen();
   }, [
     conversation?.id,
     conversation?.messages?.length,
-    user?.id,
+    currentUserId,
     queryClient,
   ]);
 
+  /*
+   * Component loading
+   */
   if (isLoading) {
     return <MessageBoxSkeleton />;
   }
 
-  // if (!hasChatUsers) {
-  //   return (
-  //     <div className="flex h-full min-h-0 flex-col bg-white">
-  //       <div className="flex min-h-0 flex-1 items-center justify-center">
-  //         <ConversationEmptyState />
-  //       </div>
-  //       <ConversationTipBanner />
-  //     </div>
-  //   );
-  // }
-
+  /*
+   * We don't know who we're messaging yet.
+   */
   if (!receiverId) {
     return <MessageBoxSkeleton />;
   }
 
+  /*
+   * React Query loading
+   */
   if (isPending) {
     return <MessageBoxSkeleton />;
   }
 
+  /*
+   * IMPORTANT:
+   *
+   * Don't show "empty conversation" when
+   * the request itself failed.
+   */
+  if (isError) {
+    console.error(
+      "[GET_CONVERSATION]",
+      error
+    );
+
+    return (
+      <div className="flex h-full min-h-0 items-center justify-center bg-white p-6">
+        <p className="text-sm text-slate-500">
+          Unable to load this conversation.
+        </p>
+      </div>
+    );
+  }
+
+  /*
+   * No chat exists yet.
+   *
+   * This is the TRUE empty state.
+   */
   if (
     !conversation ||
     conversation.messages.length === 0
   ) {
     return (
       <div className="flex h-full min-h-0 flex-col bg-white">
-        <ConversationEmptyState />
+        <ChatUser
+          chatUser={chatUser}
+          isChatuser={isChatuser}
+        />
+
+        <div className="flex min-h-0 flex-1 items-center justify-center">
+          <ConversationEmptyState />
+        </div>
+
+        {currentUserId && (
+          <ChatButton
+            userId={currentUserId}
+            receiverId={receiverId}
+          />
+        )}
       </div>
     );
   }
 
+  /*
+   * REAL CONVERSATION
+   */
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-white">
 
-      {/* User header */}
       <ChatUser
         chatUser={chatUser}
         isChatuser={isChatuser}
       />
 
-      {/* Messages */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <Chats
-          messages={conversation.messages}
-          currentUserId={user?.id}
+          messages={
+            conversation.messages
+          }
+          currentUserId={
+            currentUserId
+          }
           user={user}
-          isChatuser={isChatuser}
+          isChatuser={
+            isChatuser
+          }
         />
       </div>
 
-      {/* Message input */}
-      {user?.id && (
+      {currentUserId && (
         <ChatButton
-          userId={user.id}
+          userId={currentUserId}
           receiverId={receiverId}
         />
       )}

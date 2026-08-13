@@ -39,7 +39,7 @@ const JobCompany = ({ company, isPending = false }: JobCompanyProps) => {
                                 src={company.companyImage || '/noImage.webp'}
                                 alt={company.companyName}
                                 fill
-                                className="object-cover"
+                                className="object-contain"
                             />
                         </div>
 

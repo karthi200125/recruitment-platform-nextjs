@@ -45,7 +45,8 @@ const JobList = ({ job, selectedJob, isHover, border, onSelect }: Props) => {
             alt={job.company?.companyName ?? "Company"}
             width={44}
             height={44}
-            className="w-full h-full object-cover"
+            sizes='44px'
+            className="w-full h-full object-contain"
           />
         </div>
 

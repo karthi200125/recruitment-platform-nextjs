@@ -1,58 +1,91 @@
 .loader {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: inline-block;
+    --loader-size: 24px;
+    --dot-size: 3px;
+
     position: relative;
-    border: 3px solid;
-    border-color: black black transparent transparent;
-    box-sizing: border-box;
-    animation: rotation 1s linear infinite;
+    display: inline-block;
+    width: var(--loader-size);
+    height: var(--loader-size);
+
+    animation: loader-rotate 1s linear infinite;
 }
 
-.loader::after,
-.loader::before {
-    content: '';
-    box-sizing: border-box;
+.loader-dot {
     position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    margin: auto;
-    border: 3px solid;
-    border-color: transparent transparent #FF3D00 #FF3D00;
-    width: 25px;
-    height: 25px;
+    top: 50%;
+    left: 50%;
+
+    width: var(--dot-size);
+    height: var(--dot-size);
+
+    margin: calc(var(--dot-size) / -2);
+
     border-radius: 50%;
-    box-sizing: border-box;
-    animation: rotationBack 0.5s linear infinite;
-    transform-origin: center center;
+
+    background: #b8c0d0;
+
+    transform:
+        rotate(calc(var(--i) * 30deg)) translateY(calc(var(--loader-size) * -0.38));
+
+    opacity: 0.18;
 }
 
-.loader::before {
-    width: 20px;
-    height: 20px;
-    border-color: black black transparent transparent;
-    animation: rotation 1.5s linear infinite;
+/* Progressively brighter dots */
+.loader-dot:nth-child(1) {
+    opacity: 1;
+    background: #8fa2c4;
 }
 
-@keyframes rotation {
-    0% {
+.loader-dot:nth-child(2) {
+    opacity: 0.88;
+}
+
+.loader-dot:nth-child(3) {
+    opacity: 0.76;
+}
+
+.loader-dot:nth-child(4) {
+    opacity: 0.64;
+}
+
+.loader-dot:nth-child(5) {
+    opacity: 0.52;
+}
+
+.loader-dot:nth-child(6) {
+    opacity: 0.42;
+}
+
+.loader-dot:nth-child(7) {
+    opacity: 0.34;
+}
+
+.loader-dot:nth-child(8) {
+    opacity: 0.28;
+}
+
+.loader-dot:nth-child(9) {
+    opacity: 0.23;
+}
+
+.loader-dot:nth-child(10) {
+    opacity: 0.2;
+}
+
+.loader-dot:nth-child(11) {
+    opacity: 0.18;
+}
+
+.loader-dot:nth-child(12) {
+    opacity: 0.16;
+}
+
+@keyframes loader-rotate {
+    from {
         transform: rotate(0deg);
     }
 
-    100% {
+    to {
         transform: rotate(360deg);
-    }
-}
-
-@keyframes rotationBack {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(-360deg);
     }
 }

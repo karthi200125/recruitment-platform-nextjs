@@ -1,5 +1,5 @@
 
-let key = 'NHhvOEcyWk50N2Vna3VFTE00bFp3MjFKR0ZEOUhkZlg4RTk1MlJlaA==';
+let key = 'TlU0bnNRUlRQT0E5VHQ3dDRQakFrNzQzRGFpSmthZ3lvWU03cklEYw==';
 let baseUrl = process.env.GET_OPTIONS_DATA_BASE_URL || 'https://api.countrystatecity.in/v1';
 
 const apiCache: { [key: string]: any } = {
@@ -10,20 +10,20 @@ const apiCache: { [key: string]: any } = {
 };
 
 interface Country {
-    name: string;    
+    name: string;
 }
 interface State {
-    name: string;    
+    name: string;
 }
 
-const CACHE_DURATION = 1000 * 60 * 60; 
+const CACHE_DURATION = 1000 * 60 * 60;
 
 export const getCountries = async () => {
-    try {        
+    try {
         if (apiCache.countries && Date.now() - apiCache.countriesTime < CACHE_DURATION) {
             return apiCache.countries;
         }
-        
+
         const url = `${baseUrl}/countries`;
 
         const response = await fetch(url, {
