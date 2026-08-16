@@ -16,95 +16,41 @@ interface JobsSearchBarProps {
 }
 
 const SearchIcon = () => (
-    <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-    >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="11" cy="11" r="8" />
         <path d="m21 21-4.35-4.35" />
     </svg>
 );
 
 const LocationIcon = () => (
-    <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-    >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
         <circle cx="12" cy="10" r="3" />
     </svg>
 );
 
 const SpinnerIcon = () => (
-    <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        className="animate-spin"
-    >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="animate-spin">
         <path d="M21 12a9 9 0 1 1-6.219-8.56" />
     </svg>
 );
 
 const ClearIcon = () => (
-    <svg
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-    >
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 6 6 18M6 6l12 12" />
     </svg>
 );
 
 const BriefcaseIcon = () => (
-    <svg
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-    >
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
         <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
     </svg>
 );
 
-const popularTags = [
-    'Remote',
-    'Frontend Developer',
-    'Full Stack',
-    'Product Manager',
-    'UI/UX Designer',
-];
+const popularTags = ['Remote', 'Frontend Developer', 'Full Stack', 'Product Manager', 'UI/UX Designer'];
 
-const JobsSearchBar = ({
-    className,
-    showPopularTags = true,
-}: JobsSearchBarProps) => {
+const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps) => {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -112,11 +58,10 @@ const JobsSearchBar = ({
     const isHomePage = pathname === '/';
 
     const [query, setQuery] = useState(searchParams.get('q') || '');
-    const [location, setLocation] = useState(
-        searchParams.get('location') || ''
-    );
+    const [location, setLocation] = useState(searchParams.get('location') || '');
 
     const [debouncedQuery, setDebouncedQuery] = useState('');
+    const [debouncedLocation, setDebouncedLocation] = useState('');
     const [suggestions, setSuggestions] = useState<JobResult[]>([]);
     const [openSuggestions, setOpenSuggestions] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -126,19 +71,22 @@ const JobsSearchBar = ({
     const queryInputRef = useRef<HTMLInputElement>(null);
     const locationInputRef = useRef<HTMLInputElement>(null);
 
-    // debounce search
+    // debounce both fields together — editing location alone should also
+    // refresh suggestions, not just editing the job title field
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedQuery(query);
+            setDebouncedLocation(location);
         }, 400);
 
         return () => clearTimeout(timer);
-    }, [query]);
+    }, [query, location]);
 
-    // fetch suggestions
+    // fetch suggestions — location is now genuinely sent to the API,
+    // it previously existed as state but was never included in the request
     useEffect(() => {
         const fetchSuggestions = async () => {
-            if (!debouncedQuery.trim()) {
+            if (!debouncedQuery.trim() && !debouncedLocation.trim()) {
                 setSuggestions([]);
                 setOpenSuggestions(false);
                 return;
@@ -147,9 +95,11 @@ const JobsSearchBar = ({
             try {
                 setLoading(true);
 
-                const res = await fetch(
-                    `/api/jobs/search?q=${encodeURIComponent(debouncedQuery)}`
-                );
+                const params = new URLSearchParams();
+                if (debouncedQuery.trim()) params.set('q', debouncedQuery.trim());
+                if (debouncedLocation.trim()) params.set('location', debouncedLocation.trim());
+
+                const res = await fetch(`/api/jobs/search?${params.toString()}`);
 
                 if (!res.ok) {
                     throw new Error('Failed to fetch suggestions');
@@ -169,15 +119,12 @@ const JobsSearchBar = ({
         };
 
         fetchSuggestions();
-    }, [debouncedQuery]);
+    }, [debouncedQuery, debouncedLocation]);
 
     // outside click
     useEffect(() => {
         const handleOutsideClick = (e: MouseEvent) => {
-            if (
-                containerRef.current &&
-                !containerRef.current.contains(e.target as Node)
-            ) {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
                 setOpenSuggestions(false);
                 setActiveIndex(-1);
             }
@@ -186,10 +133,7 @@ const JobsSearchBar = ({
         document.addEventListener('mousedown', handleOutsideClick);
 
         return () => {
-            document.removeEventListener(
-                'mousedown',
-                handleOutsideClick
-            );
+            document.removeEventListener('mousedown', handleOutsideClick);
         };
     }, []);
 
@@ -226,76 +170,51 @@ const JobsSearchBar = ({
         setActiveIndex(-1);
     };
 
-    const handleKeyDown = (
-        e: React.KeyboardEvent<HTMLInputElement>
-    ) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (!openSuggestions || suggestions.length === 0) {
             if (e.key === 'Enter') {
                 handleSearch();
             }
-
             return;
         }
 
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
-
-                setActiveIndex((prev) =>
-                    Math.min(prev + 1, suggestions.length - 1)
-                );
-
+                setActiveIndex((prev) => Math.min(prev + 1, suggestions.length - 1));
                 break;
 
             case 'ArrowUp':
                 e.preventDefault();
-
                 setActiveIndex((prev) => Math.max(prev - 1, -1));
-
                 break;
 
             case 'Escape':
                 setOpenSuggestions(false);
                 setActiveIndex(-1);
-
                 break;
 
             case 'Enter':
                 e.preventDefault();
-
                 if (activeIndex >= 0) {
                     selectSuggestion(suggestions[activeIndex]);
                 } else {
                     handleSearch();
                 }
-
                 break;
         }
     };
 
     return (
-        <div
-            ref={containerRef}
-            className={`relative w-full min-w-0 ${className || ''}`}
-        >
+        <div ref={containerRef} className={`relative w-full min-w-0  ${className || ''}`}>
             {/* SEARCH BAR */}
             <div
-                className={`flex w-full flex-col overflow-hidden rounded-2xl border p-2 shadow-[0_4px_30px_rgba(0,0,0,0.06)] transition-all duration-300 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.10)] md:h-[70px] md:flex-row md:items-center md:rounded-full ${isHomePage
-                    ? 'border-white/10 bg-white/10'
-                    : 'border-slate-200 bg-white/10 backdrop-blur-xl'
+                className={`flex w-full flex-col overflow-hidden rounded-2xl border p-2 shadow-[0_4px_30px_rgba(0,0,0,0.06)] transition-all duration-300 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.10)] md:h-[70px] md:flex-row md:items-center md:rounded-full ${isHomePage ? 'border-white/10 bg-white/10' : 'border-slate-200 bg-white/10 backdrop-blur-xl'
                     }`}
             >
                 {/* QUERY */}
-                <div
-                    className="flex min-h-[56px] flex-1 items-center gap-3 px-3 md:px-5"
-                    onClick={() => queryInputRef.current?.focus()}
-                >
-                    <div
-                        className={`flex-shrink-0 ${isHomePage
-                            ? 'text-slate-400'
-                            : 'text-slate-500'
-                            }`}
-                    >
+                <div className="flex min-h-[56px] flex-1 items-center gap-3 px-3 md:px-5" onClick={() => queryInputRef.current?.focus()}>
+                    <div className={`flex-shrink-0 ${isHomePage ? 'text-slate-400' : 'text-slate-500'}`}>
                         <SearchIcon />
                     </div>
 
@@ -312,9 +231,7 @@ const JobsSearchBar = ({
                                     setOpenSuggestions(true);
                                 }
                             }}
-                            className={`w-full border-none bg-transparent text-sm outline-none ${isHomePage
-                                ? 'text-white placeholder:text-slate-500'
-                                : 'text-slate-800 placeholder:text-slate-400'
+                            className={`w-full border-none bg-transparent text-sm outline-none ${isHomePage ? 'text-white placeholder:text-slate-500' : 'text-slate-800 placeholder:text-slate-400'
                                 }`}
                         />
 
@@ -329,7 +246,6 @@ const JobsSearchBar = ({
                                 type="button"
                                 onClick={(e) => {
                                     e.stopPropagation();
-
                                     setQuery('');
                                     setSuggestions([]);
                                     setOpenSuggestions(false);
@@ -343,31 +259,12 @@ const JobsSearchBar = ({
                 </div>
 
                 {/* DIVIDER */}
-                <div
-                    className={`mx-4 hidden h-10 w-px md:block ${isHomePage
-                        ? 'bg-white/10'
-                        : 'bg-slate-200'
-                        }`}
-                />
-
-                <div
-                    className={`mx-4 h-px md:hidden ${isHomePage
-                        ? 'bg-white/10'
-                        : 'bg-slate-200'
-                        }`}
-                />
+                <div className={`mx-4 hidden h-10 w-px md:block ${isHomePage ? 'bg-white/10' : 'bg-slate-200'}`} />
+                <div className={`mx-4 h-px md:hidden ${isHomePage ? 'bg-white/10' : 'bg-slate-200'}`} />
 
                 {/* LOCATION */}
-                <div
-                    className="flex min-h-[56px] flex-1 items-center gap-3 px-3 md:px-5"
-                    onClick={() => locationInputRef.current?.focus()}
-                >
-                    <div
-                        className={`flex-shrink-0 ${isHomePage
-                            ? 'text-slate-400'
-                            : 'text-slate-500'
-                            }`}
-                    >
+                <div className="flex min-h-[56px] flex-1 items-center gap-3 px-3 md:px-5" onClick={() => locationInputRef.current?.focus()}>
+                    <div className={`flex-shrink-0 ${isHomePage ? 'text-slate-400' : 'text-slate-500'}`}>
                         <LocationIcon />
                     </div>
 
@@ -377,17 +274,13 @@ const JobsSearchBar = ({
                             type="text"
                             placeholder="City, state, remote..."
                             value={location}
-                            onChange={(e) =>
-                                setLocation(e.target.value)
-                            }
+                            onChange={(e) => setLocation(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     handleSearch();
                                 }
                             }}
-                            className={`w-full border-none bg-transparent text-sm outline-none ${isHomePage
-                                ? 'text-white placeholder:text-slate-500'
-                                : 'text-slate-800 placeholder:text-slate-400'
+                            className={`w-full border-none bg-transparent text-sm outline-none ${isHomePage ? 'text-white placeholder:text-slate-500' : 'text-slate-800 placeholder:text-slate-400'
                                 }`}
                         />
 
@@ -440,7 +333,7 @@ const JobsSearchBar = ({
 
             {/* SUGGESTIONS */}
             {openSuggestions && suggestions.length > 0 && (
-                <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-50 overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+                <div className="absolute left-0 right-0  top-[calc(100%+12px)] z-50 overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                     {suggestions.map((job, index) => (
                         <div
                             key={job.id}
@@ -448,12 +341,8 @@ const JobsSearchBar = ({
                                 e.preventDefault();
                                 selectSuggestion(job);
                             }}
-                            onMouseEnter={() =>
-                                setActiveIndex(index)
-                            }
-                            className={`flex cursor-pointer items-center gap-4 border-b border-slate-100 px-5 py-4 transition-all duration-150 last:border-none ${activeIndex === index
-                                ? 'bg-slate-100'
-                                : 'hover:bg-slate-50'
+                            onMouseEnter={() => setActiveIndex(index)}
+                            className={`flex cursor-pointer items-center gap-4 border-b border-slate-100 px-5 py-4 transition-all duration-150 last:border-none ${activeIndex === index ? 'bg-slate-100' : 'hover:bg-slate-50'
                                 }`}
                         >
                             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500">
@@ -461,10 +350,7 @@ const JobsSearchBar = ({
                             </div>
 
                             <div className="min-w-0 flex-1 text-start">
-                                <p className="truncate text-sm font-semibold text-slate-800">
-                                    {job.jobTitle}
-                                </p>
-
+                                <p className="truncate text-sm font-semibold text-slate-800">{job.jobTitle}</p>
                                 <p className="truncate text-xs text-slate-400">
                                     {job.companyName} • {job.city}
                                 </p>
@@ -475,22 +361,14 @@ const JobsSearchBar = ({
                     {/* FOOTER */}
                     <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50 px-5 py-3 text-xs text-slate-400">
                         <div className="flex items-center gap-2">
-                            <span className="rounded border bg-white px-1.5 py-0.5">
-                                ↑↓
-                            </span>
-
+                            <span className="rounded border bg-white px-1.5 py-0.5">↑↓</span>
                             navigate
-
-                            <span className="ml-2 rounded border bg-white px-1.5 py-0.5">
-                                ↵
-                            </span>
-
+                            <span className="ml-2 rounded border bg-white px-1.5 py-0.5">↵</span>
                             select
                         </div>
 
                         <span>
-                            {suggestions.length} result
-                            {suggestions.length > 1 ? 's' : ''}
+                            {suggestions.length} result{suggestions.length > 1 ? 's' : ''}
                         </span>
                     </div>
                 </div>

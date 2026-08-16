@@ -1,50 +1,26 @@
 export const dynamic = "force-dynamic";
 
-import { NextRequest, NextResponse } from 'next/server';
-import { meiliClient } from '@/lib/meilisearch';
+import { searchJobSuggestions } from "@/actions/searchJobs";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
+        const query = searchParams.get("q") ?? "";
+        const location = searchParams.get("location") ?? "";
 
-        const query = searchParams.get('q') || '';
-        const location = searchParams.get('location') || '';
-
-        if (!meiliClient) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    message: 'Search service is not configured',
-                },                
-            );
+        if (!query.trim() && !location.trim()) {
+            return NextResponse.json([]);
         }
-        const index = meiliClient.index('jobs');
+        
+        const results = await searchJobSuggestions(query, location);
 
-        const filters = [];
-
-        if (location) {
-            filters.push(`city = "${location}"`);
-        }
-
-        const results = await index.search(query, {
-            filter: filters.length ? filters : undefined,
-
-            limit: 10,
-        });
-
-        return NextResponse.json(results.hits);
-
+        return NextResponse.json(results);
     } catch (error) {
-        console.error(error);
-
+        console.error("[GET /api/jobs/search]", error);
         return NextResponse.json(
-            {
-                success: false,
-                message: 'Search failed',
-            },
-            {
-                status: 500,
-            }
+            { success: false, message: "Search failed" },
+            { status: 500 }
         );
     }
 }

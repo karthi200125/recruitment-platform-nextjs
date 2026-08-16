@@ -53,7 +53,12 @@ const NavIcons = () => {
             },
             {
                 id: 2,
-                icon: <BriefcaseBusiness className="h-5 w-5" strokeWidth={2} />,
+                icon: (
+                    <BriefcaseBusiness
+                        className="h-5 w-5"
+                        strokeWidth={2}
+                    />
+                ),
                 title: 'Jobs',
                 href: '/jobs',
             },
@@ -88,30 +93,47 @@ const NavIcons = () => {
         [user, unreadMessagesCount]
     );
 
-    return (
-        <div className="flex items-center md:gap-3">
-            {navItems.map((item) => {
-                const isActive =
-                    pathname === item.href ||
-                    pathname.startsWith(`${item.href}/`);
+    const renderIcon = (item: NavItem) => {
+        const isActive =
+            pathname === item.href ||
+            pathname.startsWith(`${item.href}/`);
 
-                return (
-                    <Icon
-                        key={item.id}
-                        href={item.href}
-                        icon={item.icon}
-                        title={item.title}
-                        count={item.count}
-                        isHover
-                        tooltipBg="white"
-                        className={`transition-all duration-200 ${isActive
-                            ? '!bg-white/10 !text-white'
-                            : '!text-neutral-500 hover:!bg-white/10 hover:!text-white'
-                            }`}
-                    />
-                );
-            })}
-        </div>
+        return (
+            <Icon
+                key={item.id}
+                href={item.href}
+                icon={item.icon}
+                title={item.title}
+                count={item.count}
+                isHover
+                tooltipBg="white"
+                className={`transition-all duration-200 ${
+                    isActive
+                        ? '!bg-white/10 !text-white'
+                        : '!text-neutral-500 hover:!bg-white/10 hover:!text-white'
+                }`}
+            />
+        );
+    };
+
+    return (
+        <>
+            {/* Mobile: Jobs + Messages only */}
+            <div className="flex items-center gap-3 md:hidden">
+                {navItems
+                    .filter(
+                        (item) =>
+                            item.href === '/jobs' ||
+                            item.href === '/messages'
+                    )
+                    .map(renderIcon)}
+            </div>
+
+            {/* Desktop: Companies + Jobs + Messages + Dashboard */}
+            <div className="hidden items-center gap-3 md:flex">
+                {navItems.map(renderIcon)}
+            </div>
+        </>
     );
 };
 

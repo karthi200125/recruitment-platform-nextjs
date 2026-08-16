@@ -72,20 +72,20 @@ const Jobb = ({
         isMobileDetailsOpen,
         setIsMobileDetailsOpen,
     ] = useState(false);
-    
+
     const handleSelectJob = (id: number) => {
         onSelectedJob(id);
         setIsMobileDetailsOpen(true);
     };
 
     return (
-        <div className="flex h-full w-full flex-col overflow-hidden">
-            
+        <div className="flex mt-1 h-[calc(100vh-78px)] w-full overflow-hidden flex-col">
+
             <div className="z-20 flex-shrink-0 border-b border-slate-100 bg-white">
                 <FilterNavbar />
-            </div>            
+            </div>
 
-            <div className="flex min-h-0 flex-1 overflow-hidden">                
+            <div className="flex min-h-0 flex-1 overflow-hidden">
 
                 <div className="flex w-full min-w-0 flex-shrink-0 flex-col overflow-hidden border-r border-slate-100 bg-white lg:w-[420px]">
 
@@ -104,7 +104,7 @@ const Jobb = ({
                         }
                     />
 
-                </div>                
+                </div>
 
                 <div className="hidden min-w-0 flex-1 flex-col overflow-hidden lg:flex">
 
@@ -120,7 +120,7 @@ const Jobb = ({
                     )}
 
                 </div>
-            </div>            
+            </div>
 
             <div className="lg:hidden">
                 <BottomDrawer

@@ -36,7 +36,7 @@ const CompanyCard = ({
                         alt={`${company.companyName} logo`}
                         fill
                         sizes="56px"
-                        className="object-cover"
+                        className="object-contain"
                     />
                 </Link>
 

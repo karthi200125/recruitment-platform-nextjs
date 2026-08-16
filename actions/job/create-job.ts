@@ -6,7 +6,6 @@ import * as z from 'zod';
 import { authOptions } from '@/lib/authentication/authOptions';
 import { FEATURES } from '@/lib/dashboard/proFeatures';
 import { db } from '@/lib/db';
-import { meiliClient } from "@/lib/meilisearch";
 import { CreateJobSchema } from '@/lib/SchemaTypes';
 import { JobQuestionType } from '@/types';
 import { Prisma } from '@prisma/client';
@@ -138,12 +137,6 @@ export const createJobAction = async ({
                 },
             });
 
-            if (meiliClient) {
-                await meiliClient
-                    .index("jobs")
-                    .updateDocuments([updatedJob]);
-            }
-
             return { success: 'Job updated', data: updatedJob };
         }
 
@@ -158,13 +151,7 @@ export const createJobAction = async ({
                 jobDesc,
                 status: 'ACTIVE',
             },
-        });
-
-        if (meiliClient) {
-            await meiliClient
-                .index("jobs")
-                .addDocuments([newJob]);
-        }
+        });        
 
         return { success: 'Job created successfully', data: newJob };
     } catch (error) {

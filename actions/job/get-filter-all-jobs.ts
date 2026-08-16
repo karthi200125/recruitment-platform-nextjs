@@ -1,8 +1,8 @@
 import { db } from "@/lib/db";
+import { SearchParams } from "@/types";
 import { Prisma } from "@prisma/client";
 import { cache } from "react";
-import { searchJobs } from "../meili/search-jobs";
-import { SearchParams } from "@/types";
+import { searchJobIds } from "../searchJobs";
 
 export type FilteredJob = Prisma.JobGetPayload<{
     include: {
@@ -73,10 +73,9 @@ export const getFilteredJobs = cache(
 
             const where: Prisma.JobWhereInput = {};
 
-
             if (q) {
 
-                const matchedJobIds = await searchJobs(q);
+                const matchedJobIds = await searchJobIds(q);
 
                 where.id = {
                     in: matchedJobIds.length

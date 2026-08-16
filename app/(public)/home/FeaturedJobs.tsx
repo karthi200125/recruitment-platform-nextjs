@@ -182,7 +182,7 @@ const JobCard = memo(
                             }
                             fill
                             sizes="56px"
-                            className="object-cover"
+                            className="object-contain"
                         />
                     </div>
 

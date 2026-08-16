@@ -74,8 +74,9 @@ const JobTitles = ({ user, job, company, isPending, safeSearchParams }: JobTitle
             <Image
               src={company?.companyImage || '/noImage.webp'}
               alt={company?.companyName ?? "Company"}
-              width={32} height={32}
-              className="w-full h-full object-cover"
+              width={40} height={40}
+              sizes="40px"
+              className="w-full h-full object-contain"
             />
           </div>
           <Link href={`/userProfile/${company?.userId}`} className="text-sm font-semibold text-slate-700 group-hover:text-indigo-600 transition-colors duration-200">

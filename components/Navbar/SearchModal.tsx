@@ -54,7 +54,7 @@ const SearchModal = ({
             aria-modal="true"
             aria-labelledby="search-modal-title"
         >
-            <div className="w-full max-w-5xl overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-full max-w-5xl max-h-max rounded-2xl border border-neutral-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200">
 
                 {/* Header */}
 

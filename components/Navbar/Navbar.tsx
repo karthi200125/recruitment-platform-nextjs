@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react';
 import Logo from '../Logo';
 
+import { SessionUser } from "@/types";
 import AuthButtons from './AuthButtons';
 import Menu from './Menu';
 import NavIcons from './NavIcons';
@@ -13,14 +14,16 @@ import {
     NavIconSkeleton,
     UserProfileSkeleton,
 } from '@/components/skeletons/NavbarSkeletons';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Search } from 'lucide-react';
 import Icon from '../Icon';
 
-const Navbar = () => {
+interface NavbarProps {
+    user: SessionUser | null;
+}
+
+const Navbar = ({ user }: NavbarProps) => {
 
     const [searchOpen, setSearchOpen] = useState(false);
-    const { isAuthenticated } = useCurrentUser();
 
     return (
         <>
@@ -84,26 +87,17 @@ const Navbar = () => {
                     {/* Right */}
                     <div className="ml-auto flex shrink-0 items-center gap-3">
 
-                        <div className="flex items-center flex-row">
-                            <button
-                                onClick={() => setSearchOpen(true)}
-                                aria-label="Open job search"
-                                className="flex md:hidden items-center w-[40px] h-[40px] justify-center"
-                            >
-                                <Icon
-                                    icon={<Search strokeWidth={2} className='text-white/60 h-5 w-5' />}
-                                />
-                            </button>
-                            <Suspense fallback={<NavIconSkeleton />}>
-                                <NavIcons />
-                            </Suspense>
-                        </div>
-
-                        {!isAuthenticated && <AuthButtons />}
-
-                        <Suspense fallback={<UserProfileSkeleton />}>
-                            <UserProfileCard />
+                        <Suspense fallback={<NavIconSkeleton />}>
+                            <NavIcons />
                         </Suspense>
+
+                        {user ?
+                            <Suspense fallback={<UserProfileSkeleton />}>
+                                <UserProfileCard />
+                            </Suspense>
+                            :
+                            <AuthButtons />
+                        }
 
                     </div>
 

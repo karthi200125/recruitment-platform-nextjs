@@ -70,16 +70,14 @@ const JobDetails = ({
                 />
 
                 {/* Company */}
-                {user?.role !== "ORGANIZATION" && (
-                    <>
-                        <div className="h-px bg-slate-100" />
+                <>
+                    <div className="h-px bg-slate-100" />
 
-                        <JobCompany
-                            company={company}
-                            isPending={false}
-                        />
-                    </>
-                )}
+                    <JobCompany
+                        company={company}
+                        isPending={false}
+                    />
+                </>
 
             </div>
         </div>
