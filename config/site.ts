@@ -1,6 +1,4 @@
-const APP_URL =
-    process.env.NEXT_PUBLIC_APP_URL ??
-    "https://jobify.com";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://job-portal-hmif.vercel.app/";
 
 export const siteConfig = {
 
@@ -58,7 +56,7 @@ export const siteConfig = {
 
     logo: "/logo.png",
 
-    favicon: "/favicon.ico",
+    favicon: "/logo.png",
 
     appleTouchIcon: "/apple-touch-icon.png",
 

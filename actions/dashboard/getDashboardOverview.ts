@@ -179,7 +179,7 @@ export const getDashboardOverview = async (userId: number, role: Role): Promise<
             where: chartFilter,
             include: {
                 user: { select: { id: true, username: true, firstName: true, lastName: true, profileImage: true } },
-                job: { select: { id: true, jobTitle: true, company: { select: { id: true, companyName: true } } } },
+                job: { select: { id: true, jobTitle: true, company: { select: { id: true, companyName: true, companyImage: true } } } },
             },
             orderBy: { createdAt: "desc" },
             take: 5,
@@ -196,6 +196,7 @@ export const getDashboardOverview = async (userId: number, role: Role): Promise<
             role,
             companyId
         ),
+        
     ]);
 
     const activityChart = {

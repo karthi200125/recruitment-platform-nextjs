@@ -4,9 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 
 import { getActivityConfig } from "@/lib/dashboard/activity-config";
-import {
-    DashboardRecentActivity
-} from "@/types/dashboard";
+import { DashboardRecentActivity } from "@/types/dashboard";
 
 interface RecentActivityCardProps {
     activities: DashboardRecentActivity[];
@@ -15,9 +13,11 @@ interface RecentActivityCardProps {
 const RecentActivityCard = ({
     activities,
 }: RecentActivityCardProps) => {
+    // Show only the latest 5 activities in this card.
+    // This does not modify the original activities array.
+    const recentActivities = activities.slice(0, 5);
 
-
-    if (activities.length === 0) {
+    if (recentActivities.length === 0) {
         return (
             <div className="flex h-full min-h-[360px] flex-col rounded-2xl border border-slate-200 bg-white shadow-sm">
                 {/* Header */}
@@ -34,7 +34,7 @@ const RecentActivityCard = ({
                     </Link>
                 </div>
 
-                {/* Empty */}
+                {/* Empty State */}
                 <div className="flex flex-1 items-center justify-center">
                     <p className="text-[15px] text-slate-500">
                         No recent activity found.
@@ -62,10 +62,12 @@ const RecentActivityCard = ({
 
             {/* Timeline */}
             <div className="flex flex-col">
-                {activities.map((activity, index) => {
+                {recentActivities.map((activity, index) => {
                     const config = getActivityConfig(activity.type);
                     const Icon = config.icon;
-                    const isLast = index === activities.length - 1;
+
+                    const isLast =
+                        index === recentActivities.length - 1;
 
                     return (
                         <div
