@@ -19,6 +19,7 @@ interface Props {
     count: number;
     currentPage: number;
     safeSearchParams: JobSearchParams;
+    companynames: string[]
 }
 
 function NoJobSelected() {
@@ -67,6 +68,7 @@ const Jobb = ({
     isPending,
     onSelectedJob,
     safeSearchParams,
+    companynames
 }: Props) => {
     const [
         isMobileDetailsOpen,
@@ -82,7 +84,7 @@ const Jobb = ({
         <div className="flex mt-1 h-[calc(100vh-78px)] w-full overflow-hidden flex-col">
 
             <div className="z-20 flex-shrink-0 border-b border-slate-100 bg-white">
-                <FilterNavbar />
+                <FilterNavbar companynames={companynames} />
             </div>
 
             <div className="flex min-h-0 flex-1 overflow-hidden">

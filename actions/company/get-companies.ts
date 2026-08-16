@@ -43,7 +43,7 @@ export const getCompanies = cache(
     }
 );
 
-export const getCompanyNames = cache(async (): Promise<string[]> => {
+export const getCompanyNames = async (): Promise<string[]> => {
     try {
         const companies = await db.company.findMany({
             where: {
@@ -57,9 +57,11 @@ export const getCompanyNames = cache(async (): Promise<string[]> => {
             },
         });
 
+        console.log("[getCompanyNames] companies:", companies);
+
         return companies.map((company) => company.companyName);
     } catch (error) {
         console.error("[getCompanyNames]", error);
         return [];
     }
-});
+};

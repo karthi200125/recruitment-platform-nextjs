@@ -6,6 +6,7 @@ import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 
 import JobsClient from "./JobsClient";
+import { getCompanyNames } from "@/actions/company/get-companies";
 
 export interface JobsPageProps {
   searchParams: {
@@ -183,15 +184,16 @@ export default async function JobsPage({
     page: currentPage,
   };
 
-
+  const companynames = await getCompanyNames()
   const { jobs, count, } = await getFilteredJobs(filters);
-
+  
   return (
     <JobsClient
       initialJobs={jobs}
       initialCount={count}
       searchParams={filters}
       currentPage={currentPage}
+      companynames={companynames}
     />
   );
 }

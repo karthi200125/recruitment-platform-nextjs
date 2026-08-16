@@ -22,6 +22,7 @@ interface JobsClientProps {
     initialCount: number;
     searchParams: JobSearchParams;
     currentPage: number;
+    companynames: string[]
 }
 
 
@@ -49,6 +50,7 @@ const JobsClient = ({
     initialCount,
     searchParams,
     currentPage,
+    companynames
 }: JobsClientProps) => {
     const pathname = usePathname();
     const urlSearchParams = useSearchParams();
@@ -146,6 +148,7 @@ const JobsClient = ({
             job={selectedJob}
             count={initialCount}
             currentPage={currentPage}
+            companynames={companynames}
             isPending={false}
             onSelectedJob={
                 handleSelectedJob
