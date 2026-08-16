@@ -1,4 +1,6 @@
 import { FilteredJob } from "@/actions/job/get-filter-all-jobs";
+import SaveJobButton from "@/components/SaveJobButton";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { formatDistanceToNow } from "date-fns";
 import { Clock, MapPin, Users } from 'lucide-react';
 import Image from 'next/image';
@@ -23,6 +25,8 @@ const JobList = ({ job, selectedJob, isHover, border, onSelect }: Props) => {
   const modeLower = (job.mode ?? "").toLowerCase().replace(/\s+/g, "_");
   const modeBadge = MODE_STYLES[modeLower];
 
+  const { user } = useCurrentUser()
+
   return (
     <button
       type="button"
@@ -37,6 +41,15 @@ const JobList = ({ job, selectedJob, isHover, border, onSelect }: Props) => {
                 ${border ? "border-b border-slate-100" : ""}
             `}
     >
+      {user &&
+        <div className="absolute right-4 top-4 z-10">
+          <SaveJobButton
+            userId={user.id}
+            jobId={job.id}
+            isIcon
+          />
+        </div>
+      }
       <div className="flex items-start gap-3">
         {/* Company logo */}
         <div className="w-11 h-11 rounded-xl overflow-hidden border border-slate-200 bg-white flex-shrink-0">

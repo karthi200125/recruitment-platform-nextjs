@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { DatePosted, experiences, getStates, JobMode } from '@/lib/getOptionsData';
-import { getCompanies } from '@/actions/company/get-companies';
+import { getCompanyNames } from '@/actions/company/get-companies';
 
 interface Filter {
     id: number;
@@ -24,7 +24,7 @@ const FilterNavbar = () => {
     const router = useRouter();
 
     const { data: states = [] } = useQuery({ queryKey: ['getStates'], queryFn: getStates });
-    const { data: companiesData = [] } = useQuery({ queryKey: ['getCompanies'], queryFn: getCompanies });
+    const { data: companiesData = [] } = useQuery({ queryKey: ['getCompanyNames'], queryFn: getCompanyNames });
 
     const locations = useMemo(() => states.map((s: any) => s.name), [states]);
     const companiesOptions = useMemo(() => companiesData.map((c: any) => c.companyName), [companiesData]);
@@ -96,8 +96,8 @@ const FilterNavbar = () => {
                         <DropdownMenuTrigger asChild>
                             <button
                                 className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-semibold whitespace-nowrap transition-all duration-200 outline-none flex-shrink-0 ${isActive
-                                        ? "bg-indigo-50 border-indigo-400 text-indigo-700"
-                                        : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-800"
+                                    ? "bg-indigo-50 border-indigo-400 text-indigo-700"
+                                    : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-800"
                                     }`}
                             >
                                 {isActive && <Check className="w-3 h-3" strokeWidth={2.5} />}
@@ -169,8 +169,8 @@ const FilterNavbar = () => {
                     updateUrlParams(selectedFilters, next);
                 }}
                 className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 ${easyApply
-                        ? "bg-indigo-600 border-indigo-600 text-white"
-                        : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-800"
+                    ? "bg-indigo-600 border-indigo-600 text-white"
+                    : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-800"
                     }`}
             >
                 <Zap className={`w-3 h-3 ${easyApply ? "text-white" : "text-slate-400"}`} strokeWidth={2.5} />

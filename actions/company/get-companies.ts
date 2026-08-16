@@ -32,7 +32,7 @@ export const getCompanies = cache(
                 orderBy: { createdAt: "desc" },
             });
 
-            return companies.map((c:any) => ({
+            return companies.map((c: any) => ({
                 ...c,
                 jobsCount: c._count.jobs,
             }));
@@ -42,3 +42,24 @@ export const getCompanies = cache(
         }
     }
 );
+
+export const getCompanyNames = cache(async (): Promise<string[]> => {
+    try {
+        const companies = await db.company.findMany({
+            where: {
+                companyIsVerified: true,
+            },
+            select: {
+                companyName: true,
+            },
+            orderBy: {
+                companyName: "asc",
+            },
+        });
+
+        return companies.map((company) => company.companyName);
+    } catch (error) {
+        console.error("[getCompanyNames]", error);
+        return [];
+    }
+});

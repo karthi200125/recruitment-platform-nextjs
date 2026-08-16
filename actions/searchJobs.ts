@@ -7,6 +7,7 @@ export interface JobSearchResult {
     id: number;
     jobTitle: string;
     companyName: string;
+    companyImage: string | null;
     city: string;
     mode: string;
     salary: string;
@@ -18,6 +19,7 @@ export interface JobSuggestion {
     id: number;
     jobTitle: string;
     companyName: string;
+    companyImage: string | null;
     city: string;
 }
 
@@ -32,6 +34,7 @@ export async function searchJobs(query: string, location = "", limit = 10): Prom
                 j.id,
                 j."jobTitle",
                 c."companyName",
+                c."companyImage",
                 j.city,
                 j.mode,
                 j.salary,
@@ -87,6 +90,7 @@ export async function searchJobSuggestions(query: string, location = ""): Promis
                 j.id,
                 j."jobTitle",
                 c."companyName",
+                c."companyImage",
                 j.city
             FROM "Job" j
             INNER JOIN "Company" c ON j."companyId" = c.id

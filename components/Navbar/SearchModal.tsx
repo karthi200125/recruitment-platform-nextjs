@@ -49,7 +49,7 @@ const SearchModal = ({
                     onClose();
                 }
             }}
-            className="fixed inset-0 z-[999] flex items-start justify-center bg-black/60 px-4 pt-20 backdrop-blur-sm sm:pt-24"
+            className="fixed inset-0 z-[999] flex items-start justify-center bg-black/60 px-4 pt-10 backdrop-blur-sm sm:pt-15 md:pt-20 "
             role="dialog"
             aria-modal="true"
             aria-labelledby="search-modal-title"
@@ -92,7 +92,7 @@ const SearchModal = ({
 
                 {/* Footer */}
 
-                <div className="flex items-center justify-between border-t border-neutral-100 bg-neutral-50 px-6 py-3">
+                <div className="hidden md:flex items-center justify-between border-t border-neutral-100 bg-neutral-50 px-6 py-3 rounded-2xl">
                     <div className="flex items-center gap-4 text-[11px] text-neutral-500">
                         <span className="flex items-center gap-1">
                             <kbd className="rounded border bg-white px-1.5 py-0.5 font-mono text-[10px]">

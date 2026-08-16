@@ -63,11 +63,11 @@ const Navbar = ({ user }: NavbarProps) => {
 
                     {/* Search */}
 
-                    <div className="hidden md:flex flex-1 justify-center px-2 sm:px-4">
+                    <div className="flex flex-1 justify-center px-1 sm:px-4">
                         <button
                             onClick={() => setSearchOpen(true)}
                             aria-label="Open job search"
-                            className="group flex w-full max-w-sm sm:max-w-md items-center gap-3 rounded-md bg-white/[0.07] hover:bg-white/[0.11] border border-white/[0.09] hover:border-white/[0.16] px-3.5 h-[38px] transition-all duration-200"
+                            className="group flex w-full max-w-sm sm:max-w-md items-center gap-3 rounded-md bg-white/[0.07] hover:bg-white/[0.11] border border-white/[0.09] hover:border-white/[0.16] px-1 md:px-3.5 h-[38px] transition-all duration-200"
                         >
                             <span className="text-neutral-400 group-hover:text-neutral-300 transition-colors duration-150 shrink-0">
 

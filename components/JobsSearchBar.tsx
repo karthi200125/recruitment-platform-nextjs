@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import Image from 'next/image';
 
 interface JobResult {
     id: number;
     jobTitle: string;
     companyName: string;
+    companyImage: string | null;
     city: string;
 }
 
@@ -41,13 +43,6 @@ const ClearIcon = () => (
     </svg>
 );
 
-const BriefcaseIcon = () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
-        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-    </svg>
-);
-
 const popularTags = ['Remote', 'Frontend Developer', 'Full Stack', 'Product Manager', 'UI/UX Designer'];
 
 const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps) => {
@@ -71,8 +66,6 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
     const queryInputRef = useRef<HTMLInputElement>(null);
     const locationInputRef = useRef<HTMLInputElement>(null);
 
-    // debounce both fields together — editing location alone should also
-    // refresh suggestions, not just editing the job title field
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedQuery(query);
@@ -82,8 +75,6 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
         return () => clearTimeout(timer);
     }, [query, location]);
 
-    // fetch suggestions — location is now genuinely sent to the API,
-    // it previously existed as state but was never included in the request
     useEffect(() => {
         const fetchSuggestions = async () => {
             if (!debouncedQuery.trim() && !debouncedLocation.trim()) {
@@ -121,7 +112,6 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
         fetchSuggestions();
     }, [debouncedQuery, debouncedLocation]);
 
-    // outside click
     useEffect(() => {
         const handleOutsideClick = (e: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -235,6 +225,8 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
                                 }`}
                         />
 
+                        {/* was the only place this ever rendered — the location
+                            field had a clear button but no loading indicator */}
                         {loading && (
                             <div className="text-slate-400">
                                 <SpinnerIcon />
@@ -284,7 +276,16 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
                                 }`}
                         />
 
-                        {location && (
+                        {/* same loading indicator, now mirrored here — a single
+                            shared `loading` state covers whichever field(s)
+                            triggered the in-flight fetch */}
+                        {loading && (
+                            <div className="text-slate-400">
+                                <SpinnerIcon />
+                            </div>
+                        )}
+
+                        {location && !loading && (
                             <button
                                 type="button"
                                 onClick={(e) => {
@@ -345,8 +346,14 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
                             className={`flex cursor-pointer items-center gap-4 border-b border-slate-100 px-5 py-4 transition-all duration-150 last:border-none ${activeIndex === index ? 'bg-slate-100' : 'hover:bg-slate-50'
                                 }`}
                         >
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500">
-                                <BriefcaseIcon />
+                            <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                                <Image
+                                    src={job.companyImage || '/noImage.webp'}
+                                    alt={job.companyName}
+                                    fill
+                                    sizes="40px"
+                                    className="object-cover"
+                                />
                             </div>
 
                             <div className="min-w-0 flex-1 text-start">
