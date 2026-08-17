@@ -36,7 +36,7 @@ export const getConversation = async (
                         sender: {
                             select: {
                                 id: true,
-                                userImage: true,
+                                profileImage: true,
                             },
                         },
                     },
@@ -62,7 +62,7 @@ export const getConversation = async (
                 createdAt: message.createdAt.toISOString(),
                 sender: {
                     id: message.sender.id,
-                    userImage: message.sender.userImage,
+                    profileImage: message.sender.profileImage,
                 },
             })),
         };

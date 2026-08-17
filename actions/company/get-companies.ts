@@ -55,9 +55,7 @@ export const getCompanyNames = async (): Promise<string[]> => {
             orderBy: {
                 companyName: "asc",
             },
-        });
-
-        console.log("[getCompanyNames] companies:", companies);
+        });        
 
         return companies.map((company) => company.companyName);
     } catch (error) {

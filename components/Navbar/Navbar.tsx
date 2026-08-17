@@ -14,8 +14,6 @@ import {
     NavIconSkeleton,
     UserProfileSkeleton,
 } from '@/components/skeletons/NavbarSkeletons';
-import { Search } from 'lucide-react';
-import Icon from '../Icon';
 
 interface NavbarProps {
     user: SessionUser | null;

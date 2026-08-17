@@ -12,7 +12,7 @@ function Avatar({
   image: string;
 }) {
   return (
-    <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.03]">
+    <div className="relative h-12 w-12 overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.03]">
       {image ? (
         <Image
           src={image}

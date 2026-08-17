@@ -46,7 +46,7 @@ const JobCompany = ({ company, isPending = false }: JobCompanyProps) => {
                         {/* Info */}
                         <div className="min-w-0 space-y-0.5">
                             <Link
-                                href={`/company/${company.id}`}
+                                href={`/userProfile/${company.userId}`}
                                 className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-800 hover:text-indigo-600 transition-colors duration-200 capitalize"
                             >
                                 {company.companyName}

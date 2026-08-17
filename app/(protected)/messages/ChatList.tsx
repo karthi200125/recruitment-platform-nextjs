@@ -29,7 +29,7 @@ export const ChatList = ({
             <div className="relative flex-shrink-0">
                 <div className="w-11 h-11 rounded-full overflow-hidden border border-slate-200 bg-slate-100">
                     <Image
-                        src={chatUser.userImage || noProfile.src}
+                        src={chatUser.profileImage || noProfile.src}
                         alt={chatUser.username}
                         width={44}
                         height={44}

@@ -10,7 +10,7 @@ import { ChatMessage } from "@/types/chat";
 
 interface CurrentUser {
   id: number;
-  userImage?: string | null;
+  profileImage?: string | null;
 }
 
 interface ChatsProps {
@@ -84,8 +84,8 @@ export const Chats = ({
                 <Image
                   src={
                     (isMe
-                      ? user?.userImage
-                      : msg.sender?.userImage) ||
+                      ? user?.profileImage
+                      : msg.sender?.profileImage) ||
                     noProfile
                   }
                   alt="avatar"

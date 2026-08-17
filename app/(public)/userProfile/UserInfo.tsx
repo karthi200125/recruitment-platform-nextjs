@@ -88,8 +88,8 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                 <Image
                     src={
                         isOrganization
-                            ? company?.companyBackImage || "/backgray.webp"
-                            : profileUser?.userImage || "/backgray.webp"
+                            ? company?.companyBackImage || "/banner.webp"
+                            : profileUser?.userImage || "/banner.webp"
                     }
                     alt="Cover"
                     fill

@@ -17,6 +17,8 @@ interface JobsSearchBarProps {
     showPopularTags?: boolean;
 }
 
+type SearchField = 'query' | 'location' | null;
+
 const SearchIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="11" cy="11" r="8" />
@@ -43,9 +45,18 @@ const ClearIcon = () => (
     </svg>
 );
 
-const popularTags = ['Remote', 'Frontend Developer', 'Full Stack', 'Product Manager', 'UI/UX Designer'];
+const popularTags = [
+    'Remote',
+    'Frontend Developer',
+    'Full Stack',
+    'Product Manager',
+    'UI/UX Designer',
+];
 
-const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps) => {
+const JobsSearchBar = ({
+    className,
+    showPopularTags = true,
+}: JobsSearchBarProps) => {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -53,19 +64,36 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
     const isHomePage = pathname === '/';
 
     const [query, setQuery] = useState(searchParams.get('q') || '');
-    const [location, setLocation] = useState(searchParams.get('location') || '');
+    const [location, setLocation] = useState(
+        searchParams.get('location') || ''
+    );
 
     const [debouncedQuery, setDebouncedQuery] = useState('');
     const [debouncedLocation, setDebouncedLocation] = useState('');
+
     const [suggestions, setSuggestions] = useState<JobResult[]>([]);
     const [openSuggestions, setOpenSuggestions] = useState(false);
-    const [loading, setLoading] = useState(false);
+
+    // Only the field currently triggering the request shows a loader.
+    const [loadingField, setLoadingField] = useState<SearchField>(null);
+
+    // Keeps track of which input the user is currently using.
+    const [activeField, setActiveField] = useState<SearchField>(null);
+
     const [activeIndex, setActiveIndex] = useState(-1);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const queryInputRef = useRef<HTMLInputElement>(null);
     const locationInputRef = useRef<HTMLInputElement>(null);
 
+    const previousDebouncedQuery = useRef('');
+    const previousDebouncedLocation = useRef('');
+
+    const requestIdRef = useRef(0);
+
+    /*
+     * DEBOUNCE
+     */
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedQuery(query);
@@ -75,46 +103,115 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
         return () => clearTimeout(timer);
     }, [query, location]);
 
+    /*
+     * FETCH SUGGESTIONS
+     *
+     * The API request can contain both q and location,
+     * but the loader belongs only to the field the user changed.
+     */
     useEffect(() => {
         const fetchSuggestions = async () => {
-            if (!debouncedQuery.trim() && !debouncedLocation.trim()) {
+            const trimmedQuery = debouncedQuery.trim();
+            const trimmedLocation = debouncedLocation.trim();
+
+            if (!trimmedQuery && !trimmedLocation) {
                 setSuggestions([]);
                 setOpenSuggestions(false);
+                setLoadingField(null);
+                previousDebouncedQuery.current = debouncedQuery;
+                previousDebouncedLocation.current = debouncedLocation;
                 return;
             }
 
+            /*
+             * Determine which value actually changed.
+             */
+            const queryChanged =
+                debouncedQuery !== previousDebouncedQuery.current;
+
+            const locationChanged =
+                debouncedLocation !== previousDebouncedLocation.current;
+
+            let currentField: SearchField = activeField;
+
+            if (queryChanged && !locationChanged) {
+                currentField = 'query';
+            } else if (locationChanged && !queryChanged) {
+                currentField = 'location';
+            }
+
+            previousDebouncedQuery.current = debouncedQuery;
+            previousDebouncedLocation.current = debouncedLocation;
+
+            const requestId = ++requestIdRef.current;
+
             try {
-                setLoading(true);
+                setLoadingField(currentField);
 
                 const params = new URLSearchParams();
-                if (debouncedQuery.trim()) params.set('q', debouncedQuery.trim());
-                if (debouncedLocation.trim()) params.set('location', debouncedLocation.trim());
 
-                const res = await fetch(`/api/jobs/search?${params.toString()}`);
+                if (trimmedQuery) {
+                    params.set('q', trimmedQuery);
+                }
+
+                if (trimmedLocation) {
+                    params.set('location', trimmedLocation);
+                }
+
+                const res = await fetch(
+                    `/api/jobs/search?${params.toString()}`,
+                    {
+                        signal: AbortSignal.timeout(10000),
+                    }
+                );
 
                 if (!res.ok) {
                     throw new Error('Failed to fetch suggestions');
                 }
 
-                const data = await res.json();
+                const data: JobResult[] = await res.json();
+
+                // Ignore stale requests.
+                if (requestId !== requestIdRef.current) {
+                    return;
+                }
 
                 setSuggestions(data);
                 setOpenSuggestions(data.length > 0);
                 setActiveIndex(-1);
             } catch (error) {
+                if (
+                    error instanceof DOMException &&
+                    error.name === 'AbortError'
+                ) {
+                    return;
+                }
+
                 console.error(error);
-                setSuggestions([]);
+
+                if (requestId === requestIdRef.current) {
+                    setSuggestions([]);
+                    setOpenSuggestions(false);
+                }
             } finally {
-                setLoading(false);
+                if (requestId === requestIdRef.current) {
+                    setLoadingField(null);
+                }
             }
         };
 
         fetchSuggestions();
-    }, [debouncedQuery, debouncedLocation]);
+    }, [debouncedQuery, debouncedLocation, activeField]);
 
+    /*
+     * CLOSE SUGGESTIONS WHEN CLICKING OUTSIDE
+     */
     useEffect(() => {
         const handleOutsideClick = (e: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+            if (
+                containerRef.current &&
+                !containerRef.current.contains(e.target as Node)
+            ) {
                 setOpenSuggestions(false);
                 setActiveIndex(-1);
             }
@@ -127,6 +224,12 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
         };
     }, []);
 
+    /*
+     * NORMAL SEARCH
+     *
+     * Example:
+     * /jobs?q=react&location=bangalore
+     */
     const handleSearch = useCallback(() => {
         const params = new URLSearchParams();
 
@@ -138,45 +241,98 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
             params.set('location', location.trim());
         }
 
-        router.push(`/jobs?${params.toString()}`);
+        const queryString = params.toString();
+
+        router.push(queryString ? `/jobs?${queryString}` : '/jobs');
 
         setOpenSuggestions(false);
         setActiveIndex(-1);
     }, [query, location, router]);
 
-    const selectSuggestion = (job: JobResult) => {
-        const params = new URLSearchParams();
+    /*
+     * SUGGESTION SELECTION
+     *
+     * If the user is searching the query field:
+     *   q = selected job title
+     *
+     * If the user is searching the location field:
+     *   location = selected job city
+     *
+     * Other existing search value is preserved.
+     */
+    const selectSuggestion = useCallback(
+        (job: JobResult) => {
+            const params = new URLSearchParams();
 
-        params.set('q', job.jobTitle);
+            if (activeField === 'location') {
+                // Location suggestion
+                if (query.trim()) {
+                    params.set('q', query.trim());
+                }
 
-        if (location.trim()) {
-            params.set('location', location.trim());
-        }
+                if (job.city.trim()) {
+                    params.set('location', job.city.trim());
+                }
 
-        router.push(`/jobs?${params.toString()}`);
+                setLocation(job.city);
+            } else {
+                // Query suggestion
+                if (job.jobTitle.trim()) {
+                    params.set('q', job.jobTitle.trim());
+                }
 
-        setQuery(job.jobTitle);
-        setOpenSuggestions(false);
-        setActiveIndex(-1);
-    };
+                if (location.trim()) {
+                    params.set('location', location.trim());
+                }
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+                setQuery(job.jobTitle);
+            }
+
+            const queryString = params.toString();
+
+            /*
+             * Navigate immediately.
+             */
+            router.push(queryString ? `/jobs?${queryString}` : '/jobs');
+
+            setOpenSuggestions(false);
+            setSuggestions([]);
+            setActiveIndex(-1);
+        },
+        [activeField, query, location, router]
+    );
+
+    /*
+     * QUERY KEYBOARD NAVIGATION
+     */
+    const handleQueryKeyDown = (
+        e: React.KeyboardEvent<HTMLInputElement>
+    ) => {
         if (!openSuggestions || suggestions.length === 0) {
             if (e.key === 'Enter') {
                 handleSearch();
             }
+
             return;
         }
 
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
-                setActiveIndex((prev) => Math.min(prev + 1, suggestions.length - 1));
+
+                setActiveIndex((prev) =>
+                    Math.min(prev + 1, suggestions.length - 1)
+                );
+
                 break;
 
             case 'ArrowUp':
                 e.preventDefault();
-                setActiveIndex((prev) => Math.max(prev - 1, -1));
+
+                setActiveIndex((prev) =>
+                    Math.max(prev - 1, -1)
+                );
+
                 break;
 
             case 'Escape':
@@ -186,25 +342,94 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
 
             case 'Enter':
                 e.preventDefault();
+
                 if (activeIndex >= 0) {
                     selectSuggestion(suggestions[activeIndex]);
                 } else {
                     handleSearch();
                 }
+
+                break;
+        }
+    };
+
+    /*
+     * LOCATION KEYBOARD NAVIGATION
+     */
+    const handleLocationKeyDown = (
+        e: React.KeyboardEvent<HTMLInputElement>
+    ) => {
+        if (!openSuggestions || suggestions.length === 0) {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+
+            return;
+        }
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+
+                setActiveIndex((prev) =>
+                    Math.min(prev + 1, suggestions.length - 1)
+                );
+
+                break;
+
+            case 'ArrowUp':
+                e.preventDefault();
+
+                setActiveIndex((prev) =>
+                    Math.max(prev - 1, -1)
+                );
+
+                break;
+
+            case 'Escape':
+                setOpenSuggestions(false);
+                setActiveIndex(-1);
+                break;
+
+            case 'Enter':
+                e.preventDefault();
+
+                if (activeIndex >= 0) {
+                    selectSuggestion(suggestions[activeIndex]);
+                } else {
+                    handleSearch();
+                }
+
                 break;
         }
     };
 
     return (
-        <div ref={containerRef} className={`relative w-full min-w-0  ${className || ''}`}>
+        <div
+            ref={containerRef}
+            className={`relative w-full min-w-0 ${className || ''}`}
+        >
             {/* SEARCH BAR */}
             <div
-                className={`flex w-full flex-col overflow-hidden rounded-2xl border p-2 shadow-[0_4px_30px_rgba(0,0,0,0.06)] transition-all duration-300 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.10)] md:h-[70px] md:flex-row md:items-center md:rounded-full ${isHomePage ? 'border-white/10 bg-white/10' : 'border-slate-200 bg-white/10 backdrop-blur-xl'
+                className={`flex w-full flex-col overflow-hidden rounded-2xl border p-2 shadow-[0_4px_30px_rgba(0,0,0,0.06)] transition-all duration-300 focus-within:shadow-[0_8px_40px_rgba(0,0,0,0.10)] md:h-[70px] md:flex-row md:items-center md:rounded-full ${isHomePage
+                    ? 'border-white/10 bg-white/10'
+                    : 'border-slate-200 bg-white/10 backdrop-blur-xl'
                     }`}
             >
                 {/* QUERY */}
-                <div className="flex min-h-[56px] flex-1 items-center gap-3 px-3 md:px-5" onClick={() => queryInputRef.current?.focus()}>
-                    <div className={`flex-shrink-0 ${isHomePage ? 'text-slate-400' : 'text-slate-500'}`}>
+                <div
+                    className="flex min-h-[56px] flex-1 items-center gap-3 px-3 md:px-5"
+                    onClick={() => {
+                        setActiveField('query');
+                        queryInputRef.current?.focus();
+                    }}
+                >
+                    <div
+                        className={`flex-shrink-0 ${isHomePage
+                            ? 'text-slate-400'
+                            : 'text-slate-500'
+                            }`}
+                    >
                         <SearchIcon />
                     </div>
 
@@ -214,35 +439,43 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
                             type="text"
                             placeholder="Job title, company, skills..."
                             value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            onKeyDown={handleKeyDown}
+                            onChange={(e) => {
+                                setQuery(e.target.value);
+                                setActiveField('query');
+                            }}
                             onFocus={() => {
+                                setActiveField('query');
+
                                 if (suggestions.length > 0) {
                                     setOpenSuggestions(true);
                                 }
                             }}
-                            className={`w-full border-none bg-transparent text-sm outline-none ${isHomePage ? 'text-white placeholder:text-slate-500' : 'text-slate-800 placeholder:text-slate-400'
+                            onKeyDown={handleQueryKeyDown}
+                            className={`w-full border-none bg-transparent text-sm outline-none ${isHomePage
+                                ? 'text-white placeholder:text-slate-500'
+                                : 'text-slate-800 placeholder:text-slate-400'
                                 }`}
                         />
 
-                        {/* was the only place this ever rendered — the location
-                            field had a clear button but no loading indicator */}
-                        {loading && (
-                            <div className="text-slate-400">
+                        {/* QUERY LOADER ONLY */}
+                        {loadingField === 'query' && (
+                            <div className="flex-shrink-0 text-slate-400">
                                 <SpinnerIcon />
                             </div>
                         )}
 
-                        {query && !loading && (
+                        {query && loadingField !== 'query' && (
                             <button
                                 type="button"
                                 onClick={(e) => {
                                     e.stopPropagation();
+
                                     setQuery('');
                                     setSuggestions([]);
                                     setOpenSuggestions(false);
+                                    setActiveIndex(-1);
                                 }}
-                                className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 text-slate-500 transition hover:bg-slate-300"
+                                className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-500 transition hover:bg-slate-300"
                             >
                                 <ClearIcon />
                             </button>
@@ -251,12 +484,34 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
                 </div>
 
                 {/* DIVIDER */}
-                <div className={`mx-4 hidden h-10 w-px md:block ${isHomePage ? 'bg-white/10' : 'bg-slate-200'}`} />
-                <div className={`mx-4 h-px md:hidden ${isHomePage ? 'bg-white/10' : 'bg-slate-200'}`} />
+                <div
+                    className={`mx-4 hidden h-10 w-px md:block ${isHomePage
+                        ? 'bg-white/10'
+                        : 'bg-slate-200'
+                        }`}
+                />
+
+                <div
+                    className={`mx-4 h-px md:hidden ${isHomePage
+                        ? 'bg-white/10'
+                        : 'bg-slate-200'
+                        }`}
+                />
 
                 {/* LOCATION */}
-                <div className="flex min-h-[56px] flex-1 items-center gap-3 px-3 md:px-5" onClick={() => locationInputRef.current?.focus()}>
-                    <div className={`flex-shrink-0 ${isHomePage ? 'text-slate-400' : 'text-slate-500'}`}>
+                <div
+                    className="flex min-h-[56px] flex-1 items-center gap-3 px-3 md:px-5"
+                    onClick={() => {
+                        setActiveField('location');
+                        locationInputRef.current?.focus();
+                    }}
+                >
+                    <div
+                        className={`flex-shrink-0 ${isHomePage
+                            ? 'text-slate-400'
+                            : 'text-slate-500'
+                            }`}
+                    >
                         <LocationIcon />
                     </div>
 
@@ -266,33 +521,43 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
                             type="text"
                             placeholder="City, state, remote..."
                             value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleSearch();
+                            onChange={(e) => {
+                                setLocation(e.target.value);
+                                setActiveField('location');
+                            }}
+                            onFocus={() => {
+                                setActiveField('location');
+
+                                if (suggestions.length > 0) {
+                                    setOpenSuggestions(true);
                                 }
                             }}
-                            className={`w-full border-none bg-transparent text-sm outline-none ${isHomePage ? 'text-white placeholder:text-slate-500' : 'text-slate-800 placeholder:text-slate-400'
+                            onKeyDown={handleLocationKeyDown}
+                            className={`w-full border-none bg-transparent text-sm outline-none ${isHomePage
+                                ? 'text-white placeholder:text-slate-500'
+                                : 'text-slate-800 placeholder:text-slate-400'
                                 }`}
                         />
 
-                        {/* same loading indicator, now mirrored here — a single
-                            shared `loading` state covers whichever field(s)
-                            triggered the in-flight fetch */}
-                        {loading && (
-                            <div className="text-slate-400">
+                        {/* LOCATION LOADER ONLY */}
+                        {loadingField === 'location' && (
+                            <div className="flex-shrink-0 text-slate-400">
                                 <SpinnerIcon />
                             </div>
                         )}
 
-                        {location && !loading && (
+                        {location && loadingField !== 'location' && (
                             <button
                                 type="button"
                                 onClick={(e) => {
                                     e.stopPropagation();
+
                                     setLocation('');
+                                    setSuggestions([]);
+                                    setOpenSuggestions(false);
+                                    setActiveIndex(-1);
                                 }}
-                                className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-200 text-slate-500 transition hover:bg-slate-300"
+                                className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-500 transition hover:bg-slate-300"
                             >
                                 <ClearIcon />
                             </button>
@@ -319,6 +584,7 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
                             key={tag}
                             onClick={() => {
                                 setQuery(tag);
+                                setActiveField('query');
                                 queryInputRef.current?.focus();
                             }}
                             className={`rounded-full border px-4 py-2 text-xs font-medium transition-all duration-200 ${isHomePage
@@ -334,16 +600,22 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
 
             {/* SUGGESTIONS */}
             {openSuggestions && suggestions.length > 0 && (
-                <div className="absolute left-0 right-0  top-[calc(100%+12px)] z-50 overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+                <div className="absolute left-0 right-0 top-[calc(100%+12px)] z-50 overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
                     {suggestions.map((job, index) => (
                         <div
                             key={job.id}
                             onMouseDown={(e) => {
                                 e.preventDefault();
+
+                                /*
+                                 * Navigate immediately.
+                                 */
                                 selectSuggestion(job);
                             }}
                             onMouseEnter={() => setActiveIndex(index)}
-                            className={`flex cursor-pointer items-center gap-4 border-b border-slate-100 px-5 py-4 transition-all duration-150 last:border-none ${activeIndex === index ? 'bg-slate-100' : 'hover:bg-slate-50'
+                            className={`flex cursor-pointer items-center gap-4 border-b border-slate-100 px-5 py-4 transition-all duration-150 last:border-none ${activeIndex === index
+                                ? 'bg-slate-100'
+                                : 'hover:bg-slate-50'
                                 }`}
                         >
                             <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
@@ -357,7 +629,10 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
                             </div>
 
                             <div className="min-w-0 flex-1 text-start">
-                                <p className="truncate text-sm font-semibold text-slate-800">{job.jobTitle}</p>
+                                <p className="truncate text-sm font-semibold text-slate-800">
+                                    {job.jobTitle}
+                                </p>
+
                                 <p className="truncate text-xs text-slate-400">
                                     {job.companyName} • {job.city}
                                 </p>
@@ -368,14 +643,24 @@ const JobsSearchBar = ({ className, showPopularTags = true }: JobsSearchBarProps
                     {/* FOOTER */}
                     <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50 px-5 py-3 text-xs text-slate-400">
                         <div className="flex items-center gap-2">
-                            <span className="rounded border bg-white px-1.5 py-0.5">↑↓</span>
+                            <span className="rounded border bg-white px-1.5 py-0.5">
+                                ↑↓
+                            </span>
+
                             navigate
-                            <span className="ml-2 rounded border bg-white px-1.5 py-0.5">↵</span>
+
+                            <span className="ml-2 rounded border bg-white px-1.5 py-0.5">
+                                ↵
+                            </span>
+
                             select
                         </div>
 
                         <span>
-                            {suggestions.length} result{suggestions.length > 1 ? 's' : ''}
+                            {suggestions.length}{' '}
+                            {suggestions.length === 1
+                                ? 'result'
+                                : 'results'}
                         </span>
                     </div>
                 </div>

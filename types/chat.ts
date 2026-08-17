@@ -20,7 +20,7 @@ export type ChatWithUsers = Prisma.ChatsGetPayload<{
 
 interface Sender {
   id: number;
-  userImage: string | null;
+  profileImage: string | null;
 }
 
 export interface ChatMessage {
@@ -49,7 +49,7 @@ export interface ConversationData {
 export interface ChatUserSummary {
   id: number;
   username: string;
-  userImage: string | null;
+  profileImage: string | null;
   profession?: string | null;
   role?: Role | null;
   isPro?: boolean;

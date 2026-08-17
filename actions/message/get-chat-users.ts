@@ -28,7 +28,7 @@ export const getChatUsers = async (
                     select: {
                         id: true,
                         username: true,
-                        userImage: true,
+                        profileImage: true,
                     },
                 },
 
@@ -36,7 +36,7 @@ export const getChatUsers = async (
                     select: {
                         id: true,
                         username: true,
-                        userImage: true,
+                        profileImage: true,
                     },
                 },
             },
@@ -54,7 +54,7 @@ export const getChatUsers = async (
             return {
                 id: chatUser.id,
                 username: chatUser.username,
-                userImage: chatUser.userImage,
+                profileImage: chatUser.profileImage,
                 lastMessage: chat.lastMessage,
                 isSeen: chat.isSeen,
                 createdAt: chat.createdAt,

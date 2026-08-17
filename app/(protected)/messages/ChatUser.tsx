@@ -3,7 +3,7 @@
 import { MoreHorizontal, Circle } from "lucide-react";
 import Image from "next/image";
 
-interface ChatUserType { id: number; username?: string; userImage?: string | null; }
+interface ChatUserType { id: number; username?: string; profileImage?: string | null; }
 interface ChatUserProps { chatUser?: ChatUserType | null; isChatuser?: boolean; }
 
 export const ChatUser = ({ chatUser, isChatuser }: ChatUserProps) => {
@@ -14,7 +14,7 @@ export const ChatUser = ({ chatUser, isChatuser }: ChatUserProps) => {
                 <div className="relative">
                     <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 bg-slate-100">
                         <Image
-                            src={chatUser.userImage || '/noProfile.webp'}
+                            src={chatUser.profileImage || '/noProfile.webp'}
                             alt={chatUser.username || "User"}
                             width={40} height={40}
                             className="w-full h-full object-cover"

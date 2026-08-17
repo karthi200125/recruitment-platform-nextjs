@@ -14,6 +14,7 @@ import { ExistingFile } from "./ExistingFileCard";
 import { useSession } from "next-auth/react";
 
 interface UploadModalProps {
+    isCurrentUser?: any;
     modalId: string;
     type: UploadType;
 
@@ -53,6 +54,7 @@ const UploadModal = ({
     onRemove,
     onReplace,
     onDelete,
+    isCurrentUser
 }: UploadModalProps) => {
     const router = useRouter();
 
