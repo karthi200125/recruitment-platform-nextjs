@@ -1,10 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useParams } from "next/navigation";
 import { useTransition } from "react";
 import { useDispatch } from "react-redux";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { deleteProject } from "@/actions/user/delete-project";
 import Button from "@/components/Button";
@@ -16,13 +14,16 @@ import { Project } from "@/types";
 import noImage from "@/public/noImage.webp";
 
 interface DeleteProjectFormProps {
-    project: Project;
+    project: any;
+    userId: number | undefined;
 }
 
 interface DeleteProjectResponse {
     success?: string;
     error?: string;
 }
+
+const DELETE_MODAL_ID = "deleteProjectModal";
 
 const DeleteProjectForm = ({
     project,
@@ -31,18 +32,16 @@ const DeleteProjectForm = ({
         useTransition();
 
     const dispatch = useDispatch();
-
-    const queryClient =
-        useQueryClient();
-
-    const { showSuccessToast, showErrorToast } =
-        useCustomToast();
-
-    const params = useParams();
-
-    const userId = Number(params.userId);
+    const {
+        showSuccessToast,
+        showErrorToast,
+    } = useCustomToast();
 
     const handleDelete = () => {
+        if (isLoading) {
+            return;
+        }
+
         startTransition(async () => {
             try {
                 const result: DeleteProjectResponse =
@@ -53,20 +52,13 @@ const DeleteProjectForm = ({
                         result.success
                     );
 
-                    await Promise.all([
-                        queryClient.invalidateQueries({
-                            queryKey: [
-                                "getUserProjects",
-                                userId,
-                            ],
-                        }),
-                        queryClient.invalidateQueries({
-                            queryKey: [
-                                "getUser",
-                                userId,
-                            ],
-                        }),
-                    ]);
+                    dispatch(
+                        closeModal(
+                            DELETE_MODAL_ID
+                        )
+                    );
+
+                    return;
                 }
 
                 if (result.error) {
@@ -83,12 +75,6 @@ const DeleteProjectForm = ({
                 showErrorToast(
                     "Failed to delete project."
                 );
-            } finally {
-                dispatch(
-                    closeModal(
-                        "projectDeleteModal"
-                    )
-                );
             }
         });
     };
@@ -96,34 +82,42 @@ const DeleteProjectForm = ({
     return (
         <div className="w-full space-y-5">
             <div className="flex min-h-[100px] flex-row items-start gap-5">
-                <Image
-                    src={
-                        project.proImage ??
-                        noImage
-                    }
-                    alt={
-                        project.proName
-                    }
-                    width={50}
-                    height={50}
-                    className="h-full w-full flex-1 rounded-md bg-neutral-200 object-cover"
-                />
+                <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-md bg-neutral-200">
+                    <Image
+                        src={
+                            project.proImage ||
+                            noImage
+                        }
+                        alt={project.proName}
+                        fill
+                        sizes="128px"
+                        className="object-cover"
+                    />
+                </div>
 
-                <div className="flex-1 space-y-1">
+                <div className="min-w-0 flex-1 space-y-1">
                     <h4 className="font-bold capitalize">
                         {project.proName}
                     </h4>
 
                     {project.proLink && (
-                        <h6 className="break-all text-blue-500">
+                        <p className="break-all text-sm text-blue-500">
                             {project.proLink}
-                        </h6>
+                        </p>
                     )}
 
-                    <h6 className="line-clamp-2 text-[var(--lighttext)]">
-                        {project.proDesc}
-                    </h6>
+                    {project.proDesc && (
+                        <p className="line-clamp-3 text-sm text-neutral-500">
+                            {project.proDesc}
+                        </p>
+                    )}
                 </div>
+            </div>
+
+            <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3">
+                <p className="text-sm text-red-700">
+                    This action cannot be undone.
+                </p>
             </div>
 
             <Button

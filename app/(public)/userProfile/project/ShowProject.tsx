@@ -5,17 +5,11 @@ import { ExternalLink, Pencil, Trash2 } from "lucide-react";
 import type { ProjectCardProject } from "./ProjectCard";
 
 interface ShowProjectProps {
-    project: ProjectCardProject;
-    isCurrentUser?: boolean;
-    onEdit?: () => void;
-    onDelete?: () => void;
+    project: ProjectCardProject;    
 }
 
 export default function ShowProject({
-    project,
-    isCurrentUser = false,
-    onEdit,
-    onDelete,
+    project,    
 }: ShowProjectProps) {
     return (
         <div className="space-y-5">
@@ -59,32 +53,7 @@ export default function ShowProject({
                 >
                     <ExternalLink className="h-4 w-4" />
                     Visit Project
-                </a>
-
-                {isCurrentUser && (
-                    <div className="flex items-center gap-2 ml-auto">
-                        {onEdit && (
-                            <button
-                                type="button"
-                                onClick={onEdit}
-                                className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
-                            >
-                                <Pencil className="h-3.5 w-3.5" />
-                                Edit
-                            </button>
-                        )}
-                        {onDelete && (
-                            <button
-                                type="button"
-                                onClick={onDelete}
-                                className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
-                            >
-                                <Trash2 className="h-3.5 w-3.5" />
-                                Delete
-                            </button>
-                        )}
-                    </div>
-                )}
+                </a>                
             </div>
         </div>
     );

@@ -76,6 +76,44 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
             }
             : undefined;
 
+    const avatarContent = (
+        <div className={`relative flex-shrink-0 ${isCurrentUser ? "group cursor-pointer" : ""}`}>
+            <div
+                className={`relative w-20 h-20 sm:w-28 sm:h-28 overflow-hidden border-4 border-white bg-slate-100 shadow-md ${isOrganization ? "rounded-2xl" : "rounded-full"
+                    }`}
+            >
+                <Image
+                    src={
+                        isOrganization
+                            ? company?.companyImage || noProfile
+                            : profileUser?.profileImage || noProfile
+                    }
+                    alt={displayName ?? "Profile"}
+                    fill
+                    className="object-cover"
+                />
+
+                {isCurrentUser && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                        <Camera
+                            className="h-5 w-5 text-white"
+                            strokeWidth={1.75}
+                        />
+                    </div>
+                )}
+            </div>
+
+            {profileUser?.isPro && (
+                <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-amber-400 shadow-sm">
+                    <Crown
+                        className="h-3 w-3 text-white"
+                        strokeWidth={2.5}
+                    />
+                </div>
+            )}
+        </div>
+    );
+
     if (isLoading) {
         return <UserInfoSkeleton />;
     }
@@ -124,49 +162,17 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                 <div className="flex items-end justify-between gap-3 -mt-10 sm:-mt-14 mb-4">
 
                     {/* Avatar */}
-                    <UploadModal
-                        modalId="profile-image-upload"
-                        type={isOrganization ? "company-logo" : "profile-image"}
-                        existingFile={CompanyImageExistingFile}
-                    >
-                        <div className="relative group cursor-pointer flex-shrink-0">
-                            <div
-                                className={`relative w-20 h-20 sm:w-28 sm:h-28 overflow-hidden border-4 border-white bg-slate-100 shadow-md ${isOrganization
-                                    ? "rounded-2xl"
-                                    : "rounded-full"
-                                    }`}
-                            >
-                                <Image
-                                    src={
-                                        isOrganization
-                                            ? company?.companyImage || noProfile
-                                            : profileUser?.profileImage || noProfile
-                                    }
-                                    alt={displayName ?? "Profile"}
-                                    fill
-                                    className="object-cover"
-                                />
-
-                                {isCurrentUser && (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                                        <Camera
-                                            className="h-5 w-5 text-white"
-                                            strokeWidth={1.75}
-                                        />
-                                    </div>
-                                )}
-                            </div>
-
-                            {profileUser?.isPro && (
-                                <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-amber-400 shadow-sm">
-                                    <Crown
-                                        className="h-3 w-3 text-white"
-                                        strokeWidth={2.5}
-                                    />
-                                </div>
-                            )}
-                        </div>
-                    </UploadModal>
+                    {isCurrentUser ? (
+                        <UploadModal
+                            modalId="profile-image-upload"
+                            type={isOrganization ? "company-logo" : "profile-image"}
+                            existingFile={CompanyImageExistingFile}
+                        >
+                            {avatarContent}
+                        </UploadModal>
+                    ) : (
+                        avatarContent
+                    )}
 
                     {/* Action buttons */}
                     <div className="flex items-center gap-2 pb-1">
