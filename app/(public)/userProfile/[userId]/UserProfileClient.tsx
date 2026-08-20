@@ -68,47 +68,13 @@ const UserProfileClient = ({
 
         initialData: initialProfile,
 
-        staleTime:
-            1000 * 60 * 5,
+        staleTime: 1000 * 60 * 5,
 
         refetchOnMount: false,
 
         refetchOnWindowFocus: false,
     });
-
-    /*
-     * Invalid profile ID.
-     */
-    if (userId === null) {
-        return (
-            <div className="flex min-h-[60vh] items-center justify-center">
-                <p className="text-sm text-slate-500">
-                    Invalid profile ID.
-                </p>
-            </div>
-        );
-    }
-
-    if (!profileData) {
-        return null;
-    }
-
-    const isOrganization =
-        isOrganizationProfile(
-            profileData
-        );
-
-    const isCandidateRecruiter =
-        isCandidateRecruiterProfile(
-            profileData
-        );
-
-    const company =
-        profileData.company ?? null;
-
-    /*
-     * Track profile view.
-     */
+    
     useEffect(() => {
         if (
             !loggedInUser?.id ||
@@ -116,13 +82,13 @@ const UserProfileClient = ({
         ) {
             return;
         }
-
+        
         if (
             loggedInUser.id === userId
         ) {
             return;
         }
-
+    
         if (hasTrackedView.current) {
             return;
         }
@@ -142,6 +108,33 @@ const UserProfileClient = ({
         loggedInUser?.id,
         userId,
     ]);
+    
+    if (userId === null) {
+        return (
+            <div className="flex min-h-[60vh] items-center justify-center">
+                <p className="text-sm text-slate-500">
+                    Invalid profile ID.
+                </p>
+            </div>
+        );
+    }
+    
+    if (!profileData) {
+        return null;
+    }
+
+    const isOrganization =
+        isOrganizationProfile(
+            profileData
+        );
+
+    const isCandidateRecruiter =
+        isCandidateRecruiterProfile(
+            profileData
+        );
+
+    const company =
+        profileData.company ?? null;
 
     return (
         <main className="flex min-h-screen w-full flex-col gap-5 py-6 md:flex-row">

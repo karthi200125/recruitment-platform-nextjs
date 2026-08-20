@@ -242,7 +242,7 @@ const JobRecruiter = ({
                             id: recruiter.id,
                             username:
                                 recruiter.username,
-                            userImage:
+                            profileImage:
                                 recruiter.profileImage,
                             profession:
                                 recruiter.profession,

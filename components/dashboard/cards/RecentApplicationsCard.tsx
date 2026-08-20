@@ -191,7 +191,7 @@ export default function RecentApplicationsCard({
                                             {/* Action — replaced the no-op MoreVertical with a real link */}
                                             <td className="px-6 py-4 text-right">
                                                 <Link
-                                                    href={`/jobs/${job.id}`}
+                                                    href={`/dashboard/jobStatus`}
                                                     className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 transition-colors hover:text-blue-700"
                                                     aria-label={`View ${job.jobTitle} job posting`}
                                                 >
@@ -221,7 +221,7 @@ export default function RecentApplicationsCard({
                             return (
                                 <Link
                                     key={application.id}
-                                    href={`/jobs/${job.id}`}
+                                    href={`/dashboard/jobStatus`}
                                     className="flex items-start gap-3 rounded-xl border border-slate-100 p-4 transition-colors hover:bg-slate-50/60"
                                     aria-label={`${job.jobTitle} at ${company.companyName}`}
                                 >

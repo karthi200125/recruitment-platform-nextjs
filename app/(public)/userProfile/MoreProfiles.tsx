@@ -108,7 +108,7 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                         chatUser={{
                             id: moreUser.id,
                             username: moreUser.displayName,
-                            userImage: moreUser.image,
+                            profileImage: moreUser.image,
                         }}
                     />
                 }
