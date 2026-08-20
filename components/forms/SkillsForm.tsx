@@ -23,6 +23,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCustomToast } from "@/lib/CustomToast";
 
 import { closeModal } from "@/store/ModalSlice";
+import { useRouter } from "next/navigation";
 
 interface SkillsFormProps {
     skillsData?: string[];
@@ -33,8 +34,8 @@ const SKILLS_MODAL_ID = "userSkillsModal";
 export function SkillsForm({
     skillsData = [],
 }: SkillsFormProps) {
-    const dispatch = useDispatch();
-    const queryClient = useQueryClient();
+    const dispatch = useDispatch();    
+    const router = useRouter()
 
     const { user } = useCurrentUser();
 
@@ -240,14 +241,7 @@ export function SkillsForm({
                      * your profile is loaded through
                      * this query key.
                      */
-                    await queryClient.invalidateQueries(
-                        {
-                            queryKey: [
-                                "getuser",
-                                user.id,
-                            ],
-                        }
-                    );
+                    router.refresh();                    
 
                     showSuccessToast(
                         result.success

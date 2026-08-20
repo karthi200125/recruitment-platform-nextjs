@@ -2,7 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useRef } from "react";
+import {
+    useEffect,
+    useMemo,
+    useRef,
+} from "react";
 
 import { updateProfileViews } from "@/actions/user/update-profile-views";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -13,9 +17,13 @@ import Experiences from "../Experiences";
 import MoreProfiles from "../MoreProfiles";
 import Projects from "../project/Projects";
 import UserInfo from "../UserInfo";
+import CompanySlides from "../CompanySlides/CompanySlides";
 
-
-import { ProfileUser } from "@/types/userProfile";
+import {
+    ProfileUser,
+    isCandidateRecruiterProfile,
+    isOrganizationProfile,
+} from "@/types/userProfile";
 
 interface UserProfileClientProps {
     initialProfile: ProfileUser;
@@ -24,15 +32,23 @@ interface UserProfileClientProps {
 const UserProfileClient = ({
     initialProfile,
 }: UserProfileClientProps) => {
-    const session = useCurrentUser();
-    const loggedInUser = session?.user;
+    const {
+        user: loggedInUser,
+    } = useCurrentUser();
 
     const params = useParams();
+
     const rawUserId = params?.userId;
 
     const userId = useMemo(() => {
-        if (typeof rawUserId !== "string") return null;
-        if (!/^\d+$/.test(rawUserId)) return null;
+        if (typeof rawUserId !== "string") {
+            return null;
+        }
+
+        if (!/^\d+$/.test(rawUserId)) {
+            return null;
+        }
+
         return Number(rawUserId);
     }, [rawUserId]);
 
@@ -42,83 +58,164 @@ const UserProfileClient = ({
         data: profileData,
         isPending,
     } = useQuery<ProfileUser>({
-        queryKey: ["getUserProfile", userId],
+        queryKey: [
+            "getUserProfile",
+            userId,
+        ],
 
-        queryFn: async () => initialProfile,
+        queryFn: async () =>
+            initialProfile,
 
         initialData: initialProfile,
 
-        staleTime: 1000 * 60 * 5,
+        staleTime:
+            1000 * 60 * 5,
 
         refetchOnMount: false,
 
         refetchOnWindowFocus: false,
     });
 
-    const company = profileData?.company ?? null;
-    const isOrg = profileData?.role === "ORGANIZATION";
+    /*
+     * Invalid profile ID.
+     */
+    if (userId === null) {
+        return (
+            <div className="flex min-h-[60vh] items-center justify-center">
+                <p className="text-sm text-slate-500">
+                    Invalid profile ID.
+                </p>
+            </div>
+        );
+    }
 
+    if (!profileData) {
+        return null;
+    }
+
+    const isOrganization =
+        isOrganizationProfile(
+            profileData
+        );
+
+    const isCandidateRecruiter =
+        isCandidateRecruiterProfile(
+            profileData
+        );
+
+    const company =
+        profileData.company ?? null;
+
+    /*
+     * Track profile view.
+     */
     useEffect(() => {
-        if (!loggedInUser?.id || userId === null) return;
-        if (loggedInUser.id === userId) return;
-        if (hasTrackedView.current) return;
+        if (
+            !loggedInUser?.id ||
+            userId === null
+        ) {
+            return;
+        }
+
+        if (
+            loggedInUser.id === userId
+        ) {
+            return;
+        }
+
+        if (hasTrackedView.current) {
+            return;
+        }
 
         hasTrackedView.current = true;
 
-        updateProfileViews(loggedInUser.id, userId).catch((err) => {
-            console.error("[UserProfile] Failed to update profile views:", err);
+        updateProfileViews(
+            loggedInUser.id,
+            userId
+        ).catch((error) => {
+            console.error(
+                "[UserProfile] Failed to update profile views:",
+                error
+            );
         });
-    }, [loggedInUser?.id, userId]);
-
-    if (userId === null) {
-        return <div>Invalid Profile ID</div>;
-    }
-
+    }, [
+        loggedInUser?.id,
+        userId,
+    ]);
 
     return (
-        <main className="min-h-screen w-full flex gap-5 py-5">
-            <div className="w-full md:w-[70%] space-y-5">
+        <main className="flex min-h-screen w-full flex-col gap-5 py-6 md:flex-row">
+            {/* Main column */}
+            <div className="w-full space-y-5 md:w-[70%]">
                 <UserInfo
                     profileUser={profileData}
                     isLoading={isPending}
                     company={company}
-                    isOrg={isOrg}
+                    isOrg={isOrganization}
                 />
 
                 <AboutMe
                     profileUser={profileData}
                     isLoading={isPending}
                     company={company}
-                    isOrg={isOrg}
+                    isOrg={isOrganization}
                 />
 
-                {!isOrg && profileData && (
+                {/* Candidate / Recruiter */}
+                {isCandidateRecruiter && (
                     <>
                         <Education
-                            educations={profileData?.educations}
-                            profileUserId={profileData?.id}
+                            educations={
+                                profileData.educations
+                            }
+                            profileUserId={
+                                profileData.id
+                            }
                             isLoading={isPending}
                         />
+
                         <Projects
-                            projects={profileData?.projects}
-                            profileUserId={profileData?.id}
+                            projects={
+                                profileData.projects
+                            }
+                            profileUserId={
+                                profileData.id
+                            }
                             isLoading={isPending}
                         />
+
                         <Experiences
-                            experiences={profileData?.experiences}
-                            profileUserId={profileData?.id}
+                            experiences={
+                                profileData.experiences
+                            }
+                            profileUserId={
+                                profileData.id
+                            }
                             isLoading={isPending}
                         />
                     </>
                 )}
 
-                {/* {isOrg && profileData && (
-          <CompanySlides company={company} profileUser={profileData} />
-        )} */}
+                {/* Organization */}
+                {isOrganization && (
+                    <CompanySlides
+                        company={
+                            profileData.company
+                        }
+                        profileUser={
+                            profileData
+                        }
+                    />
+                )}
             </div>
 
-            <aside className="hidden md:block md:w-[30%] sticky top-10">
-                <MoreProfiles profileUser={profileData} />
+            {/* Sidebar */}
+            <aside className="sticky top-10 hidden max-h-max w-[30%] self-start space-y-5 overflow-y-auto md:block">
+                <MoreProfiles
+                    profileUser={
+                        profileData
+                    }
+                />
             </aside>
         </main>
     );

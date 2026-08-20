@@ -121,6 +121,7 @@ const DeleteProjectForm = ({
             </div>
 
             <Button
+            type='submit'
                 className="w-full"
                 isLoading={isLoading}
                 onClick={handleDelete}

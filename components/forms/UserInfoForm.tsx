@@ -20,10 +20,10 @@ import { closeModal } from "@/store/ModalSlice";
 
 import UserAbout from "./UserAbout";
 
-import type { UserProfile } from "@/types";
+import { ProfileUser } from "@/types/userProfile";
 
 interface Props {
-    profileUser?: UserProfile | null;
+    profileUser: any;
 }
 
 export function UserInfoForm({
@@ -32,7 +32,7 @@ export function UserInfoForm({
     const router = useRouter();
     const dispatch = useDispatch();
 
-    const [isPending, startTransition] =useTransition();
+    const [isPending, startTransition] = useTransition();
     const [err, setErr] = useState("");
     const { showSuccessToast } = useCustomToast();
 
@@ -157,7 +157,7 @@ export function UserInfoForm({
                         name="email"
                         label="Email"
                         type="email"
-                        form={form}                                                
+                        form={form}
                     />
 
                     <CustomFormField

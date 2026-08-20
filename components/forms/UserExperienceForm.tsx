@@ -14,8 +14,7 @@ import { useCustomToast } from "@/lib/CustomToast";
 import { UserExperienceSchema } from "@/lib/SchemaTypes";
 import { closeModal } from "@/store/ModalSlice";
 import { Experience } from "@/types";
-import { useQueryClient } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useDispatch } from "react-redux";
 
@@ -29,9 +28,9 @@ export function UserExperienceForm({ experience, edit }: ExperienceProps) {
     const { user } = useCurrentUser()
     const [isLoading, startTransition] = useTransition();
     const [err, setErr] = useState("")
+    const router = useRouter()
 
     const { showErrorToast, showSuccessToast } = useCustomToast()
-    const queryClient = useQueryClient();
     const dispatch = useDispatch()
 
     const { userId } = useParams()
@@ -62,8 +61,8 @@ export function UserExperienceForm({ experience, edit }: ExperienceProps) {
             userExperienceAction(values, userId, isEdit, expId)
                 .then((data: any) => {
                     if (data.success) {
+                        router.refresh()
                         showSuccessToast(data?.success)
-                        queryClient.invalidateQueries({ queryKey: ['getuserExperience', id] })
                         dispatch(closeModal(isEdit ? 'userEditExpModal' : 'userExpModal'))
                     }
                     if (data.error) {
@@ -120,7 +119,7 @@ export function UserExperienceForm({ experience, edit }: ExperienceProps) {
                 />
 
                 <FormError message={err} />
-                <Button isLoading={isLoading} className="!w-full" >Add Experience</Button>
+                <Button type='submit' isLoading={isLoading} className="!w-full" >Add Experience</Button>
             </form>
         </Form>
     );

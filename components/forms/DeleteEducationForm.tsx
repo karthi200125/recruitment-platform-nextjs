@@ -1,10 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useDispatch } from "react-redux";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { deleteEducation } from "@/actions/user/delete-education";
 import Button from "@/components/Button";
@@ -26,9 +25,9 @@ interface DeleteEducationResponse {
 const DeleteEducationForm = ({
     edu,
 }: DeleteEducationFormProps) => {
+    const router = useRouter()
     const [isLoading, startTransition] = useTransition();
-    const dispatch = useDispatch();
-    const queryClient = useQueryClient();
+    const dispatch = useDispatch();    
     const { showSuccessToast, showErrorToast } = useCustomToast();
     const params = useParams();
     const userId = Number(params.userId);
@@ -42,18 +41,10 @@ const DeleteEducationForm = ({
                     );
 
                 if (result.success) {
+                    router.refresh()
                     showSuccessToast(
                         result.success
-                    );
-
-                    await queryClient.invalidateQueries(
-                        {
-                            queryKey: [
-                                "getuserEducation",
-                                userId,
-                            ],
-                        }
-                    );
+                    );                    
                 }
 
                 if (result.error) {

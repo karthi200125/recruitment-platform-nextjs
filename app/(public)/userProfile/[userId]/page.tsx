@@ -3,111 +3,57 @@ import { notFound } from "next/navigation";
 
 import { getUserProfileUserById } from "@/actions/user/getuser/getUserProfileUserById";
 import { siteConfig } from "@/config";
-
 import UserProfileClient from "./UserProfileClient";
 
-interface UserProfilePageProps {
-  params: {
-    userId: string;
-  };
+interface Props {
+  params: { userId: string };
 }
 
-export async function generateMetadata({
-  params,
-}: UserProfilePageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const userId = Number(params.userId);
-
-  if (Number.isNaN(userId)) {
-    return {
-      title: "Profile Not Found",
-      robots: {
-        index: false,
-        follow: false,
-      },
-    };
-  }
+  if (Number.isNaN(userId)) return { title: "Profile Not Found", robots: { index: false, follow: false } };
 
   const result = await getUserProfileUserById(userId);
-
-  if (!result.success || !result.data) {
-    return {
-      title: "Profile Not Found",
-      robots: {
-        index: false,
-        follow: false,
-      },
-    };
-  }
+  if (!result.success || !result.data) return { title: "Profile Not Found", robots: { index: false, follow: false } };
 
   const profile = result.data;
+  const isOrg = profile.role === "ORGANIZATION";
 
-  const isOrganization = profile.role === "ORGANIZATION";
-
-  const title = isOrganization
+  const title = isOrg
     ? `${profile.company?.companyName ?? profile.username} | Company Profile`
-    : `${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim() ||
-    profile.username;
+    : `${`${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim() || profile.username}`;
 
-  const description = isOrganization
-    ? profile.company?.companyBio ??
-    "Explore company information, hiring details, and open opportunities on Jobify."
-    : profile.userBio ??
-    "View professional profile, experience, education, projects, and skills on Jobify.";
+  const description = isOrg
+    ? profile.company?.companyBio ?? "Explore company information, hiring details, and open opportunities on Jobify."
+    : profile.userBio ?? "View professional profile, experience, education, projects, and skills on Jobify.";
+
+  const ogImage = profile.profileImage ?? siteConfig.ogImage;
+  const canonical = `/userProfile/${profile.id}`;
 
   return {
     title,
-
     description,
-
-    alternates: {
-      canonical: `/userProfile/${profile.id}`,
-    },
-
+    alternates: { canonical },
     openGraph: {
       title: `${title} | ${siteConfig.name}`,
       description,
-      url: `/userProfile/${profile.id}`,
-      images: [
-        {
-          url:
-            profile.profileImage ??
-            siteConfig.ogImage,
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-      ],
+      url: canonical,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
     },
-
     twitter: {
       title: `${title} | ${siteConfig.name}`,
       description,
-      images: [
-        profile.profileImage ??
-        siteConfig.twitterImage,
-      ],
+      images: [profile.profileImage ?? siteConfig.twitterImage],
     },
   };
 }
 
-export default async function UserProfilePage({
-  params,
-}: UserProfilePageProps) {
+export default async function UserProfilePage({ params }: Props) {
   const userId = Number(params.userId);
-
-  if (Number.isNaN(userId)) {
-    notFound();
-  }
+  if (Number.isNaN(userId)) notFound();
 
   const result = await getUserProfileUserById(userId);
+  if (!result.success || !result.data) notFound();
 
-  if (!result.success || !result.data) {
-    notFound();
-  }
-
-  return (
-    <UserProfileClient
-      initialProfile={result.data}
-    />
-  );
+  return <UserProfileClient initialProfile={result.data} />;
 }

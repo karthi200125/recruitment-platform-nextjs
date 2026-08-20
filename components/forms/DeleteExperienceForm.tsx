@@ -1,10 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useDispatch } from "react-redux";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { deleteExperience } from "@/actions/user/delete-experience";
 import Button from "@/components/Button";
@@ -30,15 +29,12 @@ const DeleteExperienceForm = ({
         useTransition();
 
     const dispatch = useDispatch();
-
-    const queryClient =
-        useQueryClient();
+    const router = useRouter()    
 
     const { showSuccessToast, showErrorToast } =
         useCustomToast();
 
-    const params =
-        useParams();
+    const params = useParams();
 
     const userId = Number(params.userId);
 
@@ -51,18 +47,10 @@ const DeleteExperienceForm = ({
                     );
 
                 if (result.success) {
+                    router.refresh()
                     showSuccessToast(
                         result.success
-                    );
-
-                    await queryClient.invalidateQueries(
-                        {
-                            queryKey: [
-                                "getuserExperience",
-                                userId,
-                            ],
-                        }
-                    );
+                    );                    
                 }
 
                 if (result.error) {

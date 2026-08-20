@@ -18,11 +18,12 @@ import { Camera, Crown, Globe, Lock, MapPin, MessageSquare, Pencil, Users } from
 
 import UploadModal from "@/components/upload/UploadModal";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { Company, UserProfile } from "@/types";
+import { Company } from "@/types";
+import { ProfileUser } from "@/types/userProfile";
 import noProfile from "../../../public/noProfile.webp";
 
 interface ProfileUserProps {
-    profileUser?: UserProfile | null;
+    profileUser?: ProfileUser | null;
     isLoading?: boolean;
     isOrg?: boolean;
     company?: Company | null;
