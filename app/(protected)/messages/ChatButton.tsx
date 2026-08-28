@@ -207,7 +207,7 @@ export const ChatButton = ({
                 </div>
 
                 <Link
-                    href="/subscription"
+                    href="/subscriptions"
                     className="text-xs font-semibold text-amber-700 underline underline-offset-4 hover:text-amber-800"
                 >
                     Upgrade

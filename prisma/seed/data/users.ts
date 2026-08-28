@@ -23,13 +23,17 @@ interface SeedUser {
     skills: string[];
 }
 
-const PASSWORD = "Jobify@123";
 
-/*
-|--------------------------------------------------------------------------
-| Candidate data
-|--------------------------------------------------------------------------
-*/
+const PASSWORD = "karthi123";
+
+const FIRST_USER_EMAIL =
+    "skarthiukeyan25052001@gmail.com";
+
+const TOTAL_USERS = 100;
+const TOTAL_CANDIDATES = 70;
+const TOTAL_RECRUITERS = 20;
+const TOTAL_ORGANIZATIONS = 10;
+
 
 const CANDIDATES: SeedUser[] = [
     {
@@ -42,7 +46,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "560001",
         address: "Indiranagar",
-        skills: ["React", "Node.js", "TypeScript", "PostgreSQL"],
+        skills: [
+            "React",
+            "Node.js",
+            "TypeScript",
+            "PostgreSQL",
+        ],
     },
     {
         firstName: "Ananya",
@@ -54,7 +63,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "600001",
         address: "Anna Nagar",
-        skills: ["React", "Next.js", "TypeScript", "Tailwind CSS"],
+        skills: [
+            "React",
+            "Next.js",
+            "TypeScript",
+            "Tailwind CSS",
+        ],
     },
     {
         firstName: "Arjun",
@@ -66,7 +80,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "500001",
         address: "Hitech City",
-        skills: ["Java", "Spring Boot", "PostgreSQL", "Redis"],
+        skills: [
+            "Java",
+            "Spring Boot",
+            "PostgreSQL",
+            "Redis",
+        ],
     },
     {
         firstName: "Diya",
@@ -78,7 +97,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "682001",
         address: "Kakkanad",
-        skills: ["Figma", "UI Design", "UX Research", "Prototyping"],
+        skills: [
+            "Figma",
+            "UI Design",
+            "UX Research",
+            "Prototyping",
+        ],
     },
     {
         firstName: "Vikram",
@@ -90,7 +114,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "411001",
         address: "Kothrud",
-        skills: ["Java", "Spring Boot", "AWS", "Docker"],
+        skills: [
+            "Java",
+            "Spring Boot",
+            "AWS",
+            "Docker",
+        ],
     },
     {
         firstName: "Meera",
@@ -102,7 +131,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "560034",
         address: "Koramangala",
-        skills: ["Python", "SQL", "Power BI", "Excel"],
+        skills: [
+            "Python",
+            "SQL",
+            "Power BI",
+            "Excel",
+        ],
     },
     {
         firstName: "Rohan",
@@ -114,7 +148,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "400001",
         address: "Andheri",
-        skills: ["AWS", "Docker", "Kubernetes", "Terraform"],
+        skills: [
+            "AWS",
+            "Docker",
+            "Kubernetes",
+            "Terraform",
+        ],
     },
     {
         firstName: "Ishita",
@@ -126,7 +165,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "110001",
         address: "Saket",
-        skills: ["Figma", "Design Systems", "UX", "Prototyping"],
+        skills: [
+            "Figma",
+            "Design Systems",
+            "UX",
+            "Prototyping",
+        ],
     },
     {
         firstName: "Karthik",
@@ -138,7 +182,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "560038",
         address: "Ulsoor",
-        skills: ["React Native", "Flutter", "Firebase", "TypeScript"],
+        skills: [
+            "React Native",
+            "Flutter",
+            "Firebase",
+            "TypeScript",
+        ],
     },
     {
         firstName: "Priya",
@@ -150,7 +199,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "600040",
         address: "Velachery",
-        skills: ["Selenium", "Playwright", "Java", "API Testing"],
+        skills: [
+            "Selenium",
+            "Playwright",
+            "Java",
+            "API Testing",
+        ],
     },
     {
         firstName: "Aditya",
@@ -162,7 +216,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "411038",
         address: "Baner",
-        skills: ["Python", "TensorFlow", "PyTorch", "Machine Learning"],
+        skills: [
+            "Python",
+            "TensorFlow",
+            "PyTorch",
+            "Machine Learning",
+        ],
     },
     {
         firstName: "Sneha",
@@ -174,7 +233,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "400053",
         address: "Powai",
-        skills: ["SQL", "Power BI", "Business Analysis", "Excel"],
+        skills: [
+            "SQL",
+            "Power BI",
+            "Business Analysis",
+            "Excel",
+        ],
     },
     {
         firstName: "Rahul",
@@ -186,7 +250,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "500081",
         address: "Madhapur",
-        skills: ["AWS", "Azure", "Terraform", "Docker"],
+        skills: [
+            "AWS",
+            "Azure",
+            "Terraform",
+            "Docker",
+        ],
     },
     {
         firstName: "Nisha",
@@ -198,7 +267,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "110017",
         address: "Hauz Khas",
-        skills: ["SEO", "Content Marketing", "Google Ads", "Analytics"],
+        skills: [
+            "SEO",
+            "Content Marketing",
+            "Google Ads",
+            "Analytics",
+        ],
     },
     {
         firstName: "Sanjay",
@@ -210,7 +284,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "641001",
         address: "RS Puram",
-        skills: ["Java", "Spring Boot", "MySQL", "REST API"],
+        skills: [
+            "Java",
+            "Spring Boot",
+            "MySQL",
+            "REST API",
+        ],
     },
     {
         firstName: "Aishwarya",
@@ -222,7 +301,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "560025",
         address: "Richmond Town",
-        skills: ["Content Strategy", "SEO", "Copywriting", "Analytics"],
+        skills: [
+            "Content Strategy",
+            "SEO",
+            "Copywriting",
+            "Analytics",
+        ],
     },
     {
         firstName: "Manish",
@@ -234,7 +318,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "122001",
         address: "Sector 44",
-        skills: ["Cybersecurity", "SIEM", "Network Security", "Linux"],
+        skills: [
+            "Cybersecurity",
+            "SIEM",
+            "Network Security",
+            "Linux",
+        ],
     },
     {
         firstName: "Pooja",
@@ -246,7 +335,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "380001",
         address: "Navrangpura",
-        skills: ["Recruitment", "HR", "Talent Acquisition", "Employee Relations"],
+        skills: [
+            "Recruitment",
+            "HR",
+            "Talent Acquisition",
+            "Employee Relations",
+        ],
     },
     {
         firstName: "Naveen",
@@ -258,7 +352,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "575001",
         address: "Kadri",
-        skills: ["React", "JavaScript", "Redux", "CSS"],
+        skills: [
+            "React",
+            "JavaScript",
+            "Redux",
+            "CSS",
+        ],
     },
     {
         firstName: "Divya",
@@ -270,7 +369,12 @@ const CANDIDATES: SeedUser[] = [
         country: "India",
         postalCode: "600018",
         address: "T Nagar",
-        skills: ["C#", ".NET", "SQL Server", "Azure"],
+        skills: [
+            "C#",
+            ".NET",
+            "SQL Server",
+            "Azure",
+        ],
     },
 ];
 
@@ -278,66 +382,62 @@ const CANDIDATES: SeedUser[] = [
 |--------------------------------------------------------------------------
 | Additional candidate names
 |--------------------------------------------------------------------------
-|
-| These are expanded automatically into realistic users using the
-| profession/location pools below.
-|
 */
 
 const MORE_CANDIDATE_NAMES: Array<
     [string, string, string]
 > = [
-    ["Harish", "Kumar", "Male"],
-    ["Neha", "Agarwal", "Female"],
-    ["Siddharth", "Jain", "Male"],
-    ["Kavya", "Nair", "Female"],
-    ["Akash", "Mishra", "Male"],
-    ["Riya", "Chopra", "Female"],
-    ["Varun", "Das", "Male"],
-    ["Swetha", "Rao", "Female"],
-    ["Abhishek", "Yadav", "Male"],
-    ["Keerthi", "Reddy", "Female"],
-    ["Mohit", "Malhotra", "Male"],
-    ["Sahana", "Shetty", "Female"],
-    ["Deepak", "Iyer", "Male"],
-    ["Tanvi", "Desai", "Female"],
-    ["Nikhil", "Thomas", "Male"],
-    ["Lakshmi", "Pillai", "Female"],
-    ["Ritesh", "Sharma", "Male"],
-    ["Pavithra", "Kumar", "Female"],
-    ["Gaurav", "Bansal", "Male"],
-    ["Shreya", "Gupta", "Female"],
-    ["Yash", "Patel", "Male"],
-    ["Harini", "Krishnan", "Female"],
-    ["Abhinav", "Rao", "Male"],
-    ["Swati", "Mehta", "Female"],
-    ["Tarun", "Reddy", "Male"],
-    ["Anjali", "Menon", "Female"],
-    ["Pranav", "Nair", "Male"],
-    ["Reshma", "Joseph", "Female"],
-    ["Suresh", "Babu", "Male"],
-    ["Madhuri", "Sharma", "Female"],
-    ["Rakesh", "Gupta", "Male"],
-    ["Shalini", "Rao", "Female"],
-    ["Aravind", "Mohan", "Male"],
-    ["Bhavana", "Iyer", "Female"],
-    ["Vivek", "Nair", "Male"],
-    ["Amritha", "Menon", "Female"],
-    ["Rajat", "Kapoor", "Male"],
-    ["Pallavi", "Shah", "Female"],
-    ["Lokesh", "Reddy", "Male"],
-    ["Shruti", "Joshi", "Female"],
-    ["Ajay", "Kumar", "Male"],
-    ["Anusha", "Raman", "Female"],
-    ["Ravi", "Shankar", "Male"],
-    ["Monika", "Verma", "Female"],
-    ["Ashwin", "Krishnan", "Male"],
-    ["Deepa", "Nair", "Female"],
-    ["Kiran", "Patel", "Male"],
-    ["Namrata", "Singh", "Female"],
-    ["Vishal", "Mehta", "Male"],
-    ["Pooja", "Raman", "Female"],
-];
+        ["Harish", "Kumar", "Male"],
+        ["Neha", "Agarwal", "Female"],
+        ["Siddharth", "Jain", "Male"],
+        ["Kavya", "Nair", "Female"],
+        ["Akash", "Mishra", "Male"],
+        ["Riya", "Chopra", "Female"],
+        ["Varun", "Das", "Male"],
+        ["Swetha", "Rao", "Female"],
+        ["Abhishek", "Yadav", "Male"],
+        ["Keerthi", "Reddy", "Female"],
+        ["Mohit", "Malhotra", "Male"],
+        ["Sahana", "Shetty", "Female"],
+        ["Deepak", "Iyer", "Male"],
+        ["Tanvi", "Desai", "Female"],
+        ["Nikhil", "Thomas", "Male"],
+        ["Lakshmi", "Pillai", "Female"],
+        ["Ritesh", "Sharma", "Male"],
+        ["Pavithra", "Kumar", "Female"],
+        ["Gaurav", "Bansal", "Male"],
+        ["Shreya", "Gupta", "Female"],
+        ["Yash", "Patel", "Male"],
+        ["Harini", "Krishnan", "Female"],
+        ["Abhinav", "Rao", "Male"],
+        ["Swati", "Mehta", "Female"],
+        ["Tarun", "Reddy", "Male"],
+        ["Anjali", "Menon", "Female"],
+        ["Pranav", "Nair", "Male"],
+        ["Reshma", "Joseph", "Female"],
+        ["Suresh", "Babu", "Male"],
+        ["Madhuri", "Sharma", "Female"],
+        ["Rakesh", "Gupta", "Male"],
+        ["Shalini", "Rao", "Female"],
+        ["Aravind", "Mohan", "Male"],
+        ["Bhavana", "Iyer", "Female"],
+        ["Vivek", "Nair", "Male"],
+        ["Amritha", "Menon", "Female"],
+        ["Rajat", "Kapoor", "Male"],
+        ["Pallavi", "Shah", "Female"],
+        ["Lokesh", "Reddy", "Male"],
+        ["Shruti", "Joshi", "Female"],
+        ["Ajay", "Kumar", "Male"],
+        ["Anusha", "Raman", "Female"],
+        ["Ravi", "Shankar", "Male"],
+        ["Monika", "Verma", "Female"],
+        ["Ashwin", "Krishnan", "Male"],
+        ["Deepa", "Nair", "Female"],
+        ["Kiran", "Patel", "Male"],
+        ["Namrata", "Singh", "Female"],
+        ["Vishal", "Mehta", "Male"],
+        ["Pooja", "Raman", "Female"],
+    ];
 
 /*
 |--------------------------------------------------------------------------
@@ -477,7 +577,11 @@ const RECRUITERS: SeedUser[] = [
         country: "India",
         postalCode: "560001",
         address: "Whitefield",
-        skills: ["Talent Acquisition", "Technical Recruiting", "Hiring"],
+        skills: [
+            "Talent Acquisition",
+            "Technical Recruiting",
+            "Hiring",
+        ],
     },
     {
         firstName: "Priyanka",
@@ -489,7 +593,11 @@ const RECRUITERS: SeedUser[] = [
         country: "India",
         postalCode: "400001",
         address: "Bandra",
-        skills: ["Recruitment", "Talent Acquisition", "HR"],
+        skills: [
+            "Recruitment",
+            "Talent Acquisition",
+            "HR",
+        ],
     },
     {
         firstName: "Arvind",
@@ -501,7 +609,11 @@ const RECRUITERS: SeedUser[] = [
         country: "India",
         postalCode: "600001",
         address: "OMR",
-        skills: ["Recruitment", "Hiring", "Employer Branding"],
+        skills: [
+            "Recruitment",
+            "Hiring",
+            "Employer Branding",
+        ],
     },
     {
         firstName: "Sneha",
@@ -513,7 +625,11 @@ const RECRUITERS: SeedUser[] = [
         country: "India",
         postalCode: "122001",
         address: "Golf Course Road",
-        skills: ["Recruitment", "Sourcing", "Interviewing"],
+        skills: [
+            "Recruitment",
+            "Sourcing",
+            "Interviewing",
+        ],
     },
     {
         firstName: "Vivek",
@@ -525,7 +641,11 @@ const RECRUITERS: SeedUser[] = [
         country: "India",
         postalCode: "500081",
         address: "Madhapur",
-        skills: ["Technical Recruiting", "Sourcing", "LinkedIn Recruiting"],
+        skills: [
+            "Technical Recruiting",
+            "Sourcing",
+            "LinkedIn Recruiting",
+        ],
     },
     {
         firstName: "Neha",
@@ -537,7 +657,11 @@ const RECRUITERS: SeedUser[] = [
         country: "India",
         postalCode: "411001",
         address: "Hinjewadi",
-        skills: ["HR", "Recruitment", "Employee Relations"],
+        skills: [
+            "HR",
+            "Recruitment",
+            "Employee Relations",
+        ],
     },
     {
         firstName: "Rohit",
@@ -549,7 +673,11 @@ const RECRUITERS: SeedUser[] = [
         country: "India",
         postalCode: "380001",
         address: "SG Highway",
-        skills: ["Talent Acquisition", "Recruitment", "Hiring"],
+        skills: [
+            "Talent Acquisition",
+            "Recruitment",
+            "Hiring",
+        ],
     },
     {
         firstName: "Kavitha",
@@ -561,7 +689,11 @@ const RECRUITERS: SeedUser[] = [
         country: "India",
         postalCode: "560034",
         address: "Koramangala",
-        skills: ["Recruitment", "Leadership", "Talent Management"],
+        skills: [
+            "Recruitment",
+            "Leadership",
+            "Talent Management",
+        ],
     },
     {
         firstName: "Sandeep",
@@ -573,7 +705,11 @@ const RECRUITERS: SeedUser[] = [
         country: "India",
         postalCode: "110001",
         address: "Connaught Place",
-        skills: ["Technical Hiring", "Recruitment", "Engineering"],
+        skills: [
+            "Technical Hiring",
+            "Recruitment",
+            "Engineering",
+        ],
     },
     {
         firstName: "Divya",
@@ -585,7 +721,11 @@ const RECRUITERS: SeedUser[] = [
         country: "India",
         postalCode: "682001",
         address: "Kakkanad",
-        skills: ["Recruitment", "Sourcing", "Talent Acquisition"],
+        skills: [
+            "Recruitment",
+            "Sourcing",
+            "Talent Acquisition",
+        ],
     },
 ];
 
@@ -598,17 +738,17 @@ const RECRUITERS: SeedUser[] = [
 const MORE_RECRUITER_NAMES: Array<
     [string, string, string]
 > = [
-    ["Amit", "Khanna", "Male"],
-    ["Shreya", "Reddy", "Female"],
-    ["Karan", "Malhotra", "Male"],
-    ["Nandini", "Rao", "Female"],
-    ["Manoj", "Kumar", "Male"],
-    ["Swathi", "Menon", "Female"],
-    ["Vikash", "Gupta", "Male"],
-    ["Ritika", "Sharma", "Female"],
-    ["Ashok", "Patel", "Male"],
-    ["Megha", "Joshi", "Female"],
-];
+        ["Amit", "Khanna", "Male"],
+        ["Shreya", "Reddy", "Female"],
+        ["Karan", "Malhotra", "Male"],
+        ["Nandini", "Rao", "Female"],
+        ["Manoj", "Kumar", "Male"],
+        ["Swathi", "Menon", "Female"],
+        ["Vikash", "Gupta", "Male"],
+        ["Ritika", "Sharma", "Female"],
+        ["Ashok", "Patel", "Male"],
+        ["Megha", "Joshi", "Female"],
+    ];
 
 /*
 |--------------------------------------------------------------------------
@@ -627,7 +767,11 @@ const ORGANIZATIONS: SeedUser[] = [
         country: "India",
         postalCode: "560001",
         address: "Whitefield",
-        skills: ["Leadership", "Strategy", "Hiring"],
+        skills: [
+            "Leadership",
+            "Strategy",
+            "Hiring",
+        ],
     },
     {
         firstName: "Kavita",
@@ -639,7 +783,11 @@ const ORGANIZATIONS: SeedUser[] = [
         country: "India",
         postalCode: "400001",
         address: "Bandra",
-        skills: ["Leadership", "HR", "Talent Management"],
+        skills: [
+            "Leadership",
+            "HR",
+            "Talent Management",
+        ],
     },
     {
         firstName: "Ramesh",
@@ -651,7 +799,11 @@ const ORGANIZATIONS: SeedUser[] = [
         country: "India",
         postalCode: "600001",
         address: "OMR",
-        skills: ["Business Strategy", "Leadership", "Hiring"],
+        skills: [
+            "Business Strategy",
+            "Leadership",
+            "Hiring",
+        ],
     },
     {
         firstName: "Anita",
@@ -663,7 +815,11 @@ const ORGANIZATIONS: SeedUser[] = [
         country: "India",
         postalCode: "122001",
         address: "Golf Course Road",
-        skills: ["People Operations", "HR", "Leadership"],
+        skills: [
+            "People Operations",
+            "HR",
+            "Leadership",
+        ],
     },
     {
         firstName: "Vijay",
@@ -675,7 +831,11 @@ const ORGANIZATIONS: SeedUser[] = [
         country: "India",
         postalCode: "500081",
         address: "Hitech City",
-        skills: ["Entrepreneurship", "Strategy", "Leadership"],
+        skills: [
+            "Entrepreneurship",
+            "Strategy",
+            "Leadership",
+        ],
     },
 ];
 
@@ -688,12 +848,12 @@ const ORGANIZATIONS: SeedUser[] = [
 const MORE_ORGANIZATION_NAMES: Array<
     [string, string, string]
 > = [
-    ["Suresh", "Mehta", "Male"],
-    ["Padmini", "Rao", "Female"],
-    ["Nitin", "Shah", "Male"],
-    ["Sweta", "Patel", "Female"],
-    ["Akhil", "Menon", "Male"],
-];
+        ["Suresh", "Mehta", "Male"],
+        ["Padmini", "Rao", "Female"],
+        ["Nitin", "Shah", "Male"],
+        ["Sweta", "Patel", "Female"],
+        ["Akhil", "Menon", "Male"],
+    ];
 
 /*
 |--------------------------------------------------------------------------
@@ -712,18 +872,25 @@ function buildGeneratedUsers(): SeedUser[] {
                     firstName,
                     lastName,
                     gender,
+
                     profession:
                         randomItem(PROFESSIONS),
+
                     city: location.city,
                     state: location.state,
                     country: "India",
+
                     postalCode:
                         location.postalCode,
-                    address: location.address,
-                    skills: randomItems(
-                        SKILLS,
-                        4
-                    ),
+
+                    address:
+                        location.address,
+
+                    skills:
+                        randomItems(
+                            SKILLS,
+                            4
+                        ),
                 };
             }
         );
@@ -738,6 +905,7 @@ function buildGeneratedUsers(): SeedUser[] {
                     firstName,
                     lastName,
                     gender,
+
                     profession:
                         randomItem([
                             "Technical Recruiter",
@@ -746,23 +914,29 @@ function buildGeneratedUsers(): SeedUser[] {
                             "Recruitment Lead",
                             "HR Business Partner",
                         ]),
+
                     city: location.city,
                     state: location.state,
                     country: "India",
+
                     postalCode:
                         location.postalCode,
-                    address: location.address,
-                    skills: randomItems(
-                        [
-                            "Recruitment",
-                            "Talent Acquisition",
-                            "Technical Recruiting",
-                            "Hiring",
-                            "Sourcing",
-                            "HR",
-                        ],
-                        3
-                    ),
+
+                    address:
+                        location.address,
+
+                    skills:
+                        randomItems(
+                            [
+                                "Recruitment",
+                                "Talent Acquisition",
+                                "Technical Recruiting",
+                                "Hiring",
+                                "Sourcing",
+                                "HR",
+                            ],
+                            3
+                        ),
                 };
             }
         );
@@ -777,6 +951,7 @@ function buildGeneratedUsers(): SeedUser[] {
                     firstName,
                     lastName,
                     gender,
+
                     profession:
                         randomItem([
                             "Founder & CEO",
@@ -784,23 +959,29 @@ function buildGeneratedUsers(): SeedUser[] {
                             "People Operations Director",
                             "Chief People Officer",
                         ]),
+
                     city: location.city,
                     state: location.state,
                     country: "India",
+
                     postalCode:
                         location.postalCode,
-                    address: location.address,
-                    skills: randomItems(
-                        [
-                            "Leadership",
-                            "Strategy",
-                            "Hiring",
-                            "People Operations",
-                            "Talent Management",
-                            "Business Strategy",
-                        ],
-                        3
-                    ),
+
+                    address:
+                        location.address,
+
+                    skills:
+                        randomItems(
+                            [
+                                "Leadership",
+                                "Strategy",
+                                "Hiring",
+                                "People Operations",
+                                "Talent Management",
+                                "Business Strategy",
+                            ],
+                            3
+                        ),
                 };
             }
         );
@@ -808,8 +989,10 @@ function buildGeneratedUsers(): SeedUser[] {
     return [
         ...CANDIDATES,
         ...generatedCandidates,
+
         ...RECRUITERS,
         ...generatedRecruiters,
+
         ...ORGANIZATIONS,
         ...generatedOrganizations,
     ];
@@ -826,10 +1009,18 @@ export async function seedUsers(
 ) {
     console.log("👤 Seeding users...");
 
+    /*
+     * Hash the password only once.
+     *
+     * Every seeded user receives the same password:
+     *
+     * karthi123
+     */
     const passwordHash =
         await hashPassword(PASSWORD);
 
-    const users = buildGeneratedUsers();
+    const users =
+        buildGeneratedUsers();
 
     /*
      * Expected:
@@ -841,9 +1032,9 @@ export async function seedUsers(
      * Total = 100 users
      */
 
-    if (users.length !== 100) {
+    if (users.length !== TOTAL_USERS) {
         throw new Error(
-            `Expected 100 users, got ${users.length}.`
+            `Expected ${TOTAL_USERS} users, got ${users.length}.`
         );
     }
 
@@ -858,12 +1049,23 @@ export async function seedUsers(
     ) {
         const data = users[index];
 
+        /*
+         * Resolve role from deterministic position.
+         *
+         * 0  - 69  = CANDIDATE
+         * 70 - 89  = RECRUITER
+         * 90 - 99  = ORGANIZATION
+         */
         let role: Role;
 
-        if (index < 70) {
+        if (index < TOTAL_CANDIDATES) {
             role = Role.CANDIDATE;
             candidateCount++;
-        } else if (index < 90) {
+        } else if (
+            index <
+            TOTAL_CANDIDATES +
+            TOTAL_RECRUITERS
+        ) {
             role = Role.RECRUITER;
             recruiterCount++;
         } else {
@@ -871,6 +1073,9 @@ export async function seedUsers(
             organizationCount++;
         }
 
+        /*
+         * Generate deterministic username.
+         */
         const username =
             seedUsername(
                 data.firstName,
@@ -878,14 +1083,29 @@ export async function seedUsers(
                 index + 1
             );
 
+        /*
+         * First user gets your exact email.
+         *
+         * All remaining users use the existing
+         * deterministic seed email helper.
+         */
         const email =
-            seedEmail(username);
+            index === 0
+                ? FIRST_USER_EMAIL
+                : seedEmail(username);
 
+        /*
+         * DiceBear avatar.
+         */
         const profileImage =
             `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(
                 `${data.firstName} ${data.lastName}`
             )}`;
 
+        /*
+         * Give seeded users realistic historical
+         * creation dates.
+         */
         const createdAt =
             randomPastDate(30, 720);
 
@@ -894,32 +1114,58 @@ export async function seedUsers(
                 email,
             },
 
+            /*
+             * IMPORTANT:
+             * Update password too.
+             *
+             * This means rerunning the seed with the
+             * same email will also reset the password
+             * to karthi123.
+             */
             update: {
                 username,
+                password: passwordHash,
+
+                authProvider:
+                    "credentials",
+
                 role,
+
                 firstName:
                     data.firstName,
+
                 lastName:
                     data.lastName,
+
                 gender:
                     data.gender,
+
                 profession:
                     data.profession,
+
                 city:
                     data.city,
+
                 state:
                     data.state,
+
                 country:
                     data.country,
+
                 postalCode:
                     data.postalCode,
+
                 address:
                     data.address,
+
                 skills:
                     data.skills,
+
                 profileImage,
+
                 userImage:
                     profileImage,
+
                 isPro:
                     role === Role.CANDIDATE
                         ? randomBoolean(0.15)
@@ -928,7 +1174,9 @@ export async function seedUsers(
 
             create: {
                 username,
+
                 email,
+
                 password:
                     passwordHash,
 
@@ -991,6 +1239,45 @@ export async function seedUsers(
         });
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Validation
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        candidateCount !==
+        TOTAL_CANDIDATES
+    ) {
+        throw new Error(
+            `Expected ${TOTAL_CANDIDATES} candidates, got ${candidateCount}.`
+        );
+    }
+
+    if (
+        recruiterCount !==
+        TOTAL_RECRUITERS
+    ) {
+        throw new Error(
+            `Expected ${TOTAL_RECRUITERS} recruiters, got ${recruiterCount}.`
+        );
+    }
+
+    if (
+        organizationCount !==
+        TOTAL_ORGANIZATIONS
+    ) {
+        throw new Error(
+            `Expected ${TOTAL_ORGANIZATIONS} organizations, got ${organizationCount}.`
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Seed summary
+    |--------------------------------------------------------------------------
+    */
+
     console.log(
         `   ✅ Candidates: ${candidateCount}`
     );
@@ -1008,6 +1295,10 @@ export async function seedUsers(
     );
 
     console.log(
-        "   ✅ Total users: 100"
+        `   📧 First user: ${FIRST_USER_EMAIL}`
+    );
+
+    console.log(
+        `   ✅ Total users: ${TOTAL_USERS}`
     );
 }

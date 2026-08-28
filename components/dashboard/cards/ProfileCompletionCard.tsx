@@ -4,6 +4,7 @@ import {
     Check,
     MoreVertical,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
     CircularProgressbar,
     buildStyles,
@@ -30,8 +31,9 @@ const ProfileCompletionCard = ({
         100
     );
 
-    const isCompleted =
-        progress >= 100;
+    const isCompleted = progress >= 100;
+
+    const router = useRouter();
 
     return (
         <div className="rounded-[24px] border border-[#EAEAEA] bg-white p-6">
@@ -98,8 +100,8 @@ const ProfileCompletionCard = ({
                         <div className="flex items-center gap-3">
                             <div
                                 className={`flex h-5 w-5 items-center justify-center rounded-md border ${item.completed
-                                        ? "border-[#16A34A] bg-[#16A34A]"
-                                        : "border-[#D1D5DB] bg-white"
+                                    ? "border-[#16A34A] bg-[#16A34A]"
+                                    : "border-[#D1D5DB] bg-white"
                                     }`}
                             >
                                 {item.completed && (
@@ -119,8 +121,8 @@ const ProfileCompletionCard = ({
 
                         <div
                             className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${item.completed
-                                    ? "border-[#16A34A] bg-[#16A34A]"
-                                    : "border-[#D1D5DB] bg-white"
+                                ? "border-[#16A34A] bg-[#16A34A]"
+                                : "border-[#D1D5DB] bg-white"
                                 }`}
                         >
                             {item.completed && (
@@ -138,7 +140,9 @@ const ProfileCompletionCard = ({
 
             <button
                 type="button"
-                onClick={onAction}
+                onClick={() => {
+                    router.push(`/`)
+                }}
                 disabled={isCompleted}
                 className="mt-8 h-12 w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] text-[15px] font-semibold text-[#111827] transition-colors hover:bg-[#F3F4F6] disabled:cursor-not-allowed disabled:opacity-60"
             >

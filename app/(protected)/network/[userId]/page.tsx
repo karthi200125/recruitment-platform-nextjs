@@ -1,39 +1,43 @@
+
 import { getNetworkusers } from "@/actions/user/get-network-users";
+import { getUserProfileUserById } from "@/actions/user/getuser/getUserProfileUserById";
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import NetworkClient from "../NetworkClient";
 
-interface NetworkPageProps {
-    params: Promise<{
-        userId: string;
-    }>;
+interface Props { params: Promise<{ userId: string }> }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const { userId: raw } = await params;
+    const userId = Number(raw);
+    if (!Number.isInteger(userId)) return { title: "Network" };
+    const result = await getUserProfileUserById(userId);
+    const name = result.data?.username ?? "User";
+    return {
+        title: `${name}'s Network`,
+        description: `Followers and following of ${name} on Jobify.`,
+    };
 }
 
-const NetworkPage = async ({
-    params,
-}: NetworkPageProps) => {
-    const { userId: userIdParam } =
-        await params;
+const NetworkPage = async ({ params }: Props) => {
+    const { userId: raw } = await params;
+    const userId = Number(raw);
+    if (!Number.isInteger(userId)) notFound();
 
-    const userId = Number(userIdParam);
+    const [followersRes, followingRes, profileRes] = await Promise.all([
+        getNetworkusers(userId, "followers"),
+        getNetworkusers(userId, "followings"),
+        getUserProfileUserById(userId),
+    ]);
 
-    if (!Number.isInteger(userId)) {
-        return (
-            <div className="p-5 text-sm text-red-500">
-                Invalid user ID
-            </div>
-        );
-    }
-
-    const result = await getNetworkusers(
-        userId,
-        "followers"
-    );
+    if (!profileRes.success || !profileRes.data) notFound();
 
     return (
         <NetworkClient
             userId={userId}
-            initialUsers={
-                result.data ?? []
-            }
+            profileUser={profileRes.data}
+            initialFollowers={followersRes.data ?? []}
+            initialFollowing={followingRes.data ?? []}
         />
     );
 };

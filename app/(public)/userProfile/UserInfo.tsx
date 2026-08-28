@@ -294,7 +294,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                             <Crown className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" strokeWidth={2} />
                             <p className="text-xs text-amber-700">
                                 <span className="font-semibold">Premium</span> members can message directly.{" "}
-                                <Link href="/subscription" className="underline underline-offset-2 hover:text-amber-800 transition-colors">
+                                <Link href="/subscriptions" className="underline underline-offset-2 hover:text-amber-800 transition-colors">
                                     Upgrade
                                 </Link>
                             </p>

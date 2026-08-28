@@ -1,19 +1,16 @@
 "use client";
 
-import { memo, useState } from "react";
-import { Briefcase, Users, Building2, LayoutDashboard } from "lucide-react";
+import { Briefcase, Building2, LayoutDashboard, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { memo, useState } from "react";
 
-import noProfile from "@/public/noProfile.webp";
 import JobList from "@/components/Job/JobLists/JobList";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface EmployeeUser {
     id: number;
     username: string;
-    userImage?: string | null;
+    profileImage?: string | null;
 }
 
 interface Company {
@@ -33,8 +30,6 @@ interface CompanySlidesProps {
 
 type TabKey = "Home" | "Employees" | "Jobs";
 
-// ─── CompanyAvatar ────────────────────────────────────────────────────────────
-
 function CompanyAvatar({ name, image, id }: { name: string; image?: string | null; id: number }) {
     const initials = name
         .split(" ")
@@ -42,6 +37,7 @@ function CompanyAvatar({ name, image, id }: { name: string; image?: string | nul
         .join("")
         .toUpperCase()
         .slice(0, 2);
+
 
     return (
         <Link
@@ -73,15 +69,11 @@ function CompanyAvatar({ name, image, id }: { name: string; image?: string | nul
     );
 }
 
-// ─── Tab config ───────────────────────────────────────────────────────────────
-
 const TABS: { key: TabKey; icon: React.ElementType; label: string }[] = [
     { key: "Home", icon: LayoutDashboard, label: "Overview" },
     { key: "Employees", icon: Users, label: "Employees" },
     { key: "Jobs", icon: Briefcase, label: "Jobs" },
 ];
-
-// ─── Empty state ──────────────────────────────────────────────────────────────
 
 function Empty({ icon: Icon, text }: { icon: React.ElementType; text: string }) {
     return (
@@ -93,8 +85,6 @@ function Empty({ icon: Icon, text }: { icon: React.ElementType; text: string }) 
         </div>
     );
 }
-
-// ─── Main component ───────────────────────────────────────────────────────────
 
 const CompanySlides = ({ company, profileUser }: CompanySlidesProps) => {
     const [tab, setTab] = useState<TabKey>("Home");
@@ -112,7 +102,7 @@ const CompanySlides = ({ company, profileUser }: CompanySlidesProps) => {
         <div className="w-full rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
 
             {/* Tab bar */}
-            <div className="flex items-center border-b border-slate-100 px-1 overflow-x-auto">
+            <div className="flex items-center border-b border-slate-100 px-1">
                 {TABS.map(({ key, icon: Icon, label }) => {
                     const isActive = tab === key;
                     const count = countMap[key];
@@ -121,8 +111,8 @@ const CompanySlides = ({ company, profileUser }: CompanySlidesProps) => {
                             key={key}
                             onClick={() => setTab(key)}
                             className={`inline-flex items-center gap-1.5 px-5 py-3.5 text-sm font-semibold border-b-2 transition-all duration-200 whitespace-nowrap -mb-px flex-shrink-0 ${isActive
-                                    ? "border-indigo-600 text-indigo-600"
-                                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                                ? "border-indigo-600 text-indigo-600"
+                                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
                                 }`}
                         >
                             <Icon className={`w-4 h-4 ${isActive ? "" : "opacity-70"}`} strokeWidth={isActive ? 2.5 : 1.75} />
@@ -173,7 +163,7 @@ const CompanySlides = ({ company, profileUser }: CompanySlidesProps) => {
                                         key={emp.id}
                                         id={emp.id}
                                         name={emp.username}
-                                        image={emp.userImage}
+                                        image={emp.profileImage}
                                     />
                                 ))}
                             </div>

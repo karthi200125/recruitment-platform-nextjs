@@ -12,9 +12,7 @@ interface RecentActivityCardProps {
 
 const RecentActivityCard = ({
     activities,
-}: RecentActivityCardProps) => {
-    // Show only the latest 5 activities in this card.
-    // This does not modify the original activities array.
+}: RecentActivityCardProps) => {    
     const recentActivities = activities.slice(0, 5);
 
     if (recentActivities.length === 0) {
@@ -26,12 +24,12 @@ const RecentActivityCard = ({
                         Recent Activity
                     </h2>
 
-                    <Link
+                    {/* <Link
                         href="/dashboard?tab=activity"
                         className="text-[14px] font-medium text-blue-600 transition-colors hover:text-blue-700"
                     >
                         View all
-                    </Link>
+                    </Link> */}
                 </div>
 
                 {/* Empty State */}
@@ -52,12 +50,12 @@ const RecentActivityCard = ({
                     Recent Activity
                 </h2>
 
-                <Link
+                {/* <Link
                     href="/dashboard?tab=activity"
                     className="text-[14px] font-medium text-blue-600 transition-colors hover:text-blue-700"
                 >
                     View all
-                </Link>
+                </Link> */}
             </div>
 
             {/* Timeline */}

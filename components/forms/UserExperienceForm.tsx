@@ -19,10 +19,9 @@ import { useState, useTransition } from "react";
 import { useDispatch } from "react-redux";
 
 interface ExperienceProps {
-    experience?: Experience,
+    experience?: Experience | null,
     edit?: boolean,
 }
-
 
 export function UserExperienceForm({ experience, edit }: ExperienceProps) {
     const { user } = useCurrentUser()

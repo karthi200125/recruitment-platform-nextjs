@@ -79,7 +79,7 @@ export default function ResetPasswordClient() {
 
     if (!token) {
         return (
-            <div className="min-h-screen flex items-center justify-center px-4">
+            <div className="h-[calc(100vh-100px)] flex items-center justify-center px-4">
                 <div className="w-full max-w-md">
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 text-center space-y-4">
                         <div className="flex justify-center">

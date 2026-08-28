@@ -69,13 +69,13 @@ const DashboardActivityChart = ({
                     {title}
                 </h3>
 
-                <button
+                {/* <button
                     type="button"
                     className="flex h-11 items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white px-4 text-[14px] font-medium text-[#374151] transition-colors hover:bg-[#F9FAFB]"
                 >
                     Last 30 Days
                     <ChevronDown className="h-4 w-4" strokeWidth={2} />
-                </button>
+                </button> */}
             </div>
 
             <div className="mt-8 h-[250px] w-full">
@@ -101,10 +101,7 @@ const DashboardActivityChart = ({
                             />
 
                             <Tooltip cursor={{ fill: "#F8FAFC" }} content={<CustomTooltip valueLabel={valueLabel} />} />
-
-                            {/* was "applications" — didn't match any field in the actual
-                                data shape ({ name, value }), so every bar silently
-                                rendered at height 0 despite hasData being true */}
+                            
                             <Bar dataKey="value" fill="#3B82F6" radius={[10, 10, 0, 0]} barSize={10} />
                         </BarChart>
                     </ResponsiveContainer>

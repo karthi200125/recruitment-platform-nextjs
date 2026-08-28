@@ -1,21 +1,24 @@
 import { Redis } from "@upstash/redis";
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+const redis = Redis.fromEnv();
 
-export const rateLimit = async (key: string) => {
-  const limit = 3; // max 3 requests
-  const window = 60; // seconds
-
+export const rateLimit = async (
+  key: string,
+  limit = 3,
+  windowSeconds = 60
+) => {
   const current = await redis.incr(key);
 
   if (current === 1) {
-    await redis.expire(key, window);
+    await redis.expire(key, windowSeconds);
   }
 
   if (current > limit) {
-    throw new Error("Too many requests. Try later.");
+    throw new Error("Too many requests. Please try again later.");
   }
+
+  return {
+    allowed: true,
+    remaining: Math.max(0, limit - current),
+  };
 };

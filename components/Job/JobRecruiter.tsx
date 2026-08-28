@@ -217,7 +217,7 @@ const JobRecruiter = ({
                         directly.{" "}
 
                         <Link
-                            href="/subscription"
+                            href="/subscriptions"
                             className="underline underline-offset-2 transition-colors hover:text-amber-800"
                         >
                             Upgrade

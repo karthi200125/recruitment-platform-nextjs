@@ -9,13 +9,7 @@ export async function seedApplicationStatusHistory(
     console.log(
         "📊 Seeding application status history..."
     );
-
-    /*
-     * DEV SEED ONLY
-     *
-     * Remove existing history and rebuild it
-     * from the application timestamps.
-     */
+    
     await prisma.applicationStatusHistory.deleteMany();
 
     const applications =

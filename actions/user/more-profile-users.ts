@@ -131,9 +131,7 @@ const buildCandidateFilter = (profileUser: {
     case Role.ORGANIZATION:
       return { ...base, role: Role.ORGANIZATION };
 
-    default:
-      // no role set yet — fall back to a generic mixed pool rather than
-      // excluding everyone or throwing
+    default:      
       return base;
   }
 };
@@ -188,26 +186,44 @@ const scoreCandidate = (
 };
 
 const toMoreProfileUser = (
-  candidate: {
-    id: number;
-    username: string;
-    profileImage: string | null;
-    profession: string | null;
-    role: Role | null;
-    isPro: boolean;
-    company: { companyName: string; companyImage: string | null; companyBio: string } | null;
-  },
-  followingIds: number[]
+    candidate: {
+        id: number;
+        username: string;
+        profileImage: string | null;
+        profession: string | null;
+        role: Role | null;
+        isPro: boolean;
+        company: {
+            companyName: string;
+            companyImage: string | null;
+            companyBio: string;
+        } | null;
+    },
+    followingIds: number[]
 ): MoreProfileUser => {
-  const isOrganization = candidate.role === Role.ORGANIZATION;
+    const isOrganization =
+        candidate.role === Role.ORGANIZATION;
 
-  return {
-    id: candidate.id,
-    displayName: isOrganization ? candidate.company?.companyName ?? candidate.username : candidate.username,
-    image: isOrganization ? candidate.company?.companyImage ?? null : candidate.profileImage,
-    subtitle: isOrganization ? candidate.company?.companyBio ?? null : candidate.profession,
-    role: candidate.role,
-    isPro: candidate.isPro,
-    isFollowing: followingIds.includes(candidate.id),
-  };
+    return {
+        id: candidate.id,
+
+        displayName: isOrganization
+            ? candidate.company?.companyName ??
+              candidate.username
+            : candidate.username,
+
+        image: isOrganization
+            ? candidate.company?.companyImage ??
+              candidate.profileImage ??
+              null
+            : candidate.profileImage,
+
+        subtitle: isOrganization
+            ? candidate.company?.companyBio ?? null
+            : candidate.profession,
+
+        role: candidate.role,
+        isPro: candidate.isPro,
+        isFollowing: followingIds.includes(candidate.id),
+    };
 };

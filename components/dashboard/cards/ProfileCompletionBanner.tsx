@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Rocket, X } from "lucide-react";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 interface ProfileCompletionBannerProps {
     percentage: number;
@@ -13,7 +14,8 @@ const DISMISS_KEY = "jobify:dismiss-profile-tip";
 
 const ProfileCompletionBanner = ({ percentage, onImprove }: ProfileCompletionBannerProps) => {
     const router = useRouter();
-    const [dismissed, setDismissed] = useState(true); // default true to avoid a flash before reading localStorage
+    const [dismissed, setDismissed] = useState(true);
+    const { user } = useCurrentUser()
 
     useEffect(() => {
         setDismissed(localStorage.getItem(DISMISS_KEY) === "true");
@@ -29,7 +31,7 @@ const ProfileCompletionBanner = ({ percentage, onImprove }: ProfileCompletionBan
             onImprove();
             return;
         }
-        router.push("/userProfile/edit");
+        router.push(`/userProfile/${user?.id}`);
     };
 
     if (dismissed || percentage >= 100) {

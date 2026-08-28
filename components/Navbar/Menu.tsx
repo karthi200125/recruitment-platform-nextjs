@@ -133,7 +133,7 @@ const Menu = () => {
                         <div className="relative px-5">
                             {user.isPro ? (
                                 <button
-                                    onClick={() => handleNavigate({ id: -1, title: '', href: '/subscription', visible: true, icon: Crown })}
+                                    onClick={() => handleNavigate({ id: -1, title: '', href: '/subscriptions', visible: true, icon: Crown })}
                                     className="group flex w-full items-center gap-3 rounded-2xl border border-amber-500/20 bg-gradient-to-r from-amber-500/10 to-amber-500/5 px-4 py-3.5 text-left transition hover:border-amber-500/30 hover:from-amber-500/15"
                                 >
                                     <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300">
@@ -147,7 +147,7 @@ const Menu = () => {
                                 </button>
                             ) : (
                                 <button
-                                    onClick={() => handleNavigate({ id: -1, title: '', href: '/subscription', visible: true, icon: Crown })}
+                                    onClick={() => handleNavigate({ id: -1, title: '', href: '/subscriptions', visible: true, icon: Crown })}
                                     className="group relative w-full overflow-hidden rounded-2xl border border-indigo-500/20 bg-gradient-to-r from-indigo-500/15 via-violet-500/10 to-indigo-500/15 px-4 py-3.5 text-left transition hover:border-indigo-500/30"
                                 >
                                     <div className="relative flex items-center gap-3">

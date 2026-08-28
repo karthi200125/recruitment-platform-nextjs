@@ -4,7 +4,7 @@ const MessageBoxSkeleton = () => {
     return (
         <div className="h-full relative">
 
-            <div className="w-full flex flex-row items-center justify-between border-b h-[90px] px-3">
+            <div className="w-full flex flex-row items-center justify-between border-b max-h-max px-3">
                 <div className='flex flex-row items-center gap-5'>
                     <Skeleton className="w-[40px] md:w-[60px] h-[40px] md:h-[60px] rounded-full bg-neutral-200" />
                     <div className="space-y-2">
@@ -15,7 +15,7 @@ const MessageBoxSkeleton = () => {
                 <Skeleton className="h-[40px] bg-neutral-200 w-[40px] rounded-md" />
             </div>
 
-            <div className='w-full flex flex-col gap-10 chatsh p-3'>
+            <div className='w-full flex flex-col gap-10 h-[300px] p-3'>
                 <Skeleton className="h-full bg-neutral-200 w-full rounded-md" />
             </div>
 

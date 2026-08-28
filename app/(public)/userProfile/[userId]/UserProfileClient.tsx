@@ -32,9 +32,7 @@ interface UserProfileClientProps {
 const UserProfileClient = ({
     initialProfile,
 }: UserProfileClientProps) => {
-    const {
-        user: loggedInUser,
-    } = useCurrentUser();
+    const { user: loggedInUser } = useCurrentUser();
 
     const params = useParams();
 
@@ -74,7 +72,7 @@ const UserProfileClient = ({
 
         refetchOnWindowFocus: false,
     });
-    
+
     useEffect(() => {
         if (
             !loggedInUser?.id ||
@@ -82,13 +80,13 @@ const UserProfileClient = ({
         ) {
             return;
         }
-        
+
         if (
             loggedInUser.id === userId
         ) {
             return;
         }
-    
+
         if (hasTrackedView.current) {
             return;
         }
@@ -108,7 +106,7 @@ const UserProfileClient = ({
         loggedInUser?.id,
         userId,
     ]);
-    
+
     if (userId === null) {
         return (
             <div className="flex min-h-[60vh] items-center justify-center">
@@ -118,7 +116,7 @@ const UserProfileClient = ({
             </div>
         );
     }
-    
+
     if (!profileData) {
         return null;
     }
@@ -203,7 +201,7 @@ const UserProfileClient = ({
             </div>
 
             {/* Sidebar */}
-            <aside className="sticky top-10 hidden max-h-max w-[30%] self-start space-y-5 overflow-y-auto md:block">
+            <aside className="sticky top-20 hidden max-h-max w-[30%] self-start space-y-5 overflow-y-auto md:block">
                 <MoreProfiles
                     profileUser={
                         profileData

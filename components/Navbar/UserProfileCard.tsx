@@ -16,7 +16,7 @@ import {
     Crown
 } from 'lucide-react';
 
-import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { SessionUser } from '@/types';
 import { getProfileMenuItems } from './profile-menu-items';
 
 
@@ -29,9 +29,11 @@ interface NavItem {
     danger?: boolean;
 }
 
+interface UserProfileCardProps {
+    user: SessionUser | null;
+}
 
-const UserProfileCard = () => {
-    const { user, isLoading } = useCurrentUser();
+const UserProfileCard = ({ user }: UserProfileCardProps) => {
     const router = useRouter();
     const pathname = usePathname();
 
@@ -51,7 +53,7 @@ const UserProfileCard = () => {
         router.push(item.href);
     }, [router]);
 
-    if (isLoading || !user) return null;
+    if (!user) return null;
 
     const mainItems = items.filter((i) => i.visible && !i.danger);
     const dangerItems = items.filter((i) => i.visible && i.danger);
@@ -77,11 +79,6 @@ const UserProfileCard = () => {
                         fill
                         className="object-cover rounded-full"
                     />
-                    {/* {user.isPro && (
-                        <span className="absolute -bottom-px -right-px w-3.5 h-3.5 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center">
-                            <Crown className="w-2 h-2 text-white" strokeWidth={3} />
-                        </span>
-                    )} */}
                 </button>
             </HoverCardTrigger>
 

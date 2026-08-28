@@ -32,6 +32,15 @@ export const getCompanies = cache(
                 orderBy: { createdAt: "desc" },
             });
 
+            const test = await db.company.findMany({
+                where: { companyIsVerified: true },
+                select: {
+                    companyImage: true,
+                },
+            });
+
+            console.log('company images ', test)
+
             return companies.map((c: any) => ({
                 ...c,
                 jobsCount: c._count.jobs,
@@ -55,7 +64,7 @@ export const getCompanyNames = async (): Promise<string[]> => {
             orderBy: {
                 companyName: "asc",
             },
-        });        
+        });
 
         return companies.map((company) => company.companyName);
     } catch (error) {

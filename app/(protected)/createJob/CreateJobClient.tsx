@@ -158,7 +158,7 @@ export default function CreateJobClient({
           Upgrade to Pro for unlimited active listings and higher
           monthly limits.{" "}
           <Link
-            href="/subscription"
+            href="/subscriptions"
             className="font-semibold text-indigo-600 hover:underline"
           >
             View plans →
@@ -194,7 +194,7 @@ export default function CreateJobClient({
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/subscription"
+                href="/subscriptions"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-indigo-200 transition-colors duration-200 hover:bg-indigo-500"
               >
                 <Crown className="h-4 w-4" />

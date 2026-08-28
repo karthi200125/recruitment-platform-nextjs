@@ -23,6 +23,7 @@ import FormError from "@/components/ui/FormError";
 const ForgotPasswordSchema = z.object({
     email: z
         .string()
+        .trim()
         .min(1, "Email is required")
         .email("Please enter a valid email address"),
 });
@@ -36,50 +37,67 @@ export default function ForgotPasswordPage() {
 
     const form = useForm<ForgotPasswordValues>({
         resolver: zodResolver(ForgotPasswordSchema),
-        defaultValues: { email: "" },
+        defaultValues: {
+            email: "",
+        },
     });
 
     const onSubmit = (values: ForgotPasswordValues) => {
         setError("");
 
         startTransition(async () => {
-            try {
-                await forgotPassword(values.email);
-                setSent(true);
-            } catch {
-                setError("Something went wrong. Please try again.");
+            const result = await forgotPassword(values.email);
+
+            if (!result.success) {
+                setError(
+                    result.message ??
+                    "Unable to send the reset email. Please try again."
+                );
+                return;
             }
+
+            setSent(true);
         });
     };
 
-
     if (sent) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+            <div className="h-[calc(100vh-100px)] flex items-center justify-center bg-slate-50 px-4">
                 <div className="w-full max-w-md">
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 text-center space-y-4">
-                        {/* Icon */}
+
                         <div className="flex justify-center">
                             <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center">
-                                <CheckCircle2 className="w-7 h-7 text-emerald-500" strokeWidth={1.75} />
+                                <CheckCircle2
+                                    className="w-7 h-7 text-emerald-500"
+                                    strokeWidth={1.75}
+                                />
                             </div>
                         </div>
 
                         <div className="space-y-1.5">
-                            <h2 className="text-xl font-bold text-slate-900">Check your inbox</h2>
+                            <h2 className="text-xl font-bold text-slate-900">
+                                Check your inbox
+                            </h2>
+
                             <p className="text-sm text-slate-500 leading-relaxed">
                                 If{" "}
                                 <span className="font-medium text-slate-700">
                                     {form.getValues("email")}
                                 </span>{" "}
-                                is registered, you&apos;ll receive a password reset link shortly.
+                                is registered, you&apos;ll receive a password
+                                reset link shortly.
                             </p>
                         </div>
 
                         <p className="text-xs text-slate-400">
-                            Didn&apos;t receive it? Check your spam folder or
+                            Didn&apos;t receive it? Check your spam folder or{" "}
                             <button
-                                onClick={() => { setSent(false); setError(""); }}
+                                type="button"
+                                onClick={() => {
+                                    setSent(false);
+                                    setError("");
+                                }}
                                 className="text-indigo-600 font-medium hover:underline"
                             >
                                 try again
@@ -91,7 +109,10 @@ export default function ForgotPasswordPage() {
                             href="/signin"
                             className="inline-flex items-center justify-center gap-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 mt-2"
                         >
-                            <ArrowLeft className="w-4 h-4" strokeWidth={2} />
+                            <ArrowLeft
+                                className="w-4 h-4"
+                                strokeWidth={2}
+                            />
                             Back to sign in
                         </Link>
                     </div>
@@ -101,20 +122,26 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="h-[calc(100vh-100px)] flex items-center justify-center px-4">
             <div className="w-full max-w-md">
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-6">
 
                     {/* Header */}
                     <div className="space-y-1.5">
                         <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center mb-4">
-                            <Mail className="w-5 h-5 text-indigo-600" strokeWidth={1.75} />
+                            <Mail
+                                className="w-5 h-5 text-indigo-600"
+                                strokeWidth={1.75}
+                            />
                         </div>
+
                         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
                             Forgot password?
                         </h1>
+
                         <p className="text-sm text-slate-500 leading-relaxed">
-                            No worries — enter your email and we&apos;ll send you a reset link.
+                            No worries — enter your email and we&apos;ll send
+                            you a reset link.
                         </p>
                     </div>
 
@@ -131,16 +158,21 @@ export default function ForgotPasswordPage() {
                                     <FormItem>
                                         <FormControl>
                                             <div className="relative">
-                                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                                                <Mail
+                                                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
+                                                />
+
                                                 <Input
                                                     {...field}
                                                     type="email"
                                                     placeholder="Enter your email"
                                                     className="pl-9"
                                                     disabled={isPending}
+                                                    autoComplete="email"
                                                 />
                                             </div>
                                         </FormControl>
+
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -164,7 +196,10 @@ export default function ForgotPasswordPage() {
                             href="/signin"
                             className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors duration-200"
                         >
-                            <ArrowLeft className="w-3.5 h-3.5" strokeWidth={2} />
+                            <ArrowLeft
+                                className="w-3.5 h-3.5"
+                                strokeWidth={2}
+                            />
                             Back to sign in
                         </Link>
                     </div>
