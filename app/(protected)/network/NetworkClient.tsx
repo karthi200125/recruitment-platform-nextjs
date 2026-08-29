@@ -236,7 +236,7 @@ export default function NetworkClient({
                         {filtered.length === 0 ? (
                             search.trim() ? (
                                 <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-                                    <p className="text-sm font-medium text-slate-500">No results for "{search}"</p>
+                                    <p className="text-sm font-medium text-slate-500">No results for No results for &quot;{search}&quot;</p>
                                     <p className="text-xs text-slate-400">Try a different name or profession.</p>
                                 </div>
                             ) : (
