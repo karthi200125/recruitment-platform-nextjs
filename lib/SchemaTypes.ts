@@ -241,20 +241,6 @@ export const CompanySchema = z.object({
     }),
 });
 
-const ChangeEmailSchema = z.object({
-    email: z
-        .string()
-        .min(1, "Email is required.")
-        .email("Invalid email address."),
-});
-
-export const DeleteAccountSchema = z.object({
-    confirmation: z.literal("DELETE ACCOUNT", {
-        errorMap: () => ({
-            message: 'Type "DELETE ACCOUNT" to continue.',
-        }),
-    }),
-});
 
 export const forgotPasswordSchema = z.object({
     email: z.string().email("Invalid email"),
@@ -266,4 +252,19 @@ export const resetPasswordSchema = z.object({
         .min(8, "Minimum 8 characters")
         .regex(/[A-Z]/, "Must include uppercase")
         .regex(/[0-9]/, "Must include number"),
+});
+
+export const ChangeEmailSchema = z.object({
+    email: z.string().email("Invalid email"),
+    password: z.string().optional(),
+});
+
+export const DeleteAccountSchema = z.object({
+    password: z.string().optional(),
+    confirmText: z.string().refine(
+        (val) => val === "DELETE",
+        {
+            message: 'Type "DELETE" to confirm',
+        }
+    ),
 });

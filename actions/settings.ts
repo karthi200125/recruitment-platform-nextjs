@@ -1,6 +1,4 @@
-// actions/settings.ts
-
-'use server';
+"use server";
 
 import * as z from "zod";
 import bcrypt from "bcryptjs";
@@ -9,259 +7,378 @@ import { getServerSession } from "next-auth";
 import { db } from "@/lib/db";
 import { authOptions } from "@/lib/authentication/authOptions";
 
-
-// =========================
-// SCHEMAS
-// =========================
-
-export const ChangePasswordSchema = z.object({
-    oldPassword: z.string().min(1, "Old password is required"),
-    newPassword: z
-        .string()
-        .min(8, "Password must be at least 8 characters"),
-});
-
-export const ChangeEmailSchema = z.object({
-    email: z.string().email("Invalid email"),
-    password: z.string().optional(),
-});
-
-export const DeleteAccountSchema = z.object({
-    password: z.string().optional(),
-    confirmText: z.string().refine(
-        (val) => val === "DELETE",
-        {
-            message: 'Type "DELETE" to confirm',
-        }
-    ),
-});
+import {
+    ChangePasswordSchema,
+    ChangeEmailSchema,
+    DeleteAccountSchema,
+} from "@/lib/SchemaTypes";
 
 
-// =========================
+// ============================================================
 // CHANGE PASSWORD
-// =========================
+// ============================================================
 
 export const changePassword = async (
     values: z.infer<typeof ChangePasswordSchema>
 ) => {
-    const validated = ChangePasswordSchema.safeParse(values);
+    try {
+        const validated =
+            ChangePasswordSchema.safeParse(values);
 
-    if (!validated.success) {
-        return { error: "Invalid fields" };
-    }
+        if (!validated.success) {
+            return {
+                error: "Invalid fields",
+            };
+        }
 
-    const session = await getServerSession(authOptions);
+        const session =
+            await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
-        return { error: "Unauthorized" };
-    }
+        if (!session?.user?.id) {
+            return {
+                error: "Unauthorized",
+            };
+        }
 
-    const user = await db.user.findUnique({
-        where: {
-            id: session.user.id,
-        },
-    });
+        const userId = Number(session.user.id);
 
-    if (!user) {
-        return { error: "User not found" };
-    }
+        if (!Number.isInteger(userId) || userId <= 0) {
+            return {
+                error: "Invalid user",
+            };
+        }
 
-    // Only credentials users can change password
-    if (user.authProvider !== "credentials") {
+        const user =
+            await db.user.findUnique({
+                where: {
+                    id: userId,
+                },
+                select: {
+                    id: true,
+                    password: true,
+                    authProvider: true,
+                },
+            });
+
+        if (!user) {
+            return {
+                error: "User not found",
+            };
+        }
+
+        if (
+            user.authProvider !==
+            "credentials"
+        ) {
+            return {
+                error:
+                    "Google accounts cannot change password here",
+            };
+        }
+
+        if (!user.password) {
+            return {
+                error: "Password not found",
+            };
+        }
+
+        const isCurrentPasswordValid =
+            await bcrypt.compare(
+                validated.data.currentPassword,
+                user.password
+            );
+
+        if (!isCurrentPasswordValid) {
+            return {
+                error: "Incorrect current password",
+            };
+        }
+
+        const hashedPassword =
+            await bcrypt.hash(
+                validated.data.newPassword,
+                10
+            );
+
+        await db.user.update({
+            where: {
+                id: user.id,
+            },
+            data: {
+                password: hashedPassword,
+            },
+        });
+
         return {
-            error: "Google accounts cannot change password here",
+            success:
+                "Password updated successfully",
+        };
+    } catch (error) {
+        console.error(
+            "[CHANGE_PASSWORD_ERROR]",
+            error
+        );
+
+        return {
+            error:
+                "Something went wrong while changing your password",
         };
     }
-
-    if (!user.password) {
-        return { error: "Password not found" };
-    }
-
-    const isValid = await bcrypt.compare(
-        validated.data.oldPassword,
-        user.password
-    );
-
-    if (!isValid) {
-        return { error: "Incorrect old password" };
-    }
-
-    const hashedPassword = await bcrypt.hash(
-        validated.data.newPassword,
-        10
-    );
-
-    await db.user.update({
-        where: {
-            id: user.id,
-        },
-        data: {
-            password: hashedPassword,
-        },
-    });
-
-    return {
-        success: "Password updated successfully",
-    };
 };
 
 
-// =========================
+// ============================================================
 // CHANGE EMAIL
-// =========================
+// ============================================================
 
 export const changeEmail = async (
     values: z.infer<typeof ChangeEmailSchema>
 ) => {
-    const validated = ChangeEmailSchema.safeParse(values);
+    try {
+        const validated =
+            ChangeEmailSchema.safeParse(values);
 
-    if (!validated.success) {
-        return { error: "Invalid email" };
-    }
+        if (!validated.success) {
+            return {
+                error: "Invalid email",
+            };
+        }
 
-    const session = await getServerSession(authOptions);
+        const session =
+            await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
-        return { error: "Unauthorized" };
-    }
+        if (!session?.user?.id) {
+            return {
+                error: "Unauthorized",
+            };
+        }
 
-    const user = await db.user.findUnique({
-        where: {
-            id: session.user.id,
-        },
-    });
+        const userId = Number(session.user.id);
 
-    if (!user) {
-        return { error: "User not found" };
-    }
+        if (!Number.isInteger(userId) || userId <= 0) {
+            return {
+                error: "Invalid user",
+            };
+        }
 
-    const email = validated.data.email.toLowerCase();
+        const user =
+            await db.user.findUnique({
+                where: {
+                    id: userId,
+                },
+                select: {
+                    id: true,
+                    email: true,
+                    password: true,
+                    authProvider: true,
+                },
+            });
 
-    // Check email already exists
-    const existingUser = await db.user.findUnique({
-        where: {
-            email,
-        },
-    });
+        if (!user) {
+            return {
+                error: "User not found",
+            };
+        }
 
-    if (existingUser && existingUser.id !== user.id) {
+        const email =
+            validated.data.email
+                .trim()
+                .toLowerCase();
+
+        if (
+            email ===
+            user.email.toLowerCase()
+        ) {
+            return {
+                error:
+                    "This is already your current email",
+            };
+        }
+
+        const existingUser =
+            await db.user.findUnique({
+                where: {
+                    email,
+                },
+                select: {
+                    id: true,
+                },
+            });
+
+        if (
+            existingUser &&
+            existingUser.id !== user.id
+        ) {
+            return {
+                error: "Email already in use",
+            };
+        }
+
+        if (
+            user.authProvider ===
+            "credentials"
+        ) {
+            if (!validated.data.password) {
+                return {
+                    error: "Password required",
+                };
+            }
+
+            if (!user.password) {
+                return {
+                    error: "Password not found",
+                };
+            }
+
+            const isValid =
+                await bcrypt.compare(
+                    validated.data.password,
+                    user.password
+                );
+
+            if (!isValid) {
+                return {
+                    error: "Incorrect password",
+                };
+            }
+        }
+
+        await db.user.update({
+            where: {
+                id: user.id,
+            },
+            data: {
+                email,
+            },
+        });
+
         return {
-            error: "Email already in use",
+            success:
+                "Email updated successfully",
         };
-    }
-
-    // Credentials users must verify password
-    if (user.authProvider === "credentials") {
-
-        if (!validated.data.password) {
-            return {
-                error: "Password required",
-            };
-        }
-
-        if (!user.password) {
-            return {
-                error: "Password not found",
-            };
-        }
-
-        const isValid = await bcrypt.compare(
-            validated.data.password,
-            user.password
+    } catch (error) {
+        console.error(
+            "[CHANGE_EMAIL_ERROR]",
+            error
         );
 
-        if (!isValid) {
-            return {
-                error: "Incorrect password",
-            };
-        }
+        return {
+            error:
+                "Something went wrong while changing your email",
+        };
     }
-
-    await db.user.update({
-        where: {
-            id: user.id,
-        },
-        data: {
-            email,
-        },
-    });
-
-    return {
-        success: "Email updated successfully",
-    };
 };
 
 
-// =========================
+// ============================================================
 // DELETE ACCOUNT
-// =========================
+// ============================================================
 
 export const deleteAccount = async (
     values: z.infer<typeof DeleteAccountSchema>
 ) => {
-    const validated = DeleteAccountSchema.safeParse(values);
+    try {
+        const validated =
+            DeleteAccountSchema.safeParse(values);
 
-    if (!validated.success) {
-        return { error: "Invalid input" };
-    }
-
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-        return { error: "Unauthorized" };
-    }
-
-    const user = await db.user.findUnique({
-        where: {
-            id: session.user.id,
-        },
-    });
-
-    if (!user) {
-        return { error: "User not found" };
-    }
-
-    // Credentials users require password
-    if (user.authProvider === "credentials") {
-
-        if (!validated.data.password) {
+        if (!validated.success) {
             return {
-                error: "Password required",
+                error: "Invalid input",
             };
         }
 
-        if (!user.password) {
+        if (
+            validated.data.confirmText !==
+            "DELETE"
+        ) {
             return {
-                error: "Password not found",
+                error: 'Please type "DELETE"',
             };
         }
 
-        const isValid = await bcrypt.compare(
-            validated.data.password,
-            user.password
+        const session =
+            await getServerSession(authOptions);
+
+        if (!session?.user?.id) {
+            return {
+                error: "Unauthorized",
+            };
+        }
+
+        const userId = Number(session.user.id);
+
+        if (!Number.isInteger(userId) || userId <= 0) {
+            return {
+                error: "Invalid user",
+            };
+        }
+
+        const user =
+            await db.user.findUnique({
+                where: {
+                    id: userId,
+                },
+                select: {
+                    id: true,
+                    password: true,
+                    authProvider: true,
+                },
+            });
+
+        if (!user) {
+            return {
+                error: "User not found",
+            };
+        }
+
+        if (
+            user.authProvider ===
+            "credentials"
+        ) {
+            if (!validated.data.password) {
+                return {
+                    error: "Password required",
+                };
+            }
+
+            if (!user.password) {
+                return {
+                    error: "Password not found",
+                };
+            }
+
+            const isValid =
+                await bcrypt.compare(
+                    validated.data.password,
+                    user.password
+                );
+
+            if (!isValid) {
+                return {
+                    error: "Incorrect password",
+                };
+            }
+        }
+
+        await db.user.delete({
+            where: {
+                id: user.id,
+            },
+        });
+
+        return {
+            success:
+                "Account deleted successfully",
+        };
+    } catch (error) {
+        console.error(
+            "[DELETE_ACCOUNT_ERROR]",
+            error
         );
 
-        if (!isValid) {
-            return {
-                error: "Incorrect password",
-            };
-        }
-    }
-
-    // DELETE text confirmation
-    if (validated.data.confirmText !== "DELETE") {
         return {
-            error: 'Please type "DELETE"',
+            error:
+                "Failed to delete account. Please try again.",
         };
     }
-
-    await db.user.delete({
-        where: {
-            id: user.id,
-        },
-    });
-
-    return {
-        success: "Account deleted successfully",
-    };
 };

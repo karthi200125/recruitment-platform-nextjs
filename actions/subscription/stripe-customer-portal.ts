@@ -7,96 +7,80 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authentication/authOptions";
 import { db } from "@/lib/db";
 
-const stripe = new Stripe(
-    process.env.STRIPE_SECRET_KEY!,
-    {
-        apiVersion: "2025-02-24.acacia",
-        typescript: true,
-    }
-);
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
-export async function StripeCustomerPortal(
-    formData: FormData
-): Promise<void> {
+if (!stripeSecretKey) {
+    throw new Error(
+        "STRIPE_SECRET_KEY is not configured."
+    );
+}
+
+const stripe = new Stripe(stripeSecretKey, {
+    apiVersion: "2025-02-24.acacia",
+    typescript: true,
+});
+
+export async function StripeCustomerPortal(): Promise<void> {
     try {
-
-        const stripeCustomerId =
-            formData.get("stripeCustomerId");
-
-        if (
-            typeof stripeCustomerId !== "string" ||
-            !stripeCustomerId
-        ) {
-            throw new Error(
-                "Missing Stripe customer ID"
-            );
-        }
-
-        const session =
-            await getServerSession(
-                authOptions
-            );
+        const session = await getServerSession(
+            authOptions
+        );
 
         if (!session?.user?.email) {
-            throw new Error(
-                "Unauthorized"
-            );
+            throw new Error("Unauthorized");
         }
 
-        const user =
-            await db.user.findUnique({
-                where: {
-                    email: session.user.email,
+        const user = await db.user.findUnique({
+            where: {
+                email: session.user.email
+                    .trim()
+                    .toLowerCase(),
+            },
+            select: {
+                id: true,
+                stripeCustomerId: true,
+
+                subscription: {
+                    select: {
+                        id: true,
+                        subscriptionStatus: true,
+                    },
                 },
-                include: {
-                    subscription: true,
-                },
-            });
+            },
+        });
 
         if (!user) {
+            throw new Error("User not found");
+        }
+
+        if (!user.stripeCustomerId) {
             throw new Error(
-                "User not found"
+                "Stripe customer not found."
             );
         }
 
         if (!user.subscription) {
             throw new Error(
-                "No active subscription found."
-            );
-        }
-
-        if (
-            user.stripeCustomerId !==
-            stripeCustomerId
-        ) {
-            throw new Error(
-                "Invalid customer access."
+                "No subscription found."
             );
         }
 
         const portalSession =
-            await stripe.billingPortal.sessions.create(
-                {
-                    customer:
-                        stripeCustomerId,
+            await stripe.billingPortal.sessions.create({
+                customer: user.stripeCustomerId,
 
-                    return_url:
-                        `${process.env.NEXT_PUBLIC_URL}/subscriptions`,
-                }
-            );
+                return_url:
+                    `${process.env.NEXT_PUBLIC_URL}/subscriptions`,
+            });
 
         redirect(portalSession.url);
-
     } catch (error) {
-
         if (
             error &&
             typeof error === "object" &&
             "digest" in error &&
             typeof error.digest === "string" &&
-            error.digest.startsWith(
-                "NEXT_REDIRECT"
-            )
+            error.digest.startsWith("NEXT_REDIRECT")
         ) {
             throw error;
         }

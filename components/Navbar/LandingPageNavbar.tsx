@@ -73,7 +73,7 @@ const LpNavbar = () => {
 
                 {/* CENTER — Logo */}
                 <div className="md:absolute md:left-1/2 md:-translate-x-1/2">
-                    <Logo />
+                    <Logo isText={false} />
                 </div>
 
                 {/* RIGHT — Authentication */}

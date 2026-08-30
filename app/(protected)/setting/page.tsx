@@ -12,7 +12,7 @@ export default async function SettingsPage() {
     }
 
     return (
-        <div className="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8">
+        <div className="mx-auto w-full max-w-6xl">
             <SettingsClient user={user} />
         </div>
     );

@@ -1,29 +1,56 @@
-'use client';
+"use client";
 
-import { Suspense, useState } from 'react';
-import Logo from '../Logo';
+import { Suspense, useState } from "react";
+import { useSession } from "next-auth/react";
+
+import Logo from "../Logo";
+import AuthButtons from "./AuthButtons";
+import Menu from "./Menu";
+import NavIcons from "./NavIcons";
+import SearchModal from "./SearchModal";
+import UserProfileCard from "./UserProfileCard";
+
+import {
+    NavIconSkeleton,
+    UserProfileSkeleton,
+} from "@/components/skeletons/NavbarSkeletons";
 import { SessionUser } from "@/types";
-import AuthButtons from './AuthButtons';
-import Menu from './Menu';
-import NavIcons from './NavIcons';
-import SearchModal from './SearchModal';
-import UserProfileCard from './UserProfileCard';
-import { NavIconSkeleton, UserProfileSkeleton } from '@/components/skeletons/NavbarSkeletons';
 
 interface NavbarProps {
     user: SessionUser | null;
 }
 
-const Navbar = ({ user }: NavbarProps) => {
+const Navbar = ({ user: initialUser }: NavbarProps) => {
     const [searchOpen, setSearchOpen] = useState(false);
-    
-    const isAuthenticated = !!user?.id;
+
+    const {
+        data: session,
+        status,
+    } = useSession();
+
+    const isSessionLoading = status === "loading";
+
+    const user =
+        session?.user
+            ? ({
+                ...initialUser,
+                ...session.user,
+            } as SessionUser)
+            : status === "authenticated"
+                ? initialUser
+                : null;
+
+    const isAuthenticated =
+        status === "authenticated" && !!user?.id;
 
     return (
         <>
-            <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+            <SearchModal
+                open={searchOpen}
+                onClose={() => setSearchOpen(false)}
+            />
 
-            <header className="sticky top-0 z-50 w-full rounded-lg">
+            <header className="sticky top-0 z-50 w-full rounded-lg pt-3 md:pt-0">
                 <nav className="flex h-[60px] items-center gap-3 rounded-lg border-b border-white/10 bg-neutral-950 px-3 md:px-2">
 
                     {/* Logo */}
@@ -39,16 +66,21 @@ const Navbar = ({ user }: NavbarProps) => {
                     {/* Search */}
                     <div className="flex flex-1 justify-center px-1 sm:px-4">
                         <button
-                            onClick={() => setSearchOpen(true)}
+                            type="button"
+                            onClick={() =>
+                                setSearchOpen(true)
+                            }
                             aria-label="Open job search"
-                            className="group flex w-full max-w-sm sm:max-w-md items-center gap-3 rounded-md bg-white/[0.07] hover:bg-white/[0.11] border border-white/[0.09] hover:border-white/[0.16] px-1 md:px-3.5 h-[38px] transition-all duration-200"
+                            className="group flex h-[38px] w-full max-w-sm items-center gap-3 rounded-md border border-white/[0.09] bg-white/[0.07] px-1 transition-all duration-200 hover:border-white/[0.16] hover:bg-white/[0.11] sm:max-w-md md:px-3.5"
                         >
-                            <span className="text-neutral-400 group-hover:text-neutral-300 transition-colors duration-150 shrink-0" />
-                            <span className="flex-1 text-left text-[13px] text-neutral-500 group-hover:text-neutral-400 transition-colors duration-150 truncate">
+                            <span className="shrink-0 text-neutral-400 transition-colors duration-150 group-hover:text-neutral-300" />
+
+                            <span className="flex-1 truncate text-left text-[13px] text-neutral-500 transition-colors duration-150 group-hover:text-neutral-400">
                                 Job title, skills, company...
                             </span>
-                            <span className="hidden sm:inline-flex items-center gap-1 shrink-0">
-                                <kbd className="inline-flex items-center bg-white/[0.07] border border-white/10 rounded px-1.5 py-0.5 text-[10px] font-mono text-neutral-500 leading-snug">
+
+                            <span className="hidden shrink-0 items-center gap-1 sm:inline-flex">
+                                <kbd className="inline-flex items-center rounded border border-white/10 bg-white/[0.07] px-1.5 py-0.5 text-[10px] font-mono leading-snug text-neutral-500">
                                     ⌘K
                                 </kbd>
                             </span>
@@ -57,17 +89,31 @@ const Navbar = ({ user }: NavbarProps) => {
 
                     {/* Right */}
                     <div className="ml-auto flex shrink-0 items-center gap-3">
-                        <Suspense fallback={<NavIconSkeleton />}>
+
+                        {/* Navigation icons */}
+                        <Suspense
+                            fallback={<NavIconSkeleton />}
+                        >
                             <NavIcons />
                         </Suspense>
 
-                        {isAuthenticated ? (
-                            <Suspense fallback={<UserProfileSkeleton />}>                                
-                                <UserProfileCard user={user} />
+                        {/* Authentication */}
+                        {isSessionLoading ? (
+                            <UserProfileSkeleton />
+                        ) : isAuthenticated ? (
+                            <Suspense
+                                fallback={
+                                    <UserProfileSkeleton />
+                                }
+                            >
+                                <UserProfileCard
+                                    user={user}
+                                />
                             </Suspense>
                         ) : (
                             <AuthButtons />
                         )}
+
                     </div>
                 </nav>
             </header>

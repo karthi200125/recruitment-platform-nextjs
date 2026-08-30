@@ -1,140 +1,85 @@
 'use client';
 
-import { useMemo } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
-    Building2,
-    BriefcaseBusiness,
-    LayoutDashboard,
-    MessageSquareMore,
+    Briefcase, LayoutDashboard, MessageSquare,
+    Bell, Bookmark,
 } from 'lucide-react';
-
-import Icon from '@/components/Icon';
 
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { getUnreadMessagesCount } from '@/actions/message/get-unread-messages-count ';
 
-interface NavItem {
-    readonly id: number;
-    readonly icon: React.ReactNode;
-    readonly title: string;
-    readonly href: string;
-    readonly count?: number;
+interface NavIconItem {
+    id: number;
+    label: string;
+    href: string;
+    icon: React.ElementType;
+    mobileVisible: boolean; 
+    badgeKey?: 'messages';
 }
 
-const NavIcons = () => {
+const NAV_ICONS: NavIconItem[] = [
+    { id: 1, label: "Jobs", href: "/jobs", icon: Briefcase, mobileVisible: true },
+    { id: 2, label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, mobileVisible: false },
+    { id: 3, label: "Messages", href: "/messages", icon: MessageSquare, mobileVisible: false, badgeKey: "messages" },
+    { id: 4, label: "Saved", href: "/saved", icon: Bookmark, mobileVisible: false },
+    { id: 5, label: "Alerts", href: "/alerts", icon: Bell, mobileVisible: false },
+];
+
+export default function NavIcons() {
     const pathname = usePathname();
     const { user } = useCurrentUser();
 
-    const { data: unreadMessagesCount = 0 } = useQuery({
-        queryKey: ['unread-messages-count', user?.id],
-
-        queryFn: () =>
-            user?.id
-                ? getUnreadMessagesCount(user.id)
-                : Promise.resolve(0),
-
-        enabled: Boolean(user?.id),
-
-        staleTime: 60 * 1000,
-        gcTime: 5 * 60 * 1000,
-
-        refetchOnWindowFocus: false,
+    const { data: unreadCount = 0 } = useQuery({
+        queryKey: ["getUnreadMessagesCount", user?.id],
+        queryFn: () => getUnreadMessagesCount(user!.id),
+        enabled: !!user?.id,
+        refetchInterval: 15000,
     });
 
-    const navItems = useMemo<ReadonlyArray<NavItem>>(
-        () => [
-            {
-                id: 1,
-                icon: <Building2 className="h-5 w-5" strokeWidth={2} />,
-                title: 'Companies',
-                href: '/companies',
-            },
-            {
-                id: 2,
-                icon: (
-                    <BriefcaseBusiness
-                        className="h-5 w-5"
-                        strokeWidth={2}
-                    />
-                ),
-                title: 'Jobs',
-                href: '/jobs',
-            },
-            ...(user
-                ? [
-                    {
-                        id: 3,
-                        icon: (
-                            <MessageSquareMore
-                                className="h-5 w-5"
-                                strokeWidth={2}
-                            />
-                        ),
-                        title: 'Messages',
-                        href: '/messages',
-                        count: unreadMessagesCount,
-                    },
-                    {
-                        id: 4,
-                        icon: (
-                            <LayoutDashboard
-                                className="h-5 w-5"
-                                strokeWidth={2}
-                            />
-                        ),
-                        title: 'Dashboard',
-                        href: '/dashboard',
-                    },
-                ]
-                : []),
-        ],
-        [user, unreadMessagesCount]
-    );
-
-    const renderIcon = (item: NavItem) => {
-        const isActive =
-            pathname === item.href ||
-            pathname.startsWith(`${item.href}/`);
-
-        return (
-            <Icon
-                key={item.id}
-                href={item.href}
-                icon={item.icon}
-                title={item.title}
-                count={item.count}
-                isHover
-                tooltipBg="white"
-                className={`transition-all duration-200 ${
-                    isActive
-                        ? '!bg-white/10 !text-white'
-                        : '!text-neutral-500 hover:!bg-white/10 hover:!text-white'
-                }`}
-            />
-        );
-    };
-
     return (
-        <>
-            {/* Mobile: Jobs + Messages only */}
-            <div className="flex items-center gap-3 md:hidden">
-                {navItems
-                    .filter(
-                        (item) =>
-                            item.href === '/jobs' ||
-                            item.href === '/messages'
-                    )
-                    .map(renderIcon)}
-            </div>
+        <div className="flex items-center gap-0.5">
+            {NAV_ICONS.map(({ id, label, href, icon: Icon, mobileVisible, badgeKey }) => {
+                const isActive = pathname === href || pathname.startsWith(href + "/");
+                const badge = badgeKey === "messages" ? unreadCount : 0;
 
-            {/* Desktop: Companies + Jobs + Messages + Dashboard */}
-            <div className="hidden items-center gap-3 md:flex">
-                {navItems.map(renderIcon)}
-            </div>
-        </>
+                return (
+                    <Link
+                        key={id}
+                        href={href}
+                        aria-label={label}
+                        title={label}
+                        className={`
+                            relative flex flex-col items-center justify-center gap-0.5
+                            w-10 h-10 rounded-xl transition-all duration-200
+                            ${!mobileVisible ? "hidden sm:flex" : "flex"}
+                            ${isActive
+                                ? "text-white bg-white/10"
+                                : "text-neutral-400 hover:text-white hover:bg-white/[0.07]"
+                            }
+                        `}
+                    >
+                        <Icon
+                            className="w-5 h-5"
+                            strokeWidth={isActive ? 2.5 : 1.75}
+                        />
+
+                        {/* Unread badge */}
+                        {badge > 0 && (
+                            <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-indigo-500 flex items-center justify-center text-[10px] font-bold text-white px-1 leading-none">
+                                {badge > 99 ? "99+" : badge}
+                            </span>
+                        )}
+
+                        {/* Active dot */}
+                        {isActive && (
+                            <span className="absolute bottom-1 w-1 h-1 rounded-full bg-white" />
+                        )}
+                    </Link>
+                );
+            })}
+        </div>
     );
-};
-
-export default NavIcons;
+}

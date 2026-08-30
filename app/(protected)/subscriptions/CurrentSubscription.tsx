@@ -8,7 +8,6 @@ import {
     ArrowUpRight,
 } from "lucide-react";
 
-// ✅ Match Prisma schema properly
 interface Subscription {
     planName: string | null;
     subscriptionStatus: string;
@@ -17,7 +16,7 @@ interface Subscription {
 
 interface User {
     isPro: boolean;
-    stripeCustomerId: string | null; // 🔥 moved here
+    stripeCustomerId: string | null;
 }
 
 interface Props {

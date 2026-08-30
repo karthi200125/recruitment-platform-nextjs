@@ -4,9 +4,8 @@ import CtaButton from "../ui/CtaButton";
 const AuthButtons = () => {
     return (
         <div
-            className="
-                hidden
-                sm:flex
+            className="                
+                flex
                 items-center
                 gap-2
                 rounded-2xl
