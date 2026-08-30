@@ -1,11 +1,11 @@
 "use server";
 
-import * as z from "zod";
 import { getServerSession } from "next-auth";
+import * as z from "zod";
 
 import { authOptions } from "@/lib/authentication/authOptions";
 import { db } from "@/lib/db";
-import { ChangeEmailSchema } from "../settings";
+import { ChangeEmailSchema } from "@/lib/SchemaTypes";
 import { ActionResponse } from "@/types/settings";
 
 export const changeEmail = async (
