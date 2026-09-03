@@ -259,7 +259,7 @@ export async function POST(req: NextRequest) {
         }
 
         case "resume": {
-          await deleteExistingAsset(user?.resumePublicId);
+          const previousResumePublicId = user?.resumePublicId;
 
           await db.user.update({
             where: { id: userId },
@@ -268,6 +268,8 @@ export async function POST(req: NextRequest) {
               resumePublicId: uploaded.publicId,
             },
           });
+
+          await deleteExistingAsset(previousResumePublicId);
           break;
         }
 

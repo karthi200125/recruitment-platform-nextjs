@@ -171,6 +171,8 @@ const websiteJsonLd = {
 };
 
 export default function HomePage() {
+
+  
   return (
     <>
       {/* Structured data */}

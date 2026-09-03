@@ -21,6 +21,8 @@ import { closeModal } from "@/store/ModalSlice";
 import UserAbout from "./UserAbout";
 
 import { ProfileUser } from "@/types/userProfile";
+import AIImproveAbout from "../AIImproveAbout";
+import AIImproveHeadline from "../AIImproveHeadline";
 
 interface Props {
     profileUser: any;
@@ -227,12 +229,31 @@ export function UserInfoForm({
                     />
                 </div>
 
-                <CustomFormField
-                    name="userBio"
-                    label="Professional Headline"
-                    form={form}
-                    isTextarea
-                />
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                        <label className="text-sm font-semibold text-slate-800">
+                            Professional Headline
+                        </label>
+
+                        <AIImproveHeadline
+                            userBio={form.watch("userBio")}
+                            profession={form.watch("profession")}
+                            about={userAbout}
+                            onUseSuggestion={(suggestion) =>
+                                form.setValue("userBio", suggestion, {
+                                    shouldDirty: true,
+                                    shouldValidate: true,
+                                })
+                            }
+                        />
+                    </div>
+
+                    <CustomFormField
+                        name="userBio"
+                        form={form}
+                        isTextarea
+                    />
+                </div>
 
                 <CustomFormField
                     name="website"
@@ -241,25 +262,33 @@ export function UserInfoForm({
                 />
 
                 <div className="space-y-2">
-                    <h3 className="text-sm font-semibold text-slate-800">
-                        About
-                    </h3>
+
+                    <div className="flex items-center justify-between">
+
+                        <h3 className="text-sm font-semibold text-slate-800">
+                            About
+                        </h3>
+
+                        <AIImproveAbout
+                            about={userAbout}
+                            profession={
+                                form.watch("profession")
+                            }
+                            userBio={
+                                form.watch("userBio")
+                            }
+                            onUseSuggestion={
+                                setUserAbout
+                            }
+                        />
+
+                    </div>
 
                     <UserAbout
-                        onUserAbout={
-                            setUserAbout
-                        }
-                        userAbout={
-                            typeof profileUser?.userAbout ===
-                                "string"
-                                ? profileUser.userAbout
-                                : profileUser?.userAbout
-                                    ? JSON.stringify(
-                                        profileUser.userAbout
-                                    )
-                                    : ""
-                        }
+                        onUserAbout={setUserAbout}
+                        userAbout={userAbout}
                     />
+
                 </div>
 
                 <FormError

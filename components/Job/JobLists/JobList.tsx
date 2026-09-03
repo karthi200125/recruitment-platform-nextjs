@@ -86,6 +86,20 @@ const JobList = ({ job, selectedJob, isHover, border, onSelect }: Props) => {
             </span>
           </div>
 
+          {/* ai match score */}
+          {job.aiMatch && (
+            <span
+              className={`absolute right-3 bottom-4 z-10 text-[10px] font-bold px-2 py-0.5 rounded-full border ${job.aiMatch.matchScore >= 70
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : job.aiMatch.matchScore >= 40
+                  ? "bg-amber-50 text-amber-700 border-amber-200"
+                  : "bg-red-50 text-red-600 border-red-200"
+                }`}
+            >
+              ✨ {job.aiMatch.matchScore}% Match
+            </span>
+          )}
+
           {/* Badges */}
           <div className="flex flex-wrap gap-1.5 mt-2">
             {modeBadge && (

@@ -3,6 +3,8 @@ import { SearchParams } from "@/types";
 import { Prisma } from "@prisma/client";
 import { cache } from "react";
 import { searchJobIds } from "../searchJobs";
+import { getJobAIMatches } from "../ai/jobs/get-job-ai-matches";
+import type { AIJobMatchResult } from "@/actions/ai/jobs/get-job-ai-matches";
 
 export type FilteredJob = Prisma.JobGetPayload<{
     include: {
@@ -19,31 +21,34 @@ export type FilteredJob = Prisma.JobGetPayload<{
 
         company: {
             select: {
-                id: true,
-                userId: true,
+                id: true;
+                userId: true;
 
-                companyName: true,
-                companyImage: true,
+                companyName: true;
+                companyImage: true;
 
-                companyAbout: true,
-                companyTotalEmployees: true,
-                companyIsVerified: true,
-            },
-        },
+                companyAbout: true;
+                companyTotalEmployees: true;
+                companyIsVerified: true;
+            };
+        };
 
         jobApplications: {
             select: {
-                userId: true,
-            },
-        },
+                userId: true;
+            };
+        };
 
-        // _count: {
-        //     select: {
-        //         jobApplications: true,
-        //     },
-        // },
-    }
-}>;
+        _count: {
+            select: {
+                jobApplications: true;
+            };
+        };
+    };
+}> & {
+    aiMatch: AIJobMatchResult | null;
+};
+
 
 const ITEM_PER_PAGE = 10;
 
@@ -206,8 +211,88 @@ export const getFilteredJobs = cache(
                 },
             });
 
+            let aiMatches = new Map<
+                number,
+                import("@/actions/ai/jobs/get-job-ai-matches").AIJobMatchResult
+            >();
+
+            if (userId !== undefined && jobs.length > 0) {
+                try {
+                    const aiUser = await db.user.findUnique({
+                        where: {
+                            id: userId,
+                        },
+                        select: {
+                            profession: true,
+                            skills: true,
+                            city: true,
+                            state: true,
+                            country: true,
+
+                            educations: {
+                                select: {
+                                    instituteName: true,
+                                    degree: true,
+                                    fieldOfStudy: true,
+                                },
+                            },
+
+                            experiences: {
+                                select: {
+                                    companyName: true,
+                                    position: true,
+                                    description: true,
+                                },
+                            },
+
+                            projects: {
+                                select: {
+                                    proName: true,
+                                    proDesc: true,
+                                },
+                            },
+                        },
+                    });
+
+                    if (aiUser) {
+                        const matches = await getJobAIMatches(
+                            aiUser,
+                            jobs.map((job) => ({
+                                id: job.id,
+                                jobTitle: job.jobTitle,
+                                jobDesc: job.jobDesc,
+                                experience: job.experience,
+                                city: job.city,
+                                state: job.state,
+                                country: job.country,
+                                type: job.type,
+                                mode: job.mode,
+                                skills: job.skills,
+                            }))
+                        );
+
+                        aiMatches = new Map(
+                            matches.map((match) => [
+                                match.jobId,
+                                match,
+                            ])
+                        );
+                    }
+                } catch (error) {
+                    console.error(
+                        "❌ AI job matching failed:",
+                        error
+                    );
+                }
+            }
+
+            const jobsWithAI = jobs.map((job) => ({
+                ...job,
+                aiMatch: aiMatches.get(job.id) ?? null,
+            }));
+
             return {
-                jobs,
+                jobs: jobsWithAI,
                 count: totalCount,
             };
         } catch (error) {

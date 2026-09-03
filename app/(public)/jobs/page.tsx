@@ -1,12 +1,12 @@
 import { getFilteredJobs } from "@/actions/job/get-filter-all-jobs";
-import { authOptions } from "@/lib/authentication/authOptions";
 import { siteConfig } from "@/config";
+import { authOptions } from "@/lib/authentication/authOptions";
 
 import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 
-import JobsClient from "./JobsClient";
 import { getCompanyNames } from "@/actions/company/get-companies";
+import JobsClient from "./JobsClient";
 
 export interface JobsPageProps {
   searchParams: {
@@ -186,7 +186,7 @@ export default async function JobsPage({
 
   const companynames = await getCompanyNames()
   const { jobs, count, } = await getFilteredJobs(filters);
-  
+
   return (
     <JobsClient
       initialJobs={jobs}

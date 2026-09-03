@@ -17,6 +17,7 @@ import {
     JobMode,
 } from "@/lib/getOptionsData";
 import { useQuery } from "@tanstack/react-query";
+import AIMatchBadge from "./Navbar/AIMatchBadge";
 
 interface Filter {
     id: number;
@@ -392,6 +393,7 @@ const FilterNavbar = ({ companynames }: FilterNavbarProps) => {
                     {activeCount > 1 ? ` (${activeCount})` : ""}
                 </button>
             )}
+            <AIMatchBadge />
         </div>
     );
 };

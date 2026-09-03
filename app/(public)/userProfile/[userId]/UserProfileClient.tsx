@@ -24,6 +24,7 @@ import {
     isCandidateRecruiterProfile,
     isOrganizationProfile,
 } from "@/types/userProfile";
+import ProfileResume from "../ProfileResume";
 
 interface UserProfileClientProps {
     initialProfile: ProfileUser;
@@ -131,8 +132,7 @@ const UserProfileClient = ({
             profileData
         );
 
-    const company =
-        profileData.company ?? null;
+    const company = profileData.company ?? null;
 
     return (
         <main className="flex min-h-screen w-full flex-col gap-5 py-6 md:flex-row">
@@ -143,6 +143,11 @@ const UserProfileClient = ({
                     isLoading={isPending}
                     company={company}
                     isOrg={isOrganization}
+                />
+
+                <ProfileResume
+                    resume={profileData.resume}
+                    resumePublicId={profileData.resumePublicId}
                 />
 
                 <AboutMe

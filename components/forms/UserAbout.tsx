@@ -21,17 +21,13 @@ const UserAbout = ({
     userAbout,
     onUserAbout,
 }: UserAboutProps) => {
-    const [value, setValue] = useState(
-        userAbout ?? ""
-    );
+    const [value, setValue] = useState(userAbout ?? "");
 
     useEffect(() => {
         setValue(userAbout ?? "");
     }, [userAbout]);
 
-    const handleChange = (
-        content: string
-    ) => {
+    const handleChange = (content: string) => {
         setValue(content);
         onUserAbout(content);
     };
