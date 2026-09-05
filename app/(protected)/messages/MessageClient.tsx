@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { RefreshCw, Search } from "lucide-react";
+import {
+    useCallback,
+    useDeferredValue,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 
-import { getChatUsers } from "@/actions/message/get-chat-users";
+import { Search } from "lucide-react";
+
 import type { ChatUserItem } from "@/types";
 
 import BottomDrawer from "@/components/BottomDrawer";
@@ -20,150 +25,143 @@ const MessagesClient = ({
     currentUserId,
     initialChatUsers,
 }: MessagesClientProps) => {
-    const [selectedId, setSelectedId] = useState<number | null>(
-        initialChatUsers[0]?.id ?? null
-    );
+    const [chatUsers, setChatUsers] =
+        useState<ChatUserItem[]>(initialChatUsers);
+
+    const [selectedId, setSelectedId] =
+        useState<number | null>(
+            initialChatUsers[0]?.id ?? null
+        );
 
     const [isMobileChatOpen, setIsMobileChatOpen] =
         useState(false);
 
     const [q, setQ] = useState("");
 
-    const {
-        data: chatUsers = initialChatUsers,
-        isFetching,
-        isError,
-        refetch,
-    } = useQuery<ChatUserItem[]>({
-        queryKey: ["chatUsers", currentUserId, q],
+    /*
+     * useDeferredValue keeps typing smooth even if
+     * the conversation list becomes large.
+     */
+    const deferredSearch = useDeferredValue(q);
 
-        queryFn: () =>
-            getChatUsers(
-                currentUserId,
-                q.trim() || undefined
-            ),
-
-        initialData: initialChatUsers,
-
-        // Don't immediately refetch the server-rendered data.
-        staleTime: 60 * 1000,
-
-        // Keep cached conversations available.
-        gcTime: 10 * 60 * 1000,
-
-        // Don't hit the database every 5 seconds.
-        refetchInterval: false,
-
-        // Don't refetch every time the user changes tabs.
-        refetchOnWindowFocus: false,
-
-        // Refresh when connection comes back.
-        refetchOnReconnect: true,
-
-        // Don't retry repeatedly when the server fails.
-        retry: 1,
-    });
-
+    /*
+     * Keep the conversation list synchronized if
+     * the server sends a new initial list after
+     * navigation.
+     */
     useEffect(() => {
-        if (
-            selectedId !== null &&
-            chatUsers.some(
-                (chatUser) => chatUser.id === selectedId
-            )
-        ) {
+        setChatUsers(initialChatUsers);
+    }, [initialChatUsers]);
+
+    /*
+     * Search locally.
+     *
+     * IMPORTANT:
+     * We do NOT call the database for every
+     * character the user types.
+     */
+    const filteredChatUsers = useMemo(() => {
+        const search = deferredSearch.trim().toLowerCase();
+
+        if (!search) {
+            return chatUsers;
+        }
+
+        return chatUsers.filter((user) =>
+            user.username
+                .toLowerCase()
+                .includes(search)
+        );
+    }, [chatUsers, deferredSearch]);
+
+    /*
+     * Keep selected conversation valid.
+     */
+    useEffect(() => {
+        if (chatUsers.length === 0) {
+            setSelectedId(null);
+            setIsMobileChatOpen(false);
             return;
         }
 
-        if (chatUsers.length > 0) {
+        const selectedStillExists = chatUsers.some(
+            (user) => user.id === selectedId
+        );
+
+        if (!selectedStillExists) {
             setSelectedId(chatUsers[0].id);
-        } else {
-            setSelectedId(null);
-            setIsMobileChatOpen(false);
         }
     }, [chatUsers, selectedId]);
 
+    /*
+     * Find the currently selected conversation.
+     */
     const selectedUser = useMemo(() => {
         if (selectedId === null) {
             return undefined;
         }
 
         return chatUsers.find(
-            (chatUser) => chatUser.id === selectedId
+            (user) => user.id === selectedId
         );
     }, [chatUsers, selectedId]);
 
-    const handleSelectedChatUser = (id: number) => {
-        setSelectedId(id);
-        setIsMobileChatOpen(true);
-    };
+    /*
+     * Select conversation.
+     */
+    const handleSelectedChatUser = useCallback(
+        (id: number) => {
+            setSelectedId(id);
+            setIsMobileChatOpen(true);
+        },
+        []
+    );
 
-    const handleCloseMobileChat = (open: boolean) => {
-        setIsMobileChatOpen(open);
-    };
-
-    if (isError) {
-        return (
-            <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
-                <p className="text-sm font-medium text-red-500">
-                    Failed to load conversations
-                </p>
-
-                <button
-                    type="button"
-                    onClick={() => refetch()}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
-                >
-                    <RefreshCw
-                        className="h-4 w-4"
-                        strokeWidth={2}
-                    />
-
-                    Retry
-                </button>
-            </div>
-        );
-    }
+    /*
+     * Close mobile chat.
+     */
+    const handleCloseMobileChat = useCallback(
+        (open: boolean) => {
+            setIsMobileChatOpen(open);
+        },
+        []
+    );
 
     return (
         <div className="mt-3 flex h-[calc(100vh-78px)] w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 
-            {/* Conversation sidebar */}
+            {/* =========================================================
+                CONVERSATION SIDEBAR
+            ========================================================= */}
+
             <div className="flex w-full min-w-0 flex-shrink-0 flex-col border-r border-slate-100 md:w-[300px] lg:w-[340px]">
 
                 {/* Header */}
                 <div className="flex-shrink-0 border-b border-slate-100 px-4 py-4">
 
-                    <div className="mb-3 flex items-center justify-between">
-                        <h2 className="text-sm font-bold text-slate-800">
-                            Messages
-                        </h2>
+                    <h2 className="mb-3 text-sm font-bold text-slate-800">
+                        Messages
+                    </h2>
 
-                        {isFetching && (
-                            <span
-                                className="text-xs text-slate-400"
-                                aria-label="Updating conversations"
-                            >
-                                Updating...
-                            </span>
-                        )}
-                    </div>
-
-                    {/* Conversation search */}
+                    {/* Search */}
                     <div className="relative">
 
                         <Search
                             className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
                             strokeWidth={2}
+                            aria-hidden="true"
                         />
 
                         <input
-                            type="text"
+                            type="search"
                             value={q}
                             onChange={(event) =>
                                 setQ(event.target.value)
                             }
                             placeholder="Search conversations..."
                             aria-label="Search conversations"
+                            autoComplete="off"
+                            spellCheck={false}
                             className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30"
                         />
 
@@ -172,7 +170,7 @@ const MessagesClient = ({
 
                 {/* Conversation list */}
                 <ChatLists
-                    chatUsers={chatUsers}
+                    chatUsers={filteredChatUsers}
                     isPending={false}
                     onSelectedChatUserId={
                         handleSelectedChatUser
@@ -181,19 +179,25 @@ const MessagesClient = ({
                 />
             </div>
 
-            {/* Desktop chat */}
+            {/* =========================================================
+                DESKTOP CHAT
+            ========================================================= */}
+
             <div className="hidden min-w-0 flex-1 flex-col overflow-hidden md:flex">
 
                 <MessageBox
                     receiverId={selectedUser?.id}
                     chatUser={selectedUser}
-                    isLoading={isFetching}
+                    isLoading={false}
                     isChatuser
                 />
 
             </div>
 
-            {/* Mobile chat */}
+            {/* =========================================================
+                MOBILE CHAT
+            ========================================================= */}
+
             <div className="lg:hidden">
 
                 <BottomDrawer
@@ -219,7 +223,7 @@ const MessagesClient = ({
                         <MessageBox
                             receiverId={selectedUser.id}
                             chatUser={selectedUser}
-                            isLoading={isFetching}
+                            isLoading={false}
                             isChatuser
                         />
                     )}

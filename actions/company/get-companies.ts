@@ -37,9 +37,7 @@ export const getCompanies = cache(
                 select: {
                     companyImage: true,
                 },
-            });
-
-            console.log('company images ', test)
+            });            
 
             return companies.map((c: any) => ({
                 ...c,
