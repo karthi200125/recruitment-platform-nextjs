@@ -50,7 +50,7 @@ const Navbar = ({ user: initialUser }: NavbarProps) => {
                 onClose={() => setSearchOpen(false)}
             />
 
-            <header className="sticky top-0 z-50 w-full rounded-lg pt-3 md:pt-0">
+            <header className="sticky top-0 z-50 w-full rounded-lg pt-1 md:pt-0">
                 <nav className="flex h-[60px] items-center gap-3 rounded-lg border-b border-white/10 bg-neutral-950 px-3 md:px-2">
 
                     {/* Logo */}

@@ -11,6 +11,8 @@ import RootLayoutClient from "@/components/RootLayoutClient";
 import { Toaster } from "@/components/ui/toaster";
 import { authOptions } from "@/lib/authentication/authOptions";
 import { siteConfig } from "@/config";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import NetworkStatus from "@/components/NetworkStatus";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -100,6 +102,8 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
       >
         <Providers>
           <RootLayoutClient user={user}>
+            <ServiceWorkerRegister />
+            <NetworkStatus />
             {children}
             <Toaster />
           </RootLayoutClient>
