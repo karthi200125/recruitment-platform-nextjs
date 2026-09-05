@@ -40,8 +40,7 @@ const Navbar = ({ user: initialUser }: NavbarProps) => {
                 ? initialUser
                 : null;
 
-    const isAuthenticated =
-        status === "authenticated" && !!user?.id;
+    const isAuthenticated = status === "authenticated" && !!user?.id;
 
     return (
         <>

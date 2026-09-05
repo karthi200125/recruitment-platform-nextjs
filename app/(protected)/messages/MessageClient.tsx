@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { RefreshCw, Search } from "lucide-react";
 
 import { getChatUsers } from "@/actions/message/get-chat-users";
-import { ChatUserItem } from "@/types";
+import type { ChatUserItem } from "@/types";
 
 import BottomDrawer from "@/components/BottomDrawer";
 import { ChatLists } from "./ChatLists";
@@ -20,43 +20,73 @@ const MessagesClient = ({
     currentUserId,
     initialChatUsers,
 }: MessagesClientProps) => {
-    const [selectedId, setSelectedId] = useState<number | null>(null);
-    const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
+    const [selectedId, setSelectedId] = useState<number | null>(
+        initialChatUsers[0]?.id ?? null
+    );
+
+    const [isMobileChatOpen, setIsMobileChatOpen] =
+        useState(false);
+
     const [q, setQ] = useState("");
 
     const {
-        data: chatUsers = [],
-        isPending,
+        data: chatUsers = initialChatUsers,
+        isFetching,
         isError,
         refetch,
     } = useQuery<ChatUserItem[]>({
         queryKey: ["chatUsers", currentUserId, q],
-        queryFn: () => getChatUsers(currentUserId, q),
+
+        queryFn: () =>
+            getChatUsers(
+                currentUserId,
+                q.trim() || undefined
+            ),
+
         initialData: initialChatUsers,
-        staleTime: 1000 * 60,
-        refetchInterval: 5000,
-        refetchOnWindowFocus: true,
+
+        // Don't immediately refetch the server-rendered data.
+        staleTime: 60 * 1000,
+
+        // Keep cached conversations available.
+        gcTime: 10 * 60 * 1000,
+
+        // Don't hit the database every 5 seconds.
+        refetchInterval: false,
+
+        // Don't refetch every time the user changes tabs.
+        refetchOnWindowFocus: false,
+
+        // Refresh when connection comes back.
         refetchOnReconnect: true,
+
+        // Don't retry repeatedly when the server fails.
+        retry: 1,
     });
 
     useEffect(() => {
-        if (!selectedId && chatUsers.length > 0) {
-            setSelectedId(chatUsers[0].id);
-            return;
-        }
-
         if (
-            selectedId &&
-            !chatUsers.some(
+            selectedId !== null &&
+            chatUsers.some(
                 (chatUser) => chatUser.id === selectedId
             )
         ) {
+            return;
+        }
+
+        if (chatUsers.length > 0) {
+            setSelectedId(chatUsers[0].id);
+        } else {
             setSelectedId(null);
             setIsMobileChatOpen(false);
         }
     }, [chatUsers, selectedId]);
 
     const selectedUser = useMemo(() => {
+        if (selectedId === null) {
+            return undefined;
+        }
+
         return chatUsers.find(
             (chatUser) => chatUser.id === selectedId
         );
@@ -64,7 +94,6 @@ const MessagesClient = ({
 
     const handleSelectedChatUser = (id: number) => {
         setSelectedId(id);
-
         setIsMobileChatOpen(true);
     };
 
@@ -96,17 +125,28 @@ const MessagesClient = ({
     }
 
     return (
-        <div className="flex mt-3 h-[calc(100vh-78px)] w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="mt-3 flex h-[calc(100vh-78px)] w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 
-
+            {/* Conversation sidebar */}
             <div className="flex w-full min-w-0 flex-shrink-0 flex-col border-r border-slate-100 md:w-[300px] lg:w-[340px]">
 
                 {/* Header */}
                 <div className="flex-shrink-0 border-b border-slate-100 px-4 py-4">
 
-                    <h2 className="mb-3 text-sm font-bold text-slate-800">
-                        Messages
-                    </h2>
+                    <div className="mb-3 flex items-center justify-between">
+                        <h2 className="text-sm font-bold text-slate-800">
+                            Messages
+                        </h2>
+
+                        {isFetching && (
+                            <span
+                                className="text-xs text-slate-400"
+                                aria-label="Updating conversations"
+                            >
+                                Updating...
+                            </span>
+                        )}
+                    </div>
 
                     {/* Conversation search */}
                     <div className="relative">
@@ -133,29 +173,27 @@ const MessagesClient = ({
                 {/* Conversation list */}
                 <ChatLists
                     chatUsers={chatUsers}
-                    isPending={isPending}
+                    isPending={false}
                     onSelectedChatUserId={
                         handleSelectedChatUser
                     }
                     defaultChatUserId={selectedId}
                 />
-
             </div>
 
-
-            <div className="hidden min-w-0 flex-1 flex-col overflow-hidden md:flex ">
+            {/* Desktop chat */}
+            <div className="hidden min-w-0 flex-1 flex-col overflow-hidden md:flex">
 
                 <MessageBox
                     receiverId={selectedUser?.id}
                     chatUser={selectedUser}
-                    isLoading={isPending}
+                    isLoading={isFetching}
                     isChatuser
-                    // hasChatUsers={chatUsers.length > 0}
                 />
 
             </div>
 
-
+            {/* Mobile chat */}
             <div className="lg:hidden">
 
                 <BottomDrawer
@@ -181,9 +219,8 @@ const MessagesClient = ({
                         <MessageBox
                             receiverId={selectedUser.id}
                             chatUser={selectedUser}
-                            isLoading={isPending}
+                            isLoading={isFetching}
                             isChatuser
-                            // hasChatUsers={chatUsers.length > 0}
                         />
                     )}
 

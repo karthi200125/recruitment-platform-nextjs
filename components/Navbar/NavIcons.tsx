@@ -24,8 +24,8 @@ const NAV_ICONS: NavIconItem[] = [
     { id: 1, label: "Jobs", href: "/jobs", icon: Briefcase, mobileVisible: true },
     { id: 2, label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, mobileVisible: false },
     { id: 3, label: "Messages", href: "/messages", icon: MessageSquare, mobileVisible: false, badgeKey: "messages" },
-    { id: 4, label: "Saved", href: "/saved", icon: Bookmark, mobileVisible: false },
-    { id: 5, label: "Alerts", href: "/alerts", icon: Bell, mobileVisible: false },
+    { id: 4, label: "Companies", href: "/companies", icon: Bookmark, mobileVisible: false },
+    { id: 5, label: "Notifications", href: "/notifications", icon: Bell, mobileVisible: false },
 ];
 
 export default function NavIcons() {

@@ -8,6 +8,8 @@ export const getChatUsers = async (
     q?: string
 ): Promise<ChatUserItem[]> => {
     try {
+        const search = q?.trim();
+
         const chats = await db.chats.findMany({
             where: {
                 OR: [
@@ -15,6 +17,7 @@ export const getChatUsers = async (
                     { receiverId: userId },
                 ],
             },
+
             select: {
                 id: true,
                 senderId: true,
@@ -40,6 +43,7 @@ export const getChatUsers = async (
                     },
                 },
             },
+
             orderBy: {
                 updatedAt: "desc",
             },
@@ -62,19 +66,20 @@ export const getChatUsers = async (
             };
         });
 
-        if (!q) {
+        if (!search) {
             return users;
         }
 
-        const search = q.trim().toLowerCase();
+        const normalizedSearch = search.toLowerCase();
 
         return users.filter((user) =>
             user.username
                 .toLowerCase()
-                .includes(search)
+                .includes(normalizedSearch)
         );
     } catch (error) {
         console.error("[GET_CHAT_USERS]", error);
+
         return [];
     }
 };

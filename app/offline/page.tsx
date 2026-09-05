@@ -26,7 +26,7 @@ export default function OfflinePage() {
                         No internet connection
                     </h1>
                     <p className="text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">
-                        It looks like you're offline. Check your Wi-Fi or mobile data and try again.
+                        It looks like you&apos;re offline. Check your Wi-Fi or mobile data and try again.
                         Any Jobify pages you visited recently are still available.
                     </p>
                 </div>
