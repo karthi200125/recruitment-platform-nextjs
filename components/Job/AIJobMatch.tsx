@@ -1,3 +1,5 @@
+// FILE: app/(public)/jobs/AIJobMatch.tsx
+
 "use client";
 
 import {
@@ -10,6 +12,7 @@ import {
 import { useMemo, useState } from "react";
 
 export interface AIJobMatchResult {
+    jobId: number;
     matchScore: number;
     matchedSkills: string[];
     missingSkills: string[];
@@ -25,9 +28,16 @@ export interface AIJobMatchResult {
 }
 
 interface AIJobMatchProps {
-    result: AIJobMatchResult;
-    isLoading?: boolean;
+    result?: AIJobMatchResult | null;
+
+    // AI request is currently running
+    isAIMatching?: boolean;
+
+    // AI request failed
+    isAIError?: boolean;
 }
+
+// ─── Score helpers ────────────────────────────────────────────────────────────
 
 const getScoreColor = (score: number) => {
     if (score >= 70) {
@@ -67,11 +77,161 @@ const getMatchLabel = (score: number) => {
     return "Low Match";
 };
 
+// ─── AI Job Match ─────────────────────────────────────────────────────────────
+
 const AIJobMatch = ({
     result,
-    isLoading = false,
+    isAIMatching = false,
+    isAIError = false,
 }: AIJobMatchProps) => {
     const [showDetails, setShowDetails] = useState(false);
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 1. LOADING STATE
+    // ─────────────────────────────────────────────────────────────────────────
+
+    if (isAIMatching && !result) {
+        return (
+            <section
+                aria-label="AI job match loading"
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+            >
+                {/* Header */}
+                <div className="flex items-center gap-2 px-5 pt-4">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50">
+                        <Sparkles
+                            className="h-4 w-4 animate-pulse text-amber-500"
+                            strokeWidth={2}
+                        />
+                    </div>
+
+                    <span className="text-sm font-bold text-slate-800">
+                        AI Match
+                    </span>
+
+                    <span className="ml-1 inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-600">
+                        Analyzing
+                    </span>
+                </div>
+
+                {/* Skeleton */}
+                <div className="px-5 py-5">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-[150px_minmax(0,1fr)_minmax(220px,0.9fr)]">
+
+                        {/* Score skeleton */}
+                        <div className="flex flex-col items-center justify-center border-b border-slate-100 pb-5 md:border-b-0 md:border-r md:pb-0">
+                            <div className="h-[118px] w-[118px] animate-pulse rounded-full bg-slate-100" />
+
+                            <div className="mt-4 h-4 w-24 animate-pulse rounded bg-slate-100" />
+                        </div>
+
+                        {/* Skills skeleton */}
+                        <div className="min-w-0 md:border-r md:border-slate-100 md:pr-6">
+                            <div className="h-4 w-28 animate-pulse rounded bg-slate-100" />
+
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                <div className="h-6 w-20 animate-pulse rounded-full bg-slate-100" />
+                                <div className="h-6 w-24 animate-pulse rounded-full bg-slate-100" />
+                                <div className="h-6 w-16 animate-pulse rounded-full bg-slate-100" />
+                            </div>
+
+                            <div className="my-5 h-px bg-slate-100" />
+
+                            <div className="h-4 w-36 animate-pulse rounded bg-slate-100" />
+
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                <div className="h-6 w-24 animate-pulse rounded-full bg-slate-100" />
+                                <div className="h-6 w-20 animate-pulse rounded-full bg-slate-100" />
+                            </div>
+                        </div>
+
+                        {/* Breakdown skeleton */}
+                        <div className="min-w-0">
+                            <div className="h-4 w-20 animate-pulse rounded bg-slate-100" />
+
+                            <div className="mt-5 space-y-5">
+                                {[1, 2, 3, 4, 5].map((item) => (
+                                    <div
+                                        key={item}
+                                        className="grid grid-cols-[90px_minmax(0,1fr)_34px] items-center gap-3"
+                                    >
+                                        <div className="h-3 w-16 animate-pulse rounded bg-slate-100" />
+
+                                        <div className="h-2 animate-pulse rounded-full bg-slate-100" />
+
+                                        <div className="h-3 w-7 animate-pulse rounded bg-slate-100" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottom divider */}
+                    <div className="my-5 h-px bg-slate-100" />
+
+                    {/* Loading message */}
+                    <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 animate-pulse text-indigo-500" />
+
+                        <p className="text-xs text-slate-500">
+                            Analyzing your profile against this job...
+                        </p>
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 2. ERROR STATE
+    // ─────────────────────────────────────────────────────────────────────────
+
+    if (isAIError && !result) {
+        return (
+            <section
+                aria-label="AI job match unavailable"
+                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            >
+                <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100">
+                        <Sparkles
+                            className="h-4 w-4 text-slate-500"
+                            strokeWidth={2}
+                        />
+                    </div>
+
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-slate-800">
+                                AI Match
+                            </span>
+
+                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
+                                Unavailable
+                            </span>
+                        </div>
+
+                        <p className="mt-1.5 text-xs leading-5 text-slate-500">
+                            We couldn't calculate the AI match for this job right now.
+                            You can still view the job normally.
+                        </p>
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 3. NO RESULT
+    // ─────────────────────────────────────────────────────────────────────────
+
+    if (!result) {
+        return null;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 4. ACTUAL AI RESULT
+    // ─────────────────────────────────────────────────────────────────────────
 
     const score = Math.min(
         Math.max(Math.round(result.matchScore), 0),
@@ -88,9 +248,9 @@ const AIJobMatch = ({
             },
             {
                 label: "Experience",
-                score: result.experienceScore ?? (
-                    result.experienceMatch ? 100 : 50
-                ),
+                score:
+                    result.experienceScore ??
+                    (result.experienceMatch ? 100 : 50),
             },
             {
                 label: "Requirements",
@@ -108,36 +268,10 @@ const AIJobMatch = ({
         [result, score]
     );
 
-    if (isLoading) {
-        return (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-indigo-500" />
-
-                    <span className="text-sm font-semibold text-slate-800">
-                        AI Match
-                    </span>
-
-                    <Info className="h-3.5 w-3.5 text-slate-400" />
-                </div>
-
-                <div className="mt-5 animate-pulse">
-                    <div className="h-2 w-full rounded-full bg-slate-100" />
-                    <div className="mt-3 h-2 w-4/5 rounded-full bg-slate-100" />
-                    <div className="mt-3 h-2 w-3/5 rounded-full bg-slate-100" />
-                </div>
-
-                <p className="mt-4 text-xs text-slate-400">
-                    Analyzing your profile against this job...
-                </p>
-            </div>
-        );
-    }
-
     return (
         <section
             aria-label="AI job match"
-            className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"
+            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
         >
             {/* Header */}
             <div className="flex items-center justify-between gap-4 px-5 pt-4">
@@ -161,7 +295,9 @@ const AIJobMatch = ({
 
                 <button
                     type="button"
-                    onClick={() => setShowDetails((value) => !value)}
+                    onClick={() =>
+                        setShowDetails((value) => !value)
+                    }
                     className="group inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 transition-colors hover:text-indigo-600"
                 >
                     <span>How is this calculated?</span>
@@ -180,15 +316,14 @@ const AIJobMatch = ({
                     {/* Score */}
                     <div className="flex flex-col items-center justify-center border-b border-slate-100 pb-5 md:border-b-0 md:border-r md:pb-0">
                         <div
-                            className="relative flex h-[118px] w-[118px] items-center justify-center rounded-full"
+                            className={`relative flex h-[118px] w-[118px] items-center justify-center rounded-full ${colors.ring}`}
                             style={{
                                 background: `conic-gradient(
-                  currentColor ${score * 3.6}deg,
-                  #e2e8f0 ${score * 3.6}deg
-                )`,
+                                    currentColor ${score * 3.6}deg,
+                                    #e2e8f0 ${score * 3.6}deg
+                                )`,
                             }}
                         >
-                            {/* Inner circle */}
                             <div className="absolute inset-[9px] flex flex-col items-center justify-center rounded-full bg-white">
                                 <span className="text-[34px] font-bold leading-none tracking-tight text-slate-900">
                                     {score}%
@@ -231,7 +366,6 @@ const AIJobMatch = ({
                             )}
                         </div>
 
-                        {/* Divider */}
                         <div className="my-5 h-px bg-slate-100" />
 
                         <h3 className="text-sm font-bold text-slate-800">
@@ -270,7 +404,10 @@ const AIJobMatch = ({
                         <div className="mt-4 space-y-4">
                             {breakdown.map((item) => {
                                 const itemScore = Math.min(
-                                    Math.max(Math.round(item.score), 0),
+                                    Math.max(
+                                        Math.round(item.score),
+                                        0
+                                    ),
                                     100
                                 );
 
@@ -320,7 +457,9 @@ const AIJobMatch = ({
 
                     <button
                         type="button"
-                        onClick={() => setShowDetails((value) => !value)}
+                        onClick={() =>
+                            setShowDetails((value) => !value)
+                        }
                         className="inline-flex flex-shrink-0 items-center justify-center gap-1.5 text-xs font-semibold text-indigo-600 transition-colors hover:text-indigo-700"
                     >
                         <span>
@@ -352,8 +491,9 @@ const AIJobMatch = ({
                                 </p>
 
                                 <p className="mt-1.5 text-xs leading-5 text-slate-600">
-                                    The match considers your skills, experience,
-                                    job requirements, location, and other relevant
+                                    The match considers your skills,
+                                    experience, job requirements,
+                                    location, and other relevant
                                     information from your Jobify profile.
                                 </p>
                             </div>

@@ -961,23 +961,18 @@ function parseGeminiResponse(
 export async function getJobAIMatches(
     user: AIUserProfile,
     jobs: AIJob[]
-): Promise<AIJobMatchResult[]> {
+): Promise<AIJobMatchResult[]> {    
+
     if (!jobs.length) {
         return [];
     }
 
-    // Safety: never send more than the intended batch size.
-    const safeUser =
-        sanitizeUser(user);
-
-    const safeJobs =
-        sanitizeJobs(jobs);
-
+    const safeUser = sanitizeUser(user);
+    const safeJobs = sanitizeJobs(jobs);
     if (!safeJobs.length) {
         return [];
     }
 
-    // If Gemini isn't configured, gracefully use the local matcher.
     if (!process.env.GEMINI_API_KEY) {
         console.error(
             "❌ GEMINI_API_KEY is not configured"
@@ -1055,7 +1050,6 @@ export async function getJobAIMatches(
             );
         }
 
-        // NEVER allow AI failure to break the Jobs page.
         return safeJobs.map((job) => ({
             jobId: job.id,
 

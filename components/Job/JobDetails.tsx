@@ -13,11 +13,15 @@ import JobTitles from "./JobTitles";
 interface JobDetailsProps {
     job: FilteredJob;
     safeSearchParams?: JobSearchParams;
+    isAIError: boolean,
+    isAIMatching: boolean,
 }
 
 const JobDetails = ({
     job,
     safeSearchParams,
+    isAIMatching,
+    isAIError
 }: JobDetailsProps) => {
     const { user } = useCurrentUser();
 
@@ -51,6 +55,8 @@ const JobDetails = ({
                     safeSearchParams={
                         safeSearchParams
                     }
+                    isAIMatching={isAIMatching}
+                    isAIError={isAIError}
                 />
 
                 <div className="h-px bg-slate-100" />

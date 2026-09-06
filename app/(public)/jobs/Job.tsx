@@ -19,7 +19,9 @@ interface Props {
     count: number;
     currentPage: number;
     safeSearchParams: JobSearchParams;
-    companynames: string[]
+    companynames: string[],
+    isAIError: boolean,
+    isAIMatching: boolean,
 }
 
 function NoJobSelected() {
@@ -68,7 +70,9 @@ const Jobb = ({
     isPending,
     onSelectedJob,
     safeSearchParams,
-    companynames
+    companynames,
+    isAIMatching,
+    isAIError
 }: Props) => {
     const [
         isMobileDetailsOpen,
@@ -116,6 +120,8 @@ const Jobb = ({
                             safeSearchParams={
                                 safeSearchParams
                             }
+                            isAIMatching={isAIMatching}
+                            isAIError={isAIError}
                         />
                     ) : (
                         <NoJobSelected />
@@ -147,6 +153,8 @@ const Jobb = ({
                             safeSearchParams={
                                 safeSearchParams
                             }
+                            isAIMatching={isAIMatching}
+                            isAIError={isAIError}
                         />
                     )}
                 </BottomDrawer>

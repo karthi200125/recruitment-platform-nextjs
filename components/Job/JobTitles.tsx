@@ -33,6 +33,8 @@ interface JobTitlesProps {
   company: FilteredJob["company"];
   isPending: boolean;
   safeSearchParams?: SearchParams;
+  isAIError: boolean,
+  isAIMatching: boolean,
 }
 
 const MODE_STYLES: Record<string, string> = {
@@ -55,6 +57,8 @@ const JobTitles = ({
   company,
   isPending,
   safeSearchParams,
+  isAIMatching,
+  isAIError
 }: JobTitlesProps) => {
   /*
    * ---------------------------------------------------------
@@ -288,6 +292,8 @@ const JobTitles = ({
       {user?.role === "CANDIDATE" && aiMatch && (
         <AIJobMatch
           result={aiMatch}
+          isAIMatching={isAIMatching}
+          isAIError={isAIError}
         />
       )}
 
