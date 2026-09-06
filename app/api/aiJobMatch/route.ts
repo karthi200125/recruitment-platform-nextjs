@@ -1,3 +1,5 @@
+// FILE: app/api/aiJobMatch/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
@@ -65,8 +67,8 @@ export async function POST(req: NextRequest) {
         // 3. Validate + deduplicate job IDs
         // ─────────────────────────────────────────────────────────────
 
-        const jobIds = [
-            ...new Set(
+        const jobIds = Array.from(
+            new Set(
                 rawJobIds
                     .map(Number)
                     .filter(
@@ -74,8 +76,8 @@ export async function POST(req: NextRequest) {
                             Number.isInteger(id) &&
                             id > 0
                     )
-            ),
-        ].slice(0, MAX_JOBS_PER_REQUEST);
+            )
+        ).slice(0, MAX_JOBS_PER_REQUEST);
 
         if (jobIds.length === 0) {
             return NextResponse.json([]);
@@ -123,18 +125,16 @@ export async function POST(req: NextRequest) {
         }
 
         // ─────────────────────────────────────────────────────────────
-        // 6. Call the MAIN AI matching function
+        // 6. MAIN AI MATCHING FUNCTION
         // ─────────────────────────────────────────────────────────────
         //
-        // This is where Gemini is actually used.
-        //
-        // route.ts does NOT contain the AI matching logic.
+        // route.ts does NOT contain Gemini matching logic.
         //
         // getJobAIMatches()
         //        ↓
         //      Gemini
         //        ↓
-        //   match results
+        //   AI match results
         //
 
         const aiMatches = await getJobAIMatches(
@@ -150,15 +150,13 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(aiMatches, {
             status: 200,
-
             headers: {
-                "Cache-Control":
-                    "private, max-age=300",
+                "Cache-Control": "private, max-age=300",
             },
         });
     } catch (error) {
         // ─────────────────────────────────────────────────────────────
-        // 8. Never crash the jobs UI because AI failed
+        // 8. AI failure should not crash the application
         // ─────────────────────────────────────────────────────────────
 
         console.error(
