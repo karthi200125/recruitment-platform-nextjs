@@ -1,5 +1,3 @@
-// FILE: app/(public)/jobs/AIJobMatch.tsx
-
 "use client";
 
 import {
@@ -19,7 +17,6 @@ export interface AIJobMatchResult {
     experienceMatch: boolean;
     summary: string;
 
-    // Optional detailed breakdown.
     skillsScore?: number;
     experienceScore?: number;
     requirementsScore?: number;
@@ -29,15 +26,9 @@ export interface AIJobMatchResult {
 
 interface AIJobMatchProps {
     result?: AIJobMatchResult | null;
-
-    // AI request is currently running
     isAIMatching?: boolean;
-
-    // AI request failed
     isAIError?: boolean;
 }
-
-// ─── Score helpers ────────────────────────────────────────────────────────────
 
 const getScoreColor = (score: number) => {
     if (score >= 70) {
@@ -77,8 +68,6 @@ const getMatchLabel = (score: number) => {
     return "Low Match";
 };
 
-// ─── AI Job Match ─────────────────────────────────────────────────────────────
-
 const AIJobMatch = ({
     result,
     isAIMatching = false,
@@ -86,17 +75,61 @@ const AIJobMatch = ({
 }: AIJobMatchProps) => {
     const [showDetails, setShowDetails] = useState(false);
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // 1. LOADING STATE
-    // ─────────────────────────────────────────────────────────────────────────
+    /*
+     * IMPORTANT:
+     * This hook MUST be called before any conditional return.
+     *
+     * When result is undefined/null, we simply use an empty array.
+     */
+    const breakdown = useMemo(() => {
+        if (!result) {
+            return [];
+        }
 
+        const score = Math.min(
+            Math.max(Math.round(result.matchScore), 0),
+            100
+        );
+
+        return [
+            {
+                label: "Skills",
+                score: result.skillsScore ?? score,
+            },
+            {
+                label: "Experience",
+                score:
+                    result.experienceScore ??
+                    (result.experienceMatch ? 100 : 50),
+            },
+            {
+                label: "Requirements",
+                score: result.requirementsScore ?? score,
+            },
+            {
+                label: "Location",
+                score: result.locationScore ?? 100,
+            },
+            {
+                label: "Job Type",
+                score: result.jobTypeScore ?? 100,
+            },
+        ];
+    }, [result]);
+
+    /*
+     * ─────────────────────────────────────────────
+     * 1. LOADING
+     * ─────────────────────────────────────────────
+     *
+     * This MUST come before "no result".
+     */
     if (isAIMatching && !result) {
         return (
             <section
                 aria-label="AI job match loading"
                 className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
             >
-                {/* Header */}
                 <div className="flex items-center gap-2 px-5 pt-4">
                     <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50">
                         <Sparkles
@@ -114,7 +147,6 @@ const AIJobMatch = ({
                     </span>
                 </div>
 
-                {/* Skeleton */}
                 <div className="px-5 py-5">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-[150px_minmax(0,1fr)_minmax(220px,0.9fr)]">
 
@@ -166,10 +198,8 @@ const AIJobMatch = ({
                         </div>
                     </div>
 
-                    {/* Bottom divider */}
                     <div className="my-5 h-px bg-slate-100" />
 
-                    {/* Loading message */}
                     <div className="flex items-center gap-2">
                         <Sparkles className="h-4 w-4 animate-pulse text-indigo-500" />
 
@@ -182,10 +212,11 @@ const AIJobMatch = ({
         );
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // 2. ERROR STATE
-    // ─────────────────────────────────────────────────────────────────────────
-
+    /*
+     * ─────────────────────────────────────────────
+     * 2. ERROR
+     * ─────────────────────────────────────────────
+     */
     if (isAIError && !result) {
         return (
             <section
@@ -212,8 +243,8 @@ const AIJobMatch = ({
                         </div>
 
                         <p className="mt-1.5 text-xs leading-5 text-slate-500">
-                            We couldn't calculate the AI match for this job right now.
-                            You can still view the job normally.
+                            We couldn&apos;t calculate the AI match for this
+                            job right now. You can still view the job normally.
                         </p>
                     </div>
                 </div>
@@ -221,17 +252,20 @@ const AIJobMatch = ({
         );
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // 3. NO RESULT
-    // ─────────────────────────────────────────────────────────────────────────
-
+    /*
+     * ─────────────────────────────────────────────
+     * 3. NO RESULT / NOTHING TO SHOW
+     * ─────────────────────────────────────────────
+     */
     if (!result) {
         return null;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // 4. ACTUAL AI RESULT
-    // ─────────────────────────────────────────────────────────────────────────
+    /*
+     * ─────────────────────────────────────────────
+     * 4. ACTUAL AI RESULT
+     * ─────────────────────────────────────────────
+     */
 
     const score = Math.min(
         Math.max(Math.round(result.matchScore), 0),
@@ -239,34 +273,6 @@ const AIJobMatch = ({
     );
 
     const colors = getScoreColor(score);
-
-    const breakdown = useMemo(
-        () => [
-            {
-                label: "Skills",
-                score: result.skillsScore ?? score,
-            },
-            {
-                label: "Experience",
-                score:
-                    result.experienceScore ??
-                    (result.experienceMatch ? 100 : 50),
-            },
-            {
-                label: "Requirements",
-                score: result.requirementsScore ?? score,
-            },
-            {
-                label: "Location",
-                score: result.locationScore ?? 100,
-            },
-            {
-                label: "Job Type",
-                score: result.jobTypeScore ?? 100,
-            },
-        ],
-        [result, score]
-    );
 
     return (
         <section
@@ -404,10 +410,7 @@ const AIJobMatch = ({
                         <div className="mt-4 space-y-4">
                             {breakdown.map((item) => {
                                 const itemScore = Math.min(
-                                    Math.max(
-                                        Math.round(item.score),
-                                        0
-                                    ),
+                                    Math.max(Math.round(item.score), 0),
                                     100
                                 );
 
@@ -442,7 +445,7 @@ const AIJobMatch = ({
                 {/* Bottom divider */}
                 <div className="my-5 h-px bg-slate-100" />
 
-                {/* Summary + details */}
+                {/* Summary */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 items-start gap-2">
                         <Sparkles
