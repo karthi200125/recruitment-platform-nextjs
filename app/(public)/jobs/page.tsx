@@ -1,3 +1,5 @@
+// FILE: app/(public)/jobs/page.tsx
+
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 
@@ -25,6 +27,8 @@ export interface JobsPageProps {
     jobId?: string;
   };
 }
+
+// ─── Metadata ─────────────────────────────────────────────────────────────────
 
 export async function generateMetadata({
   searchParams,
@@ -114,20 +118,27 @@ export async function generateMetadata({
   };
 }
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default async function JobsPage({
   searchParams,
-}: JobsPageProps)   
+}: JobsPageProps) {
+  // ── 1. Authentication ──────────────────────────────────────────────────────
 
   const session = await getServerSession(authOptions);
 
   const userId = session?.user?.id
     ? Number(session.user.id)
-    : undefined;  
+    : undefined;
+
+  // ── 2. Pagination ───────────────────────────────────────────────────────────
 
   const currentPage = Math.max(
     1,
     Number(searchParams.page) || 1
-  );  
+  );
+
+  // ── 3. Normal job filters ───────────────────────────────────────────────────
 
   const filters = {
     userId,
@@ -167,6 +178,11 @@ export default async function JobsPage({
     page: currentPage,
   };
 
+  // ── 4. Fetch normal jobs + companies ────────────────────────────────────────
+  //
+  // AI is NOT involved in getFilteredJobs().
+  // The normal job system remains completely independent.
+
   const [companynames, { jobs, count }] =
     await Promise.all([
       getCompanyNames(),
@@ -178,7 +194,23 @@ export default async function JobsPage({
 
   if (userId && jobs.length > 0) {
     const userProfile = await getAIUserProfile(userId);
-    
+
+    // ── 6. Calculate AI matches for the current 10 jobs ──────────────────────
+    //
+    // ONE AI matching operation for the current page.
+    //
+    // We are NOT calling AI once for every job.
+    //
+    // Example:
+    //
+    // 10 jobs
+    //     ↓
+    // getJobAIMatches()
+    //     ↓
+    // ONE Gemini request
+    //     ↓
+    // 10 match results
+
     aiMatches = await getJobAIMatches(
       userProfile,
       jobs
