@@ -1,11 +1,14 @@
-import { getFilteredJobs } from "@/actions/job/get-filter-all-jobs";
-import { siteConfig } from "@/config";
-import { authOptions } from "@/lib/authentication/authOptions";
-
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 
+import { getFilteredJobs } from "@/actions/job/get-filter-all-jobs";
 import { getCompanyNames } from "@/actions/company/get-companies";
+import { authOptions } from "@/lib/authentication/authOptions";
+import { siteConfig } from "@/config";
+
+import { AIJobMatchResult, getJobAIMatches } from "@/actions/ai/jobs/get-job-ai-matches";
+import { getAIUserProfile } from "@/actions/ai/jobs/get-ai-user-profile";
+
 import JobsClient from "./JobsClient";
 
 export interface JobsPageProps {
@@ -22,20 +25,6 @@ export interface JobsPageProps {
     jobId?: string;
   };
 }
-
-interface JobFilters {
-  userId?: number;
-  q?: string;
-  location?: string;
-  company?: string;
-  type?: string;
-  mode?: string;
-  experiencelevel?: string;
-  dateposted?: string;
-  easyApply?: string;
-  page: number;
-}
-
 
 export async function generateMetadata({
   searchParams,
@@ -125,28 +114,22 @@ export async function generateMetadata({
   };
 }
 
-
 export default async function JobsPage({
   searchParams,
-}: JobsPageProps) {
-  /*
-   * Get authenticated user on the server.
-   */
+}: JobsPageProps)   
+
   const session = await getServerSession(authOptions);
 
   const userId = session?.user?.id
-    ? session.user.id
-    : undefined;
+    ? Number(session.user.id)
+    : undefined;  
 
-  /*
-   * Normalize page.
-   */
   const currentPage = Math.max(
     1,
     Number(searchParams.page) || 1
-  );
+  );  
 
-  const filters: JobFilters = {
+  const filters = {
     userId,
 
     q:
@@ -184,8 +167,24 @@ export default async function JobsPage({
     page: currentPage,
   };
 
-  const companynames = await getCompanyNames()
-  const { jobs, count, } = await getFilteredJobs(filters);
+  const [companynames, { jobs, count }] =
+    await Promise.all([
+      getCompanyNames(),
+      getFilteredJobs(filters),
+    ]);
+
+
+  let aiMatches: AIJobMatchResult[] = [];
+
+  if (userId && jobs.length > 0) {
+    const userProfile = await getAIUserProfile(userId);
+    
+    aiMatches = await getJobAIMatches(
+      userProfile,
+      jobs
+    );
+  }
+    
 
   return (
     <JobsClient
@@ -194,6 +193,8 @@ export default async function JobsPage({
       searchParams={filters}
       currentPage={currentPage}
       companynames={companynames}
+      userId={userId}
+      initialAIMatches={aiMatches}
     />
   );
 }

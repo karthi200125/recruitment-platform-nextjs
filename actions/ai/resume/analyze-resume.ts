@@ -225,7 +225,7 @@ Return ONLY the requested JSON structure.
         const resumeBase64 = resumeBuffer.toString("base64");
 
         const response = await ai.models.generateContent({
-            model: "gemini-3.6-flash",
+            model: "gemini-2.5-flash",
             contents: [
                 {
                     role: "user",

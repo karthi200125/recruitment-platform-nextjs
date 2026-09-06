@@ -115,7 +115,7 @@ Return only the final headline.
 `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-3.6-flash",
+            model: "gemini-2.5-flash",
             contents: prompt,
         });
 

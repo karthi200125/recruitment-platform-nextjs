@@ -102,8 +102,8 @@ export default async function RootLayout({ children }: Readonly<RootLayoutProps>
       >
         <Providers>
           <RootLayoutClient user={user}>
-            <ServiceWorkerRegister />
-            <NetworkStatus />
+            {/* <ServiceWorkerRegister /> */}
+            {/* <NetworkStatus /> */}
             {children}
             <Toaster />
           </RootLayoutClient>

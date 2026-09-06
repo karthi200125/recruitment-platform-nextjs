@@ -1,13 +1,5 @@
 "use client";
 
-import { FilteredJob } from "@/actions/job/get-filter-all-jobs";
-import { JobSearchParams } from "@/types";
-
-import {
-    usePathname,
-    useSearchParams,
-} from "next/navigation";
-
 import {
     useCallback,
     useEffect,
@@ -15,70 +7,90 @@ import {
     useState,
 } from "react";
 
+import {
+    usePathname,
+    useSearchParams,
+} from "next/navigation";
+
+import type { FilteredJob } from "@/actions/job/get-filter-all-jobs";
+import type {
+    AIJobMatchResult,
+} from "@/actions/ai/jobs/get-job-ai-matches";
+import type { JobSearchParams } from "@/types";
+
 import Jobb from "./Job";
+
 
 interface JobsClientProps {
     initialJobs: FilteredJob[];
     initialCount: number;
     searchParams: JobSearchParams;
     currentPage: number;
-    companynames: string[]
+    companynames: string[];
+    userId?: number;
+    initialAIMatches: AIJobMatchResult[];
 }
 
-
-const setJobIdInUrl = (
+function setJobIdInUrl(
     pathname: string,
-    currentParams: URLSearchParams,
+    urlParams: URLSearchParams,
     jobId: number
-) => {
+) {
     const params = new URLSearchParams(
-        currentParams.toString()
+        urlParams.toString()
     );
 
-    params.set("jobId", String(jobId));
+    params.set(
+        "jobId",
+        String(jobId)
+    );
 
     window.history.replaceState(
         null,
         "",
         `${pathname}?${params.toString()}`
     );
-};
+}
 
-
-const JobsClient = ({
+export default function JobsClient({
     initialJobs,
     initialCount,
     searchParams,
     currentPage,
-    companynames
-}: JobsClientProps) => {
+    companynames,
+    userId,
+    initialAIMatches,
+}: JobsClientProps) {
     const pathname = usePathname();
-    const urlSearchParams = useSearchParams();
 
-    const [selectedJobId, setSelectedJobId] =
-        useState<number | null>(() => {
-            if (!initialJobs.length) {
-                return null;
-            }
+    const urlParams = useSearchParams();
 
-            const jobIdParam =
-                urlSearchParams.get("jobId");
+    const [
+        selectedJobId,
+        setSelectedJobId,
+    ] = useState<number | null>(() => {
+        if (!initialJobs.length) {
+            return null;
+        }
 
-            const jobIdFromUrl = jobIdParam
-                ? Number(jobIdParam)
-                : null;
-
-            const jobFromUrl =
-                initialJobs.find(
-                    (job) =>
-                        job.id === jobIdFromUrl
-                );
-
-            return (
-                jobFromUrl?.id ??
-                initialJobs[0].id
+        const jobIdFromUrl =
+            Number(
+                urlParams.get("jobId")
             );
-        });
+
+        const jobFromUrl =
+            initialJobs.find(
+                (job) =>
+                    job.id ===
+                    jobIdFromUrl
+            );
+
+        return (
+            jobFromUrl?.id ??
+            initialJobs[0]?.id ??
+            null
+        );
+    });
 
     useEffect(() => {
         if (!initialJobs.length) {
@@ -86,29 +98,39 @@ const JobsClient = ({
             return;
         }
 
-        const stillValid =
+        const stillExists =
             initialJobs.some(
                 (job) =>
-                    job.id === selectedJobId
+                    job.id ===
+                    selectedJobId
             );
 
-        const nextSelected = stillValid
-            ? selectedJobId!
-            : initialJobs[0].id;
+        if (
+            stillExists &&
+            selectedJobId !== null
+        ) {
+            return;
+        }
 
-        setSelectedJobId(nextSelected);
+        const firstJobId =
+            initialJobs[0].id;
+
+        setSelectedJobId(
+            firstJobId
+        );
 
         setJobIdInUrl(
             pathname,
-            urlSearchParams,
-            nextSelected
+            urlParams,
+            firstJobId
         );
+    }, [
+        initialJobs,
+        pathname,
+        selectedJobId,
+        urlParams,
+    ]);
 
-    }, [initialJobs, pathname, selectedJobId, urlSearchParams]);
-
-    /*
-     * Resolve selected job.
-     */
     const selectedJob = useMemo(() => {
         if (!initialJobs.length) {
             return null;
@@ -117,35 +139,103 @@ const JobsClient = ({
         return (
             initialJobs.find(
                 (job) =>
-                    job.id === selectedJobId
+                    job.id ===
+                    selectedJobId
             ) ??
-            initialJobs[0]
+            initialJobs[0] ??
+            null
         );
     }, [
-        selectedJobId,
         initialJobs,
+        selectedJobId,
     ]);
 
-    const handleSelectedJob = useCallback(
-        (id: number) => {
-            setSelectedJobId(id);
+    const handleSelectedJob =
+        useCallback(
+            (id: number) => {
+                setSelectedJobId(id);
 
-            setJobIdInUrl(
+                setJobIdInUrl(
+                    pathname,
+                    urlParams,
+                    id
+                );
+            },
+            [
                 pathname,
-                urlSearchParams,
-                id
+                urlParams,
+            ]
+        );
+    
+    const aiMatchMap = useMemo(() => {
+        const map =
+            new Map<
+                number,
+                AIJobMatchResult
+            >();
+
+        for (
+            const match of initialAIMatches
+        ) {
+            if (
+                !match ||
+                !Number.isInteger(
+                    match.jobId
+                )
+            ) {
+                continue;
+            }
+
+            map.set(
+                match.jobId,
+                match
             );
-        },
-        [
-            pathname,
-            urlSearchParams,
-        ]
-    );
+        }
+
+        return map;
+    }, [
+        initialAIMatches,
+    ]);
+
+    const jobsWithAI = useMemo(() => {
+        return initialJobs.map(
+            (job) => ({
+                ...job,
+
+                aiMatch:
+                    aiMatchMap.get(
+                        job.id
+                    ) ?? null,
+            })
+        );
+    }, [
+        initialJobs,
+        aiMatchMap,
+    ]);
+
+    const selectedJobWithAI =
+        useMemo(() => {
+            if (!selectedJob) {
+                return null;
+            }
+
+            return {
+                ...selectedJob,
+
+                aiMatch:
+                    aiMatchMap.get(
+                        selectedJob.id
+                    ) ?? null,
+            };
+        }, [
+            selectedJob,
+            aiMatchMap,
+        ]);
 
     return (
         <Jobb
-            jobs={initialJobs}
-            job={selectedJob}
+            jobs={jobsWithAI}
+            job={selectedJobWithAI}
             count={initialCount}
             currentPage={currentPage}
             companynames={companynames}
@@ -158,6 +248,4 @@ const JobsClient = ({
             }
         />
     );
-};
-
-export default JobsClient;
+}
