@@ -81,7 +81,10 @@ const Jobb = ({
 
     const handleSelectJob = (id: number) => {
         onSelectedJob(id);
-        setIsMobileDetailsOpen(true);
+
+        if (window.matchMedia("(max-width: 1023px)").matches) {
+            setIsMobileDetailsOpen(true);
+        }
     };
 
     return (

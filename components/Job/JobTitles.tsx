@@ -289,7 +289,7 @@ const JobTitles = ({
       {/* AI JOB MATCH */}
       {/* ===================================================== */}
 
-      {user?.role === "CANDIDATE" && aiMatch && (
+      {user?.role === "CANDIDATE" && (aiMatch || isAIMatching || isAIError) && (
         <AIJobMatch
           result={aiMatch}
           isAIMatching={isAIMatching}
