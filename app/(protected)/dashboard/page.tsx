@@ -48,30 +48,43 @@ const DashboardPage = async ({ searchParams = {} }: DashboardPageProps) => {
     const requestedTab = Array.isArray(searchParams.tab) ? searchParams.tab[0] : searchParams.tab;
     const activeTab = resolveActiveTab(role, requestedTab);
 
-    const company =
-        role === "ORGANIZATION"
-            ? await db.company.findUnique({
+    const [
+        company,
+        pendingInvitation,
+        membership,
+    ] = await Promise.all([
+        role === Role.ORGANIZATION
+            ? db.company.findUnique({
                 where: { userId },
-                select: { id: true, companyIsVerified: true },
+                select: {
+                    id: true,
+                    companyIsVerified: true,
+                },
             })
-            : null;
+            : Promise.resolve(null),
 
-    const pendingInvitation =
         role === Role.RECRUITER
-            ? await getPendingCompanyInvitation()
-            : null;
+            ? getPendingCompanyInvitation()
+            : Promise.resolve(null),
 
-    // const isCompanyMember = role === Role.RECRUITER
-    //     ? await getAcceptedCompanyMembership(userId)
-    //     : false;
+        getAcceptedCompanyMembership(userId),
+    ]);
 
-    const membership = await getAcceptedCompanyMembership(userId);
     const isCompanyMember = !!membership;
 
     const dashboardData: DashboardData =
         activeTab === "overview"
-            ? { role, overview: await getDashboardOverview(userId, role), tables: {} }
-            : await buildTableDashboardData(role, userId, activeTab, searchParams);
+            ? {
+                role,
+                overview: await getDashboardOverview(userId, role),
+                tables: {},
+            }
+            : await buildTableDashboardData(
+                role,
+                userId,
+                activeTab,
+                searchParams
+            );
 
     return (
         <DashboardClient

@@ -24,9 +24,7 @@ interface JobsClientProps {
     userId?: number;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// URL
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 function setJobIdInUrl(
     pathname: string,
@@ -44,9 +42,7 @@ function setJobIdInUrl(
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// AI MATCH REQUEST
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 async function fetchAIMatches(
     jobIds: number[]
@@ -87,8 +83,8 @@ async function fetchAIMatches(
 
             return [];
         }
-        
-        const data: unknown = await response.json();            
+
+        const data: unknown = await response.json();
 
         if (!Array.isArray(data)) {
             console.error(
@@ -99,7 +95,7 @@ async function fetchAIMatches(
             return [];
         }
 
-        const results = data as AIJobMatchResult[];                    
+        const results = data as AIJobMatchResult[];
 
         return results;
     } catch (error) {
@@ -112,9 +108,7 @@ async function fetchAIMatches(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// COMPONENT
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 export default function JobsClient({
     initialJobs,
@@ -127,9 +121,7 @@ export default function JobsClient({
     const pathname = usePathname();
     const urlParams = useSearchParams();
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // SELECTED JOB
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     const [selectedJobId, setSelectedJobId] =
         useState<number | null>(() => {
@@ -152,9 +144,7 @@ export default function JobsClient({
             );
         });
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // KEEP SELECTED JOB VALID WHEN FILTER/PAGE CHANGES
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     useEffect(() => {
         if (!initialJobs.length) {
@@ -189,9 +179,7 @@ export default function JobsClient({
         urlParams,
     ]);
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // SELECTED JOB
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     const selectedJob = useMemo(() => {
         if (!initialJobs.length) {
@@ -210,9 +198,7 @@ export default function JobsClient({
         selectedJobId,
     ]);
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // SELECT JOB HANDLER
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     const handleSelectedJob =
         useCallback(
@@ -231,9 +217,7 @@ export default function JobsClient({
             ]
         );
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // JOB IDS FOR AI
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     const jobIds = useMemo(
         () =>
@@ -243,8 +227,7 @@ export default function JobsClient({
         [initialJobs]
     );
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // AI MATCHING
+
     //
     // IMPORTANT:
     //
@@ -261,7 +244,6 @@ export default function JobsClient({
     // Gemini
     //
     // This keeps the AI implementation server-side.
-    // ─────────────────────────────────────────────────────────────────────────
 
     const {
         data: aiMatches = [],
@@ -277,7 +259,7 @@ export default function JobsClient({
 
         queryFn: () =>
             fetchAIMatches(jobIds),
-        
+
         enabled:
             Boolean(userId) &&
             jobIds.length > 0,
@@ -289,7 +271,7 @@ export default function JobsClient({
             30 * 60 * 1000,
 
         retry: false,
-        
+
         refetchOnWindowFocus: false,
 
         refetchOnReconnect: false,
@@ -299,9 +281,7 @@ export default function JobsClient({
         refetchIntervalInBackground: false,
     });
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // AI RESULT MAP
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     const aiMatchMap = useMemo(() => {
         const map =
@@ -325,10 +305,6 @@ export default function JobsClient({
         return map;
     }, [aiMatches]);
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // ADD AI DATA TO JOBS
-    // ─────────────────────────────────────────────────────────────────────────
-
     const jobsWithAI = useMemo(() => {
         return initialJobs.map(
             (job) => ({
@@ -351,9 +327,7 @@ export default function JobsClient({
         aiMatchMap,
     ]);
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // ADD AI DATA TO SELECTED JOB
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     const selectedJobWithAI =
         useMemo(() => {
@@ -374,21 +348,9 @@ export default function JobsClient({
             aiMatchMap,
         ]);
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // DEBUG
-    // ─────────────────────────────────────────────────────────────────────────
+
 
     useEffect(() => {
-        console.log(
-            "🤖 AI MATCH STATE:",
-            {
-                userId,
-                jobIds,
-                isAIMatching,
-                isAIError,
-                aiMatches,
-            }
-        );
     }, [
         userId,
         jobIds,
@@ -396,10 +358,6 @@ export default function JobsClient({
         isAIError,
         aiMatches,
     ]);
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // UI
-    // ─────────────────────────────────────────────────────────────────────────
 
     return (
         <Jobb

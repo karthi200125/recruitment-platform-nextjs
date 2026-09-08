@@ -4,6 +4,9 @@ import { Role } from "@prisma/client";
 
 import { db } from "@/lib/db";
 
+const RECENT_PROFILE_VIEW_LIMIT = 5;
+const RECENT_APPLICATION_LIMIT = 5;
+
 export const getProfileViews = async (
     userId: number,
     role: Role,
@@ -15,7 +18,9 @@ export const getProfileViews = async (
                 where: {
                     profileUserId: userId,
                 },
-                include: {
+                select: {
+                    id: true,
+                    createdAt: true,
                     viewer: {
                         select: {
                             id: true,
@@ -28,7 +33,7 @@ export const getProfileViews = async (
                 orderBy: {
                     createdAt: "desc",
                 },
-                take: 5,
+                take: RECENT_PROFILE_VIEW_LIMIT,
             });
 
         case "RECRUITER":
@@ -38,7 +43,9 @@ export const getProfileViews = async (
                         userId,
                     },
                 },
-                include: {
+                select: {
+                    id: true,
+                    createdAt: true,
                     user: {
                         select: {
                             id: true,
@@ -51,11 +58,13 @@ export const getProfileViews = async (
                 orderBy: {
                     createdAt: "desc",
                 },
-                take: 5,
+                take: RECENT_APPLICATION_LIMIT,
             });
 
         case "ORGANIZATION":
-            if (!companyId) return [];
+            if (!companyId) {
+                return [];
+            }
 
             return db.jobApplication.findMany({
                 where: {
@@ -63,7 +72,9 @@ export const getProfileViews = async (
                         companyId,
                     },
                 },
-                include: {
+                select: {
+                    id: true,
+                    createdAt: true,
                     user: {
                         select: {
                             id: true,
@@ -76,7 +87,7 @@ export const getProfileViews = async (
                 orderBy: {
                     createdAt: "desc",
                 },
-                take: 5,
+                take: RECENT_APPLICATION_LIMIT,
             });
 
         default:

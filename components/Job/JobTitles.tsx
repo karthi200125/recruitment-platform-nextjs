@@ -119,6 +119,7 @@ const JobTitles = ({
 
   const aiMatch = job.aiMatch;
 
+
   return (
     <div className="space-y-5">
 
@@ -289,13 +290,13 @@ const JobTitles = ({
       {/* AI JOB MATCH */}
       {/* ===================================================== */}
 
-      {user?.role === "CANDIDATE" && (aiMatch || isAIMatching || isAIError) && (
-        <AIJobMatch
-          result={aiMatch}
-          isAIMatching={isAIMatching}
-          isAIError={isAIError}
-        />
-      )}
+      {/* {user?.role === "CANDIDATE" && (aiMatch || isAIMatching || isAIError) && ( */}
+      <AIJobMatch
+        result={aiMatch}
+        isAIMatching={isAIMatching}
+        isAIError={isAIError}
+      />
+      {/* )} */}
 
 
       {/* ===================================================== */}

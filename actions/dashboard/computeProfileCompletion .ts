@@ -1,11 +1,41 @@
-import { db } from "@/lib/db";
+"use server";
+
 import { Role } from "@prisma/client";
+
+import { db } from "@/lib/db";
+
+interface CompletionItem {
+    label: string;
+    completed: boolean;
+}
+
+interface ProfileCompletionResult {
+    percentage: number;
+    items: CompletionItem[];
+}
+
+const calculatePercentage = (
+    items: CompletionItem[]
+): number => {
+    const completedCount = items.reduce(
+        (count, item) =>
+            count + (item.completed ? 1 : 0),
+        0
+    );
+
+    return Math.round(
+        (completedCount / items.length) * 100
+    );
+};
 
 export const computeProfileCompletion = async (
     userId: number,
     role: Role,
     companyId?: number | null
-) => {
+): Promise<ProfileCompletionResult | undefined> => {
+    // ─────────────────────────────────────────────
+    // CANDIDATE
+    // ─────────────────────────────────────────────
 
     if (role === "CANDIDATE") {
         const user = await db.user.findUnique({
@@ -27,9 +57,11 @@ export const computeProfileCompletion = async (
             },
         });
 
-        if (!user) return undefined;
+        if (!user) {
+            return undefined;
+        }
 
-        const items = [
+        const items: CompletionItem[] = [
             {
                 label: "Profile photo",
                 completed: Boolean(user.profileImage),
@@ -48,30 +80,30 @@ export const computeProfileCompletion = async (
             },
             {
                 label: "Education added",
-                completed: user._count.educations > 0,
+                completed:
+                    user._count.educations > 0,
             },
             {
                 label: "Experience added",
-                completed: user._count.experiences > 0,
+                completed:
+                    user._count.experiences > 0,
             },
             {
                 label: "Projects added",
-                completed: user._count.projects > 0,
+                completed:
+                    user._count.projects > 0,
             },
         ];
 
-        const percentage = Math.round(
-            (items.filter((item) => item.completed).length /
-                items.length) *
-            100
-        );
-
         return {
-            percentage,
+            percentage: calculatePercentage(items),
             items,
         };
     }
 
+    // ─────────────────────────────────────────────
+    // RECRUITER
+    // ─────────────────────────────────────────────
 
     if (role === "RECRUITER") {
         const user = await db.user.findUnique({
@@ -93,9 +125,11 @@ export const computeProfileCompletion = async (
             },
         });
 
-        if (!user) return undefined;
+        if (!user) {
+            return undefined;
+        }
 
-        const items = [
+        const items: CompletionItem[] = [
             {
                 label: "Profile photo",
                 completed: Boolean(user.profileImage),
@@ -122,20 +156,20 @@ export const computeProfileCompletion = async (
             },
             {
                 label: "Experience added",
-                completed: user._count.experiences > 0,
+                completed:
+                    user._count.experiences > 0,
             },
         ];
 
-        const percentage = Math.round(
-            (items.filter((item) => item.completed).length / items.length) * 100
-        );
-
         return {
-            percentage,
+            percentage: calculatePercentage(items),
             items,
         };
     }
 
+    // ─────────────────────────────────────────────
+    // ORGANIZATION
+    // ─────────────────────────────────────────────
 
     if (!companyId) {
         return undefined;
@@ -145,12 +179,22 @@ export const computeProfileCompletion = async (
         where: {
             id: companyId,
         },
-        include: {
-            jobs: {
+        select: {
+            companyImage: true,
+            companyName: true,
+            companyBio: true,
+            companyAbout: true,
+            companyWebsite: true,
+            companyAddress: true,
+            companyCity: true,
+            companyState: true,
+            companyCountry: true,
+            companyIsVerified: true,
+
+            _count: {
                 select: {
-                    id: true,
+                    jobs: true,
                 },
-                take: 1,
             },
         },
     });
@@ -159,7 +203,7 @@ export const computeProfileCompletion = async (
         return undefined;
     }
 
-    const items = [
+    const items: CompletionItem[] = [
         {
             label: "Company logo",
             completed: Boolean(company.companyImage),
@@ -190,22 +234,17 @@ export const computeProfileCompletion = async (
         },
         {
             label: "Company verified",
-            completed: company.companyIsVerified,
+            completed:
+                company.companyIsVerified,
         },
         {
             label: "First job posted",
-            completed: company.jobs.length > 0,
+            completed: company._count.jobs > 0,
         },
     ];
 
-    const percentage = Math.round(
-        (items.filter((item) => item.completed).length /
-            items.length) *
-        100
-    );
-
     return {
-        percentage,
+        percentage: calculatePercentage(items),
         items,
     };
 };

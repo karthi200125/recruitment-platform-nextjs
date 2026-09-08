@@ -3,123 +3,409 @@
 import { Role } from "@prisma/client";
 
 import { db } from "@/lib/db";
-import { DashboardOverviewData, DashboardStatsMap } from "@/types/dashboard";
+import {
+    DashboardOverviewData,
+    DashboardStatsMap,
+} from "@/types/dashboard";
 
 import { buildActivityChartData } from "./buildActivityChartData";
 import { computeProfileCompletion } from "./computeProfileCompletion ";
 import { getProfileViews } from "./getProfileviews";
 import { getRecentActivities } from "./getRecentActivities";
 import { buildRollingStat } from "./queries/statsQuery";
-import { buildApplicationOwnershipFilter, buildJobOwnershipFilter, buildOwnApplicationsFilter } from "./utils/buildOwnershipFilter";
+import {
+    buildApplicationOwnershipFilter,
+    buildJobOwnershipFilter,
+    buildOwnApplicationsFilter,
+} from "./utils/buildOwnershipFilter";
 
 const ACTIVITY_WINDOW_DAYS = 14;
 
-const resolveCompanyId = async (userId: number, role: Role): Promise<number | null> => {
-    if (role !== "ORGANIZATION") return null;
-    const company = await db.company.findUnique({ where: { userId }, select: { id: true } });
+const resolveCompanyId = async (
+    userId: number,
+    role: Role
+): Promise<number | null> => {
+    if (role !== "ORGANIZATION") {
+        return null;
+    }
+
+    const company = await db.company.findUnique({
+        where: { userId },
+        select: { id: true },
+    });
+
     return company?.id ?? null;
 };
 
-const candidateStats = async (userId: number): Promise<DashboardStatsMap> => {
-    const [appliedJobs, savedJobs, interviews, profileViews] = await Promise.all([
+/**
+ * Fetch createdAt timestamps only once for each metric.
+ *
+ * buildRollingStat is responsible for:
+ * - current 30-day count
+ * - previous 30-day count
+ * - growth percentage
+ * - daily chart buckets
+ */
+const candidateStats = async (
+    userId: number
+): Promise<DashboardStatsMap> => {
+    const appliedJobsWhere = {
+        userId,
+    };
+
+    const savedJobsWhere = {
+        userId,
+    };
+
+    const interviewsWhere = {
+        userId,
+        status: {
+            in: [
+                "INTERVIEW_SCHEDULED",
+                "INTERVIEWED",
+            ],
+        },
+    };
+
+    const profileViewsWhere = {
+        profileUserId: userId,
+    };
+
+    const [
+        appliedJobs,
+        savedJobs,
+        interviews,
+        profileViews,
+    ] = await Promise.all([
         buildRollingStat(
-            { userId },
-            (where) => db.jobApplication.count({ where }),
-            (where) => db.jobApplication.findMany({ where, select: { createdAt: true } }).then((r) => r.map((x) => x.createdAt))
+            appliedJobsWhere,
+            (where) =>
+                db.jobApplication
+                    .findMany({
+                        where,
+                        select: {
+                            createdAt: true,
+                        },
+                    })
+                    .then((rows) =>
+                        rows.map(
+                            (row) => row.createdAt
+                        )
+                    )
         ),
+
         buildRollingStat(
-            { userId },
-            (where) => db.savedJob.count({ where }),
-            (where) => db.savedJob.findMany({ where, select: { createdAt: true } }).then((r) => r.map((x) => x.createdAt))
+            savedJobsWhere,
+            (where) =>
+                db.savedJob
+                    .findMany({
+                        where,
+                        select: {
+                            createdAt: true,
+                        },
+                    })
+                    .then((rows) =>
+                        rows.map(
+                            (row) => row.createdAt
+                        )
+                    )
         ),
+
         buildRollingStat(
-            { userId, status: { in: ["INTERVIEW_SCHEDULED", "INTERVIEWED"] } },
-            (where) => db.jobApplication.count({ where }),
-            (where) => db.jobApplication.findMany({ where, select: { createdAt: true } }).then((r) => r.map((x) => x.createdAt))
+            interviewsWhere,
+            (where) =>
+                db.jobApplication
+                    .findMany({
+                        where,
+                        select: {
+                            createdAt: true,
+                        },
+                    })
+                    .then((rows) =>
+                        rows.map(
+                            (row) => row.createdAt
+                        )
+                    )
         ),
+
         buildRollingStat(
-            { profileUserId: userId },
-            (where) => db.profileView.count({ where }),
-            (where) => db.profileView.findMany({ where, select: { createdAt: true } }).then((r) => r.map((x) => x.createdAt))
+            profileViewsWhere,
+            (where) =>
+                db.profileView
+                    .findMany({
+                        where,
+                        select: {
+                            createdAt: true,
+                        },
+                    })
+                    .then((rows) =>
+                        rows.map(
+                            (row) => row.createdAt
+                        )
+                    )
         ),
     ]);
 
-    return { appliedJobs, savedJobs, interviews, profileViews };
+    return {
+        appliedJobs,
+        savedJobs,
+        interviews,
+        profileViews,
+    };
 };
 
-const recruiterStats = async (userId: number): Promise<DashboardStatsMap> => {
-    const jobFilter = buildJobOwnershipFilter({ userId, role: "RECRUITER" });
-    const applicationFilter = buildApplicationOwnershipFilter({ userId, role: "RECRUITER" });
+/**
+ * Recruiter dashboard statistics.
+ */
+const recruiterStats = async (
+    userId: number
+): Promise<DashboardStatsMap> => {
+    const jobFilter =
+        buildJobOwnershipFilter({
+            userId,
+            role: "RECRUITER",
+        });
 
-    const [postedJobs, applicants, interviews, hiredCandidates] = await Promise.all([
+    const applicationFilter =
+        buildApplicationOwnershipFilter({
+            userId,
+            role: "RECRUITER",
+        });
+
+    const postedJobsWhere = jobFilter;
+
+    const applicantsWhere = applicationFilter;
+
+    const interviewsWhere = {
+        ...applicationFilter,
+        status: {
+            in: [
+                "INTERVIEW_SCHEDULED",
+                "INTERVIEWED",
+            ],
+        },
+    };
+
+    const hiredCandidatesWhere = {
+        ...applicationFilter,
+        status: "HIRED",
+    };
+
+    const [
+        postedJobs,
+        applicants,
+        interviews,
+        hiredCandidates,
+    ] = await Promise.all([
         buildRollingStat(
-            jobFilter,
-            (where) => db.job.count({ where }),
-            (where) => db.job.findMany({ where, select: { createdAt: true } }).then((r) => r.map((x) => x.createdAt))
+            postedJobsWhere,
+            (where) =>
+                db.job
+                    .findMany({
+                        where,
+                        select: {
+                            createdAt: true,
+                        },
+                    })
+                    .then((rows) =>
+                        rows.map(
+                            (row) => row.createdAt
+                        )
+                    )
         ),
+
         buildRollingStat(
-            applicationFilter,
-            (where) => db.jobApplication.count({ where }),
-            (where) => db.jobApplication.findMany({ where, select: { createdAt: true } }).then((r) => r.map((x) => x.createdAt))
+            applicantsWhere,
+            (where) =>
+                db.jobApplication
+                    .findMany({
+                        where,
+                        select: {
+                            createdAt: true,
+                        },
+                    })
+                    .then((rows) =>
+                        rows.map(
+                            (row) => row.createdAt
+                        )
+                    )
         ),
+
         buildRollingStat(
-            { ...applicationFilter, status: { in: ["INTERVIEW_SCHEDULED", "INTERVIEWED"] } },
-            (where) => db.jobApplication.count({ where }),
-            (where) => db.jobApplication.findMany({ where, select: { createdAt: true } }).then((r) => r.map((x) => x.createdAt))
+            interviewsWhere,
+            (where) =>
+                db.jobApplication
+                    .findMany({
+                        where,
+                        select: {
+                            createdAt: true,
+                        },
+                    })
+                    .then((rows) =>
+                        rows.map(
+                            (row) => row.createdAt
+                        )
+                    )
         ),
+
         buildRollingStat(
-            { ...applicationFilter, status: "HIRED" },
-            (where) => db.jobApplication.count({ where }),
-            (where) => db.jobApplication.findMany({ where, select: { createdAt: true } }).then((r) => r.map((x) => x.createdAt))
+            hiredCandidatesWhere,
+            (where) =>
+                db.jobApplication
+                    .findMany({
+                        where,
+                        select: {
+                            createdAt: true,
+                        },
+                    })
+                    .then((rows) =>
+                        rows.map(
+                            (row) => row.createdAt
+                        )
+                    )
         ),
     ]);
 
-    return { postedJobs, applicants, interviews, hiredCandidates };
+    return {
+        postedJobs,
+        applicants,
+        interviews,
+        hiredCandidates,
+    };
 };
 
-const organizationStats = async (companyId: number | null): Promise<DashboardStatsMap> => {
+/**
+ * Organization dashboard statistics.
+ */
+const organizationStats = async (
+    companyId: number | null
+): Promise<DashboardStatsMap> => {
     if (!companyId) {
         return {};
     }
 
-    const jobFilter = { companyId };
-    const applicationFilter = { job: { companyId } };
+    const jobsWhere = {
+        companyId,
+    };
 
-    const [employees, jobs, applicants, hiredCandidates] = await Promise.all([
+    const employeesWhere = {
+        companyId,
+        status: "ACCEPTED",
+    };
+
+    const applicantsWhere = {
+        job: {
+            companyId,
+        },
+    };
+
+    const hiredCandidatesWhere = {
+        job: {
+            companyId,
+        },
+        status: "HIRED",
+    };
+
+    const [
+        employees,
+        jobs,
+        applicants,
+        hiredCandidates,
+    ] = await Promise.all([
         buildRollingStat(
-            { companyId, status: "ACCEPTED" },
-            (where) => db.companyEmployee.count({ where }),
-            (where) => db.companyEmployee.findMany({ where, select: { createdAt: true } }).then((r) => r.map((x) => x.createdAt))
+            employeesWhere,
+            (where) =>
+                db.companyEmployee
+                    .findMany({
+                        where,
+                        select: {
+                            createdAt: true,
+                        },
+                    })
+                    .then((rows) =>
+                        rows.map(
+                            (row) => row.createdAt
+                        )
+                    )
         ),
+
         buildRollingStat(
-            jobFilter,
-            (where) => db.job.count({ where }),
-            (where) => db.job.findMany({ where, select: { createdAt: true } }).then((r) => r.map((x) => x.createdAt))
+            jobsWhere,
+            (where) =>
+                db.job
+                    .findMany({
+                        where,
+                        select: {
+                            createdAt: true,
+                        },
+                    })
+                    .then((rows) =>
+                        rows.map(
+                            (row) => row.createdAt
+                        )
+                    )
         ),
+
         buildRollingStat(
-            applicationFilter,
-            (where) => db.jobApplication.count({ where }),
-            (where) => db.jobApplication.findMany({ where, select: { createdAt: true } }).then((r) => r.map((x) => x.createdAt))
+            applicantsWhere,
+            (where) =>
+                db.jobApplication
+                    .findMany({
+                        where,
+                        select: {
+                            createdAt: true,
+                        },
+                    })
+                    .then((rows) =>
+                        rows.map(
+                            (row) => row.createdAt
+                        )
+                    )
         ),
+
         buildRollingStat(
-            { ...applicationFilter, status: "HIRED" },
-            (where) => db.jobApplication.count({ where }),
-            (where) => db.jobApplication.findMany({ where, select: { createdAt: true } }).then((r) => r.map((x) => x.createdAt))
+            hiredCandidatesWhere,
+            (where) =>
+                db.jobApplication
+                    .findMany({
+                        where,
+                        select: {
+                            createdAt: true,
+                        },
+                    })
+                    .then((rows) =>
+                        rows.map(
+                            (row) => row.createdAt
+                        )
+                    )
         ),
     ]);
 
-    return { employees, jobs, applicants, hiredCandidates };
+    return {
+        employees,
+        jobs,
+        applicants,
+        hiredCandidates,
+    };
 };
 
-// status breakdown pie/bar — application statuses scoped to whichever filter applies to this viewer
-const getStatusChart = async (where: Record<string, unknown>) => {
-    const grouped = await db.jobApplication.groupBy({
-        by: ["status"],
-        where,
-        _count: true,
-    });
+/**
+ * Application status breakdown.
+ */
+const getStatusChart = async (
+    where: Record<string, unknown>
+) => {
+    const grouped =
+        await db.jobApplication.groupBy({
+            by: ["status"],
+            where,
+            _count: true,
+        });
 
-    const STATUS_COLORS: Record<string, string> = {
+    const STATUS_COLORS: Record<
+        string,
+        string
+    > = {
         APPLIED: "#94a3b8",
         VIEWED: "#38bdf8",
         UNDER_REVIEW: "#fbbf24",
@@ -131,38 +417,99 @@ const getStatusChart = async (where: Record<string, unknown>) => {
         WITHDRAWN: "#cbd5e1",
     };
 
-    const data = grouped.map((g) => ({
-        label: g.status.replace(/_/g, " "),
-        value: g._count,
-        color: STATUS_COLORS[g.status] ?? "#94a3b8",
+    const data = grouped.map((group) => ({
+        label: group.status.replace(
+            /_/g,
+            " "
+        ),
+        value: group._count,
+        color:
+            STATUS_COLORS[group.status] ??
+            "#94a3b8",
     }));
 
     return {
         title: "Application Status",
-        total: data.reduce((sum, d) => sum + d.value, 0),
+        total: data.reduce(
+            (sum, item) =>
+                sum + item.value,
+            0
+        ),
         data,
     };
 };
 
-export const getDashboardOverview = async (userId: number, role: Role): Promise<DashboardOverviewData> => {
-    const companyId = await resolveCompanyId(userId, role);
+/**
+ * Main dashboard overview loader.
+ *
+ * Important:
+ * - All independent database operations run in parallel.
+ * - No AI work is performed here.
+ * - Only overview data is loaded.
+ * - Other dashboard tabs should load their own data separately.
+ */
+export const getDashboardOverview = async (
+    userId: number,
+    role: Role
+): Promise<DashboardOverviewData> => {
+    /**
+     * Only ORGANIZATION users need a company lookup.
+     */
+    const companyId =
+        role === "ORGANIZATION"
+            ? await resolveCompanyId(
+                userId,
+                role
+            )
+            : null;
 
+    /**
+     * Build the application ownership filter once.
+     */
     const chartFilter =
         role === "CANDIDATE"
-            ? buildOwnApplicationsFilter(userId)
+            ? buildOwnApplicationsFilter(
+                userId
+            )
             : role === "RECRUITER"
-                ? buildApplicationOwnershipFilter({ userId, role })
-                : { job: { companyId: companyId ?? -1 } };
+                ? buildApplicationOwnershipFilter(
+                    {
+                        userId,
+                        role,
+                    }
+                )
+                : {
+                    job: {
+                        companyId:
+                            companyId ?? -1,
+                    },
+                };
 
-    const [stats, statusChart] = await Promise.all([
+    /**
+     * Stats and status chart are independent.
+     * Run them concurrently.
+     */
+    const [
+        stats,
+        statusChart,
+    ] = await Promise.all([
         role === "CANDIDATE"
             ? candidateStats(userId)
             : role === "RECRUITER"
                 ? recruiterStats(userId)
-                : organizationStats(companyId),
-        getStatusChart(chartFilter),
+                : organizationStats(
+                    companyId
+                ),
+
+        getStatusChart(
+            chartFilter
+        ),
     ]);
 
+    /**
+     * These four operations are also independent.
+     * Run all of them concurrently.
+     */
     const [
         profileViews,
         recentApplications,
@@ -177,11 +524,42 @@ export const getDashboardOverview = async (userId: number, role: Role): Promise<
 
         db.jobApplication.findMany({
             where: chartFilter,
-            include: {
-                user: { select: { id: true, username: true, firstName: true, lastName: true, profileImage: true } },
-                job: { select: { id: true, jobTitle: true, company: { select: { id: true, companyName: true, companyImage: true } } } },
+
+            select: {
+                id: true,
+                status: true,
+                createdAt: true,
+
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        firstName: true,
+                        lastName: true,
+                        profileImage: true,
+                    },
+                },
+
+                job: {
+                    select: {
+                        id: true,
+                        jobTitle: true,
+
+                        company: {
+                            select: {
+                                id: true,
+                                companyName: true,
+                                companyImage: true,
+                            },
+                        },
+                    },
+                },
             },
-            orderBy: { createdAt: "desc" },
+
+            orderBy: {
+                createdAt: "desc",
+            },
+
             take: 5,
         }),
 
@@ -196,11 +574,15 @@ export const getDashboardOverview = async (userId: number, role: Role): Promise<
             role,
             companyId
         ),
-        
     ]);
 
+    /**
+     * Build activity chart from the already
+     * fetched recent activity data.
+     */
     const activityChart = {
         title: `Activity (last ${ACTIVITY_WINDOW_DAYS} days)`,
+
         data: buildActivityChartData(
             recentActivity,
             ACTIVITY_WINDOW_DAYS
@@ -209,10 +591,20 @@ export const getDashboardOverview = async (userId: number, role: Role): Promise<
 
     return {
         stats,
-        charts: { statusChart, activityChart },
+
+        charts: {
+            statusChart,
+            activityChart,
+        },
+
         profileCompletion,
-        profileViews: profileViews as any,
-        recentApplications: recentApplications as any,
+
+        profileViews:
+            profileViews as any,
+
+        recentApplications:
+            recentApplications as any,
+
         recentActivity,
     };
 };

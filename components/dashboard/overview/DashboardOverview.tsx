@@ -1,5 +1,6 @@
+import dynamic from "next/dynamic";
+import { memo } from "react";
 import { Role } from "@prisma/client";
-
 import { DashboardOverviewData } from "@/types/dashboard";
 
 import DashboardStats from "../cards/DashboardStats";
@@ -8,18 +9,38 @@ import ProfileCompletionCard from "../cards/ProfileCompletionCard";
 import ProfileViewsCard from "../cards/ProfileViewCard";
 import RecentActivityCard from "../cards/RecentActivityCard";
 import RecentApplicationsCard from "../cards/RecentApplicationsCard";
-import DashboardActivityChart from "../charts/DashboardActivityChart";
-import DashboardStatusChart from "../charts/DashboardStatusChart";
+
+const DashboardStatusChart = dynamic(
+  () => import("../charts/DashboardStatusChart"),
+  {
+    ssr: false,
+    loading: () => <ChartSkeleton height="h-[360px]" />,
+  }
+);
+
+const DashboardActivityChart = dynamic(
+  () => import("../charts/DashboardActivityChart"),
+  {
+    ssr: false,
+    loading: () => <ChartSkeleton height="h-[300px]" />,
+  }
+);
+
+const CardSkeleton = memo(({ className = "" }: { className?: string }) => (
+  <div className={`animate-pulse rounded-[24px] border border-slate-200 bg-slate-100 ${className}`} />
+));
+CardSkeleton.displayName = "CardSkeleton";
+
+const ChartSkeleton = memo(({ height }: { height: string }) => (
+  <div className={`animate-pulse rounded-[24px] border border-slate-200 bg-slate-100 ${height}`} />
+));
+ChartSkeleton.displayName = "ChartSkeleton";
 
 interface DashboardOverviewProps {
   role: Role;
   overview: DashboardOverviewData;
   isLoading?: boolean;
 }
-
-const CardSkeleton = ({ className = "" }: { className?: string }) => (
-  <div className={`animate-pulse rounded-[24px] border border-slate-200 bg-slate-100 ${className}`} />
-);
 
 const DashboardOverview = ({ role, overview, isLoading = false }: DashboardOverviewProps) => {
   const {
@@ -30,7 +51,6 @@ const DashboardOverview = ({ role, overview, isLoading = false }: DashboardOverv
     recentApplications = [],
     recentActivity,
   } = overview;
-
 
   if (isLoading) {
     return (
@@ -58,16 +78,19 @@ const DashboardOverview = ({ role, overview, isLoading = false }: DashboardOverv
     );
   }
 
-
   return (
     <div className="space-y-6">
+
       <DashboardStats role={role} stats={stats} />
 
       <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-12">
-        {/* Main content: 3 explicit rows */}
-        <div className={"space-y-5 xl:col-span-8"}>
-          {/* Row 1 — status donut + recent activity, side by side */}
+
+        {/* Left column — 8/12 */}
+        <div className="space-y-5 xl:col-span-8">
+
+          {/* Row 1: donut + recent activity */}
           <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2">
+            {/* DashboardStatusChart lazy-loaded — Recharts PieChart */}
             <DashboardStatusChart
               title={charts.statusChart.title}
               total={charts.statusChart.total}
@@ -76,35 +99,38 @@ const DashboardOverview = ({ role, overview, isLoading = false }: DashboardOverv
             <RecentActivityCard activities={recentActivity} />
           </div>
 
-          {/* Row 2 — bar chart, full width, its own row since it's the big one */}
-          <DashboardActivityChart title={charts.activityChart.title} data={charts.activityChart.data} />
+          {/* Row 2: bar/line chart — Recharts lazy-loaded */}
+          <DashboardActivityChart
+            title={charts.activityChart.title}
+            data={charts.activityChart.data}
+          />
 
-          {/* Row 3 — recent applications */}
-          <RecentApplicationsCard applications={recentApplications} isLoading={false} />
+          {/* Row 3: recent applications */}
+          <RecentApplicationsCard
+            applications={recentApplications}
+            isLoading={false}
+          />
         </div>
 
+        {/* Right column — 4/12 */}
         <div className="space-y-5 xl:col-span-4">
           <div className="space-y-5 xl:sticky xl:top-6">
-
-            {profileCompletion ? (
+            {profileCompletion && (
               <ProfileCompletionCard
                 percentage={profileCompletion.percentage}
                 items={profileCompletion.items}
               />
-            ) : null}
-
-
-            <ProfileViewsCard
-              profileViews={profileViews ?? []}
-            />
-
+            )}
+            <ProfileViewsCard profileViews={profileViews ?? []} />
           </div>
         </div>
       </div>
 
-      {profileCompletion && <ProfileCompletionBanner percentage={profileCompletion.percentage} />}
+      {profileCompletion && (
+        <ProfileCompletionBanner percentage={profileCompletion.percentage} />
+      )}
     </div>
   );
 };
 
-export default DashboardOverview;
+export default memo(DashboardOverview);
