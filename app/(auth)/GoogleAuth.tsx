@@ -8,12 +8,7 @@ import { useState } from "react";
 
 import google from "@/public/google.webp";
 
-
-interface GoogleAuthProps {
-    role: string;
-}
-
-const GoogleAuth = ({ role }: GoogleAuthProps) => {
+const GoogleAuth = () => {
     const [isLoading, setIsLoading] = useState(false);
     const pathname = usePathname();
 
@@ -24,7 +19,7 @@ const GoogleAuth = ({ role }: GoogleAuthProps) => {
             callbackUrl:
                 pathname === "/signin"
                     ? "/dashboard"
-                    : "/signup?role=" + role,
+                    : "/",
         });
 
         setIsLoading(false);
