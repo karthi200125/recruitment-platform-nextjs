@@ -1,20 +1,32 @@
 "use client";
 
+import {
+  useCallback,
+  useEffect,
+  useOptimistic,
+} from "react";
+
 import { getConversation } from "@/actions/message/get-conversation";
+import { markMessagesAsSeen } from "@/actions/message/mark-messages-as-seen ";
 import MessageBoxSkeleton from "@/components/skeletons/MessageBoxSkeleton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { ChatMessage, ChatUserSummary } from "@/types";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import type {
+  ChatMessage,
+  ChatUserSummary,
+} from "@/types";
+import {
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
+import type { OptimisticMessage } from "./ChatButton";
 import { ChatButton } from "./ChatButton";
-import { Chats } from "./Chats";
 import { ChatUser } from "./ChatUser";
+import Chats from "./Chats";
 import ConversationEmptyState from "./ConversationEmptyState";
-import { markMessagesAsSeen } from "@/actions/message/mark-messages-as-seen ";
 
 interface MessageBoxProps {
-  receiverId?: number;
+  receiverId?: number | null;
   chatUser?: ChatUserSummary;
   isLoading?: boolean;
   isChatuser?: boolean;
@@ -25,6 +37,52 @@ interface Conversation {
   messages: ChatMessage[];
 }
 
+/*
+ * ------------------------------------------------------------
+ * OPTIMISTIC ACTION
+ * ------------------------------------------------------------
+ */
+
+type OptimisticAction =
+  | {
+    type: "add";
+    message: OptimisticMessage;
+  }
+  | {
+    type: "error";
+    tempId: string;
+  };
+
+/*
+ * ------------------------------------------------------------
+ * ID VALIDATION
+ * ------------------------------------------------------------
+ *
+ * This prevents:
+ *
+ * number | undefined
+ * number | null
+ *
+ * from being passed to functions/components that require
+ * a real number.
+ */
+
+const isValidId = (
+  value: number | null | undefined
+): value is number => {
+  return (
+    typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value > 0
+  );
+};
+
+/*
+ * ------------------------------------------------------------
+ * MESSAGE BOX
+ * ------------------------------------------------------------
+ */
+
 const MessageBox = ({
   receiverId,
   chatUser,
@@ -32,16 +90,44 @@ const MessageBox = ({
   isChatuser = false,
 }: MessageBoxProps) => {
   const { user } = useCurrentUser();
-
   const queryClient = useQueryClient();
 
+  /*
+   * Current logged-in user ID.
+   */
   const currentUserId = user?.id;
+
+  /*
+   * ----------------------------------------------------------
+   * VALID IDS
+   * ----------------------------------------------------------
+   */
+
+  const hasValidUsers =
+    isValidId(currentUserId) &&
+    isValidId(receiverId) &&
+    currentUserId !== receiverId;
+
+  /*
+   * IMPORTANT:
+   *
+   * These are only used after validation.
+   *
+   * They remain `number | undefined` here, but TypeScript
+   * narrowing below guarantees they are numbers whenever
+   * the actual chat UI is rendered.
+   */
+
+  /*
+   * ----------------------------------------------------------
+   * REACT QUERY
+   * ----------------------------------------------------------
+   */
 
   const {
     data: conversation,
     isPending,
     isError,
-    error,
   } = useQuery<Conversation | null>({
     queryKey: [
       "conversation",
@@ -50,9 +136,15 @@ const MessageBox = ({
     ],
 
     queryFn: async () => {
+      /*
+       * enabled prevents this normally.
+       *
+       * This extra guard guarantees that the server action
+       * never receives undefined/null.
+       */
       if (
-        !currentUserId ||
-        !receiverId
+        !isValidId(currentUserId) ||
+        !isValidId(receiverId)
       ) {
         return null;
       }
@@ -63,36 +155,129 @@ const MessageBox = ({
       );
     },
 
-    enabled:
-      Boolean(
-        currentUserId &&
-        receiverId
-      ),
+    enabled: hasValidUsers,
 
+    /*
+     * Don't refetch immediately when switching back
+     * to a recently opened conversation.
+     */
     staleTime: 30_000,
 
-    refetchInterval:
-      receiverId
-        ? 5_000
-        : false,
+    /*
+     * Keep recently used conversations in cache.
+     */
+    gcTime: 5 * 60_000,
 
-    refetchOnWindowFocus: true,
+    /*
+     * Don't refetch merely because the browser tab
+     * becomes active again.
+     */
+    refetchOnWindowFocus: false,
 
-    refetchOnReconnect: true,
+    /*
+     * Don't automatically refetch after reconnect.
+     */
+    refetchOnReconnect: false,
+
+    /*
+     * No polling.
+     *
+     * When you later add WebSocket/SSE, invalidate
+     * this query when a new message arrives.
+     */
+    refetchInterval: false,
+
+    retry: 1,
   });
 
   /*
-   * Mark messages as seen
+   * ----------------------------------------------------------
+   * OPTIMISTIC MESSAGES
+   * ----------------------------------------------------------
+   *
+   * React's useOptimistic gives us temporary messages that
+   * appear immediately while the server operation is running.
+   *
+   * These are NOT database messages.
    */
+
+  const [
+    optimisticMessages,
+    dispatchOptimistic,
+  ] = useOptimistic<
+    OptimisticMessage[],
+    OptimisticAction
+  >(
+    [],
+    (currentMessages, action) => {
+      switch (action.type) {
+        case "add":
+          return [
+            ...currentMessages,
+            action.message,
+          ];
+
+        case "error":
+          return currentMessages.map(
+            (message) =>
+              message.tempId === action.tempId
+                ? {
+                  ...message,
+                  status: "error",
+                }
+                : message
+          );
+
+        default:
+          return currentMessages;
+      }
+    }
+  );
+
+  /*
+   * ----------------------------------------------------------
+   * OPTIMISTIC HANDLERS
+   * ----------------------------------------------------------
+   */
+
+  const handleOptimisticMessage = useCallback(
+    (message: OptimisticMessage) => {
+      dispatchOptimistic({
+        type: "add",
+        message,
+      });
+    },
+    [dispatchOptimistic]
+  );
+
+  const handleOptimisticError = useCallback(
+    (tempId: string) => {
+      dispatchOptimistic({
+        type: "error",
+        tempId,
+      });
+    },
+    [dispatchOptimistic]
+  );
+
+  /*
+   * ----------------------------------------------------------
+   * MARK MESSAGES AS SEEN
+   * ----------------------------------------------------------
+   */
+
   useEffect(() => {
     if (
       !conversation?.id ||
-      !currentUserId
+      !isValidId(currentUserId) ||
+      conversation.messages.length === 0
     ) {
       return;
     }
 
-    const markSeen = async () => {
+    let cancelled = false;
+
+    const markAsSeen = async () => {
       try {
         const result =
           await markMessagesAsSeen(
@@ -100,8 +285,11 @@ const MessageBox = ({
             currentUserId
           );
 
-        if (result?.success) {
-          queryClient.invalidateQueries({
+        if (
+          !cancelled &&
+          result?.success
+        ) {
+          await queryClient.invalidateQueries({
             queryKey: [
               "getUnreadMessagesCount",
               currentUserId,
@@ -116,47 +304,55 @@ const MessageBox = ({
       }
     };
 
-    markSeen();
+    void markAsSeen();
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     conversation?.id,
-    conversation?.messages?.length,
+    conversation?.messages.length,
     currentUserId,
     queryClient,
   ]);
 
   /*
-   * Component loading
+   * ----------------------------------------------------------
+   * LOADING
+   * ----------------------------------------------------------
    */
+
   if (isLoading) {
     return <MessageBoxSkeleton />;
   }
 
   /*
-   * We don't know who we're messaging yet.
+   * ----------------------------------------------------------
+   * INVALID USERS
+   * ----------------------------------------------------------
    */
-  if (!receiverId) {
+
+  if (!hasValidUsers) {
     return <MessageBoxSkeleton />;
   }
 
   /*
-   * React Query loading
+   * ----------------------------------------------------------
+   * CONVERSATION LOADING
+   * ----------------------------------------------------------
    */
+
   if (isPending) {
     return <MessageBoxSkeleton />;
   }
 
   /*
-   * IMPORTANT:
-   *
-   * Don't show "empty conversation" when
-   * the request itself failed.
+   * ----------------------------------------------------------
+   * CONVERSATION ERROR
+   * ----------------------------------------------------------
    */
-  if (isError) {
-    console.error(
-      "[GET_CONVERSATION]",
-      error
-    );
 
+  if (isError) {
     return (
       <div className="flex h-full min-h-0 items-center justify-center bg-white p-6">
         <p className="text-sm text-slate-500">
@@ -167,10 +363,26 @@ const MessageBox = ({
   }
 
   /*
-   * No chat exists yet.
+   * ----------------------------------------------------------
+   * FROM HERE:
    *
-   * This is the TRUE empty state.
+   * TypeScript knows both IDs are valid numbers because
+   * hasValidUsers was checked above.
+   * ----------------------------------------------------------
    */
+
+  const safeCurrentUserId =
+    currentUserId as number;
+
+  const safeReceiverId =
+    receiverId as number;
+
+  /*
+   * ----------------------------------------------------------
+   * NO CONVERSATION / EMPTY CONVERSATION
+   * ----------------------------------------------------------
+   */
+
   if (
     !conversation ||
     conversation.messages.length === 0
@@ -183,25 +395,43 @@ const MessageBox = ({
         />
 
         <div className="flex min-h-0 flex-1 items-center justify-center">
-          <ConversationEmptyState />
+          {optimisticMessages.length > 0 ? (
+            <Chats
+              messages={[]}
+              currentUserId={safeCurrentUserId}
+              user={user}
+              isChatuser={isChatuser}
+              optimisticMessages={
+                optimisticMessages
+              }
+            />
+          ) : (
+            <ConversationEmptyState />
+          )}
         </div>
 
-        {currentUserId && (
-          <ChatButton
-            userId={currentUserId}
-            receiverId={receiverId}
-          />
-        )}
+        <ChatButton
+          userId={safeCurrentUserId}
+          receiverId={safeReceiverId}
+          onOptimisticMessage={
+            handleOptimisticMessage
+          }
+          onOptimisticError={
+            handleOptimisticError
+          }
+        />
       </div>
     );
   }
 
   /*
-   * REAL CONVERSATION
+   * ----------------------------------------------------------
+   * EXISTING CONVERSATION
+   * ----------------------------------------------------------
    */
+
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-white">
-
       <ChatUser
         chatUser={chatUser}
         isChatuser={isChatuser}
@@ -209,26 +439,26 @@ const MessageBox = ({
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <Chats
-          messages={
-            conversation.messages
-          }
-          currentUserId={
-            currentUserId
-          }
+          messages={conversation.messages}
+          currentUserId={safeCurrentUserId}
           user={user}
-          isChatuser={
-            isChatuser
+          isChatuser={isChatuser}
+          optimisticMessages={
+            optimisticMessages
           }
         />
       </div>
 
-      {currentUserId && (
-        <ChatButton
-          userId={currentUserId}
-          receiverId={receiverId}
-        />
-      )}
-
+      <ChatButton
+        userId={safeCurrentUserId}
+        receiverId={safeReceiverId}
+        onOptimisticMessage={
+          handleOptimisticMessage
+        }
+        onOptimisticError={
+          handleOptimisticError
+        }
+      />
     </div>
   );
 };

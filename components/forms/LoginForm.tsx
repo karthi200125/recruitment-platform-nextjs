@@ -1,18 +1,17 @@
-'use client';
+"use client";
+
+import { Lock, LockOpen } from "lucide-react";
+import Link from "next/link";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import Button from "@/components/Button";
 import FormError from "@/components/ui/FormError";
 import { Input } from "@/components/ui/input";
-import { LoginSchema } from "@/lib/SchemaTypes";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { Lock, LockOpen } from "lucide-react";
-import { z } from "zod";
-
 import {
     Form,
     FormControl,
@@ -20,8 +19,11 @@ import {
     FormItem,
     FormMessage,
 } from "@/components/ui/form";
+import { LoginSchema } from "@/lib/SchemaTypes";
 
-const LoginForm = () => {
+type LoginValues = z.infer<typeof LoginSchema>;
+
+export default function LoginForm() {
     const router = useRouter();
 
     const [showPassword, setShowPassword] =
@@ -32,11 +34,8 @@ const LoginForm = () => {
     const [isPending, startTransition] =
         useTransition();
 
-    const form = useForm<
-        z.infer<typeof LoginSchema>
-    >({
-        resolver:
-            zodResolver(LoginSchema),
+    const form = useForm<LoginValues>({
+        resolver: zodResolver(LoginSchema),
 
         defaultValues: {
             email: "",
@@ -44,9 +43,11 @@ const LoginForm = () => {
         },
     });
 
-    const onSubmit = (
-        values: z.infer<typeof LoginSchema>
-    ) => {
+    const onSubmit = (values: LoginValues) => {
+        if (isPending) {
+            return;
+        }
+
         setError("");
 
         startTransition(async () => {
@@ -64,16 +65,14 @@ const LoginForm = () => {
                     setError(
                         "Invalid email or password"
                     );
-
                     return;
                 }
 
-                router.refresh();
-
                 router.push("/dashboard");
-            } catch (error) {
+                router.refresh();
+            } catch {
                 setError(
-                    "Something went wrong"
+                    "Something went wrong. Please try again."
                 );
             }
         });
@@ -82,11 +81,11 @@ const LoginForm = () => {
     return (
         <Form {...form}>
             <form
-                onSubmit={form.handleSubmit(
-                    onSubmit
-                )}
-                className="space-y-4 w-full"
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="w-full space-y-4"
+                noValidate
             >
+                {/* Email */}
                 <FormField
                     control={form.control}
                     name="email"
@@ -97,9 +96,9 @@ const LoginForm = () => {
                                     {...field}
                                     type="email"
                                     placeholder="Email"
-                                    disabled={isPending}
                                     autoComplete="email"
-                                    className="bg-white/[0.02] border border-white/10 text-white"
+                                    disabled={isPending}
+                                    className="border border-white/10 bg-white/[0.02] text-white"
                                 />
                             </FormControl>
 
@@ -108,6 +107,7 @@ const LoginForm = () => {
                     )}
                 />
 
+                {/* Password */}
                 <FormField
                     control={form.control}
                     name="password"
@@ -123,24 +123,40 @@ const LoginForm = () => {
                                                 : "password"
                                         }
                                         placeholder="Password"
-                                        disabled={isPending}
                                         autoComplete="current-password"
-                                        className="bg-white/[0.02] border border-white/10 text-white"
+                                        disabled={isPending}
+                                        className="border border-white/10 bg-white/[0.02] pr-10 text-white"
                                     />
 
                                     <button
                                         type="button"
                                         onClick={() =>
                                             setShowPassword(
-                                                (prev) => !prev
+                                                (previous) =>
+                                                    !previous
                                             )
                                         }
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50"
+                                        disabled={isPending}
+                                        aria-label={
+                                            showPassword
+                                                ? "Hide password"
+                                                : "Show password"
+                                        }
+                                        aria-pressed={
+                                            showPassword
+                                        }
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         {showPassword ? (
-                                            <LockOpen />
+                                            <LockOpen
+                                                className="h-4 w-4"
+                                                aria-hidden="true"
+                                            />
                                         ) : (
-                                            <Lock />
+                                            <Lock
+                                                className="h-4 w-4"
+                                                aria-hidden="true"
+                                            />
                                         )}
                                     </button>
                                 </div>
@@ -151,20 +167,24 @@ const LoginForm = () => {
                     )}
                 />
 
+                {/* Forgot password */}
                 <div className="flex justify-end">
                     <Link
                         href="/forgot-password"
-                        className="text-sm text-indigo-400 font-medium hover:text-indigo-300 transition"
+                        className="text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300"
                     >
                         Forgot password?
                     </Link>
                 </div>
 
+                {/* Server/auth error */}
                 <FormError message={error} />
 
+                {/* Submit */}
                 <Button
                     type="submit"
                     isLoading={isPending}
+                    disabled={isPending}
                     className="w-full"
                 >
                     Login
@@ -172,6 +192,4 @@ const LoginForm = () => {
             </form>
         </Form>
     );
-};
-
-export default LoginForm;
+}

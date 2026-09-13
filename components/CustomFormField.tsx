@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react';
 import {
     FormControl,
     FormField,
@@ -9,6 +8,7 @@ import {
     FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import React from 'react';
 import { FieldValues, Path, UseFormReturn } from "react-hook-form";
 import CustomSelect from "./CustomSelect";
 import { Textarea } from "./ui/textarea";
@@ -58,7 +58,7 @@ const CustomFormField = <T extends FieldValues>({
                                 isLoading={isLoading}
                                 selectCls={selectCls}
                                 onSelect={onSelect}
-                                optionsLoading={optionsLoading}                                
+                                optionsLoading={optionsLoading}
                             />
                             :
                             isTextarea ?

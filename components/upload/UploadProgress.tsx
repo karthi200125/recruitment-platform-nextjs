@@ -1,7 +1,6 @@
-"use client";
+'use client'
 
 import Button from "@/components/Button";
-
 import { CheckCircleIcon } from "./FileIcon";
 
 interface UploadProgressProps {

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authentication/authOptions";
 import { db } from "@/lib/db";
+import "react-circular-progressbar/dist/styles.css";
 
 type DashboardLayoutProps = {
     children: ReactNode;

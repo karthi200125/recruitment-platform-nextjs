@@ -14,31 +14,66 @@ export const createChatAndMessage = async (
     fileType?: string
 ) => {
     try {
-        // ✅ validation
+        // ─────────────────────────────────────────────────────────────
+        // Validation
+        // ─────────────────────────────────────────────────────────────
+
         if (
-            !senderId ||
-            !receiverId ||
-            (!messageText && !image && !file)
+            !Number.isInteger(senderId) ||
+            senderId <= 0 ||
+            !Number.isInteger(receiverId) ||
+            receiverId <= 0 ||
+            senderId === receiverId
         ) {
-            throw new Error("Invalid input");
+            return {
+                success: false,
+                error: "INVALID_INPUT",
+            };
         }
 
-        // ✅ normalize users
+        const text = messageText?.trim() || null;
+        const messageImage = image || null;
+        const messageFile = file || null;
+
+        if (!text && !messageImage && !messageFile) {
+            return {
+                success: false,
+                error: "INVALID_INPUT",
+            };
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // Normalize chat participants
+        // ─────────────────────────────────────────────────────────────
+
         const [user1, user2] = [senderId, receiverId].sort(
             (a, b) => a - b
         );
 
-        // ✅ get sender
+        // ─────────────────────────────────────────────────────────────
+        // Get sender
+        // ─────────────────────────────────────────────────────────────
+
         const sender = await db.user.findUnique({
-            where: { id: senderId },
-            select: { isPro: true },
+            where: {
+                id: senderId,
+            },
+            select: {
+                isPro: true,
+            },
         });
 
         if (!sender) {
-            throw new Error("User not found");
+            return {
+                success: false,
+                error: "USER_NOT_FOUND",
+            };
         }
 
-        // ✅ find existing chat
+        // ─────────────────────────────────────────────────────────────
+        // Get or create chat
+        // ─────────────────────────────────────────────────────────────
+
         let chat = await db.chats.findUnique({
             where: {
                 senderId_receiverId: {
@@ -46,24 +81,33 @@ export const createChatAndMessage = async (
                     receiverId: user2,
                 },
             },
+            select: {
+                id: true,
+            },
         });
 
-        // ✅ create chat if not exists
         if (!chat) {
             chat = await db.chats.create({
                 data: {
                     senderId: user1,
                     receiverId: user2,
                     lastMessage:
-                        messageText ||
-                        (image ? "📷 Image" : "📎 File"),
-
+                        text ||
+                        (messageImage
+                            ? "📷 Image"
+                            : "📎 File"),
                     lastMessageAt: new Date(),
+                },
+                select: {
+                    id: true,
                 },
             });
         }
 
-        // ✅ FREE PLAN LIMIT
+        // ─────────────────────────────────────────────────────────────
+        // Free plan limit
+        // ─────────────────────────────────────────────────────────────
+
         if (!sender.isPro) {
             const messageCount = await db.message.count({
                 where: {
@@ -80,40 +124,66 @@ export const createChatAndMessage = async (
             }
         }
 
-        // ✅ create message
-        const message = await db.message.create({
-            data: {
-                chatId: chat.id,
-                senderId,
+        // ─────────────────────────────────────────────────────────────
+        // Create message + update chat preview
+        // ─────────────────────────────────────────────────────────────
 
-                text: messageText || null,
+        const now = new Date();
 
-                image: image || null,
+        const [message] = await db.$transaction([
+            db.message.create({
+                data: {
+                    chatId: chat.id,
+                    senderId,
 
-                file: file || null,
-                fileName: fileName || null,
-                fileType: fileType || null,
-            },
-        });
+                    text,
 
-        // ✅ update chat preview
-        await db.chats.update({
-            where: { id: chat.id },
-            data: {
-                lastMessage:
-                    messageText ||
-                    (image ? "📷 Image" : "📎 File"),
+                    image: messageImage,
 
-                lastMessageAt: new Date(),
-            },
-        });
+                    file: messageFile,
+                    fileName: fileName || null,
+                    fileType: fileType || null,
+                },
+
+                select: {
+                    id: true,
+                    chatId: true,
+                    senderId: true,
+                    text: true,
+                    image: true,
+                    file: true,
+                    fileName: true,
+                    fileType: true,
+                    isSeen: true,
+                    createdAt: true,
+                },
+            }),
+
+            db.chats.update({
+                where: {
+                    id: chat.id,
+                },
+                data: {
+                    lastMessage:
+                        text ||
+                        (messageImage
+                            ? "📷 Image"
+                            : "📎 File"),
+                    lastMessageAt: now,
+                    updatedAt: now,
+                },
+            }),
+        ]);
 
         return {
             success: true,
             message,
         };
     } catch (error) {
-        console.error("[createChatAndMessage]", error);
+        console.error(
+            "[createChatAndMessage]",
+            error
+        );
 
         return {
             success: false,

@@ -1,12 +1,32 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Stripe from "stripe";
-import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/authentication/authOptions";
+import { db } from "@/lib/db";
+import { getPlans } from "@/lib/data/subscription-plans";
+
 import CurrentSubscription from "./CurrentSubscription";
 import SubscriptionPlans from "./SubscriptionPlans";
-import { getPlans } from "@/lib/data/subscription-plans";
+
+export const metadata: Metadata = {
+    title: "Billing & Subscription",
+    description:
+        "Manage your Jobify subscription, view your current plan, and choose a premium plan.",
+    robots: {
+        index: false,
+        follow: false,
+    },
+};
+
+export const dynamic = "force-dynamic";
+
+interface SubscriptionPageProps {
+    searchParams: {
+        session_id?: string;
+    };
+}
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
@@ -18,28 +38,24 @@ const stripe = new Stripe(stripeSecretKey, {
     apiVersion: "2025-02-24.acacia",
 });
 
-interface SubscriptionPageProps {
-    searchParams: {
-        session_id?: string;
-    };
-}
-
 export default async function SubscriptionPage({
     searchParams,
 }: SubscriptionPageProps) {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
         redirect("/signin");
     }
 
-    const plans = getPlans();
+    const userId = Number(session.user.id);
 
-    const email = session.user.email.trim().toLowerCase();
+    if (!Number.isInteger(userId) || userId <= 0) {
+        redirect("/signin");
+    }
 
     const user = await db.user.findUnique({
         where: {
-            id: session.user.id,
+            id: userId,
         },
         include: {
             subscription: true,
@@ -62,12 +78,19 @@ export default async function SubscriptionPage({
                     ? checkoutSession.customer
                     : null;
 
-            if (
-                customerId &&
-                user.stripeCustomerId === customerId &&
+            const isValidCheckout =
+                customerId === user.stripeCustomerId &&
                 checkoutSession.mode === "subscription" &&
-                checkoutSession.status === "complete"
-            ) {
+                checkoutSession.status === "complete";
+
+            if (isValidCheckout) {
+                console.log(
+                    "[SUBSCRIPTION_CHECKOUT_VERIFIED]",
+                    {
+                        userId: user.id,
+                        sessionId: searchParams.session_id,
+                    }
+                );
             }
         } catch (error) {
             console.error(
@@ -77,26 +100,14 @@ export default async function SubscriptionPage({
         }
     }
 
-    const latestUser = await db.user.findUnique({
-        where: {
-            id: user.id,
-        },
-        include: {
-            subscription: true,
-        },
-    });
+    const plans = getPlans();
 
-    if (!latestUser) {
-        redirect("/signin");
-    }
-
-    const subscription = latestUser.subscription ?? null;
+    const subscription = user.subscription ?? null;
 
     return (
-        <div className="mx-auto w-full max-w-5xl space-y-6 py-10">
-
+        <main className="mx-auto w-full max-w-5xl space-y-6 py-10">
             {/* Page header */}
-            <div>
+            <header>
                 <h1 className="text-xl font-bold text-slate-900">
                     Billing & Subscription
                 </h1>
@@ -104,29 +115,29 @@ export default async function SubscriptionPage({
                 <p className="mt-0.5 text-sm text-slate-400">
                     Manage your plan, view billing details, and upgrade anytime.
                 </p>
-            </div>
+            </header>
 
             {/* Current subscription */}
             <CurrentSubscription
-                user={latestUser}
+                user={user}
                 subscription={subscription}
             />
 
             {/* Available plans */}
             <SubscriptionPlans
                 role={
-                    latestUser.role as
+                    user.role as
                     | "CANDIDATE"
                     | "RECRUITER"
                     | "ORGANIZATION"
                 }
-                userId={latestUser.id}
+                userId={user.id}
                 currentPriceId={
                     subscription?.stripePriceId ?? null
                 }
-                isPro={latestUser.isPro}
+                isPro={user.isPro}
                 plans={plans}
             />
-        </div>
+        </main>
     );
 }

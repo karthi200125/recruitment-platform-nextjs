@@ -8,13 +8,41 @@ export const getChatUsers = async (
     q?: string
 ): Promise<ChatUserItem[]> => {
     try {
+        if (!Number.isInteger(userId) || userId <= 0) {
+            return [];
+        }
+
         const search = q?.trim();
 
         const chats = await db.chats.findMany({
             where: {
                 OR: [
-                    { senderId: userId },
-                    { receiverId: userId },
+                    {
+                        senderId: userId,
+                        ...(search
+                            ? {
+                                receiver: {
+                                    username: {
+                                        contains: search,
+                                        mode: "insensitive",
+                                    },
+                                },
+                            }
+                            : {}),
+                    },
+                    {
+                        receiverId: userId,
+                        ...(search
+                            ? {
+                                sender: {
+                                    username: {
+                                        contains: search,
+                                        mode: "insensitive",
+                                    },
+                                },
+                            }
+                            : {}),
+                    },
                 ],
             },
 
@@ -49,7 +77,7 @@ export const getChatUsers = async (
             },
         });
 
-        const users: ChatUserItem[] = chats.map((chat) => {
+        return chats.map((chat) => {
             const chatUser =
                 chat.senderId === userId
                     ? chat.receiver
@@ -65,18 +93,6 @@ export const getChatUsers = async (
                 updatedAt: chat.updatedAt,
             };
         });
-
-        if (!search) {
-            return users;
-        }
-
-        const normalizedSearch = search.toLowerCase();
-
-        return users.filter((user) =>
-            user.username
-                .toLowerCase()
-                .includes(normalizedSearch)
-        );
     } catch (error) {
         console.error("[GET_CHAT_USERS]", error);
 

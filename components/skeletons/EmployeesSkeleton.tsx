@@ -1,5 +1,3 @@
-"use client";
-
 function EmployeeRowSkeleton() {
     return (
         <div className="rounded-xl border border-slate-200 bg-white p-3 animate-pulse">

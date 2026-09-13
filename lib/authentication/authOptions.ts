@@ -35,40 +35,39 @@ export const authOptions: NextAuthOptions = {
                         return null;
                     }
 
-                    const { email, password } =
-                        validatedFields.data;
+                    const { email, password } = validatedFields.data;
 
-                    const user =
-                        await db.user.findUnique({
-                            where: {
-                                email,
-                            },
+                    const user = await db.user.findUnique({
+                        where: {
+                            email,
+                        },
 
-                            select: {
-                                id: true,
-                                username: true,
-                                email: true,
-                                password: true,
-                                role: true,
-                                isPro: true,
-                                profileImage: true,
-                            },
-                        });
+                        select: {
+                            id: true,
+                            username: true,
+                            email: true,
+                            password: true,
+                            role: true,
+                            isPro: true,
+                            profileImage: true,
+                        },
+                    });
 
-                    if (!user || !user.password) {
+                    if (!user?.password) {
                         return null;
                     }
 
-                    const isPasswordValid =
-                        await bcrypt.compare(
-                            password,
-                            user.password
-                        );
+                    const isPasswordValid = await bcrypt.compare(
+                        password,
+                        user.password
+                    );
 
                     if (!isPasswordValid) {
                         return null;
                     }
-                                        
+
+                    // Everything needed by jwt() is already here.
+                    // No second DB lookup is necessary.
                     return {
                         id: user.id,
                         email: user.email,
@@ -78,10 +77,7 @@ export const authOptions: NextAuthOptions = {
                         profileImage: user.profileImage ?? null,
                     };
                 } catch (error) {
-                    console.error(
-                        "AUTHORIZATION_ERROR",
-                        error
-                    );
+                    console.error("AUTHORIZATION_ERROR", error);
 
                     return null;
                 }
@@ -89,89 +85,64 @@ export const authOptions: NextAuthOptions = {
         }),
 
         GoogleProvider({
-            clientId:
-                process.env.GOOGLE_CLIENT_ID ??
-                "",
+            clientId: process.env.GOOGLE_CLIENT_ID ?? "",
 
             clientSecret:
-                process.env
-                    .GOOGLE_CLIENT_SECRET ??
-                "",
+                process.env.GOOGLE_CLIENT_SECRET ?? "",
         }),
     ],
 
     session: {
         strategy: "jwt",
 
-        maxAge:
-            30 * 24 * 60 * 60,
+        maxAge: 30 * 24 * 60 * 60,
     },
 
     jwt: {
-        maxAge:
-            30 * 24 * 60 * 60,
+        maxAge: 30 * 24 * 60 * 60,
     },
 
-    secret:
-        process.env
-            .NEXTAUTH_SECRET,
+    secret: process.env.NEXTAUTH_SECRET,
 
-    callbacks: {        
-        async signIn({
-            user,
-            account,
-        }) {
-            try {
-                if (
-                    account?.provider ===
-                    "google"
-                ) {
-                    if (!user.email) {
-                        return false;
-                    }
-
-                    const existingUser =
-                        await db.user.findUnique({
-                            where: {
-                                email:
-                                    user.email,
-                            },
-                        });
-
-                    // CREATE USER IF NOT EXISTS
-                    if (!existingUser) {
-                        await db.user.create({
-                            data: {
-                                email: user.email,
-                                username: user.name ?? "Google User",
-                                profileImage: user.image,
-                            },
-                        });
-                    }
-                }
-
-                return true;
-            } catch (error) {
-                console.error(
-                    "GOOGLE_SIGNIN_ERROR",
-                    error
-                );
-
-                return false;
-            }
-        },
-
+    callbacks: {
         async jwt({
             token,
             user,
+            account,
             trigger,
         }) {
+            // ─────────────────────────────────────────────
             // FIRST LOGIN
-            if (user?.email) {
-                const dbUser =
-                    await db.user.findUnique({
+            // ─────────────────────────────────────────────
+            if (user) {
+                // CREDENTIALS
+                // authorize() already fetched everything we need.
+                if (account?.provider === "credentials") {
+                    token.id = Number(user.id);
+                    token.email = user.email;
+                    token.username = user.username;
+                    token.role = user.role;
+                    token.isPro = user.isPro;
+                    token.profileImage = user.profileImage ?? null;
+
+                    return token;
+                }
+
+                // GOOGLE
+                // Ensure the Google user exists and get the
+                // actual database user in one operation.
+                if (account?.provider === "google" && user.email) {
+                    const dbUser = await db.user.upsert({
                         where: {
                             email: user.email,
+                        },
+
+                        update: {},
+
+                        create: {
+                            email: user.email,
+                            username: user.name ?? "Google User",
+                            profileImage: user.image,
                         },
 
                         select: {
@@ -184,39 +155,39 @@ export const authOptions: NextAuthOptions = {
                         },
                     });
 
-                if (dbUser) {
                     token.id = dbUser.id;
                     token.email = dbUser.email;
                     token.username = dbUser.username;
                     token.role = dbUser.role;
                     token.isPro = dbUser.isPro;
                     token.profileImage = dbUser.profileImage;
+
+                    return token;
                 }
             }
 
+            // ─────────────────────────────────────────────
             // SESSION UPDATE
-            if (
-                trigger === "update" &&
-                token.email
-            ) {
-                const dbUser =
-                    await db.user.findUnique({
-                        where: {
-                            email: token.email,
-                        },
+            // ─────────────────────────────────────────────
+            if (trigger === "update" && token.email) {
+                const dbUser = await db.user.findUnique({
+                    where: {
+                        email: token.email,
+                    },
 
-                        select: {
-                            id: true,
-                            username: true,
-                            email: true,
-                            role: true,
-                            isPro: true,
-                            profileImage: true,
-                        },
-                    });
+                    select: {
+                        id: true,
+                        username: true,
+                        email: true,
+                        role: true,
+                        isPro: true,
+                        profileImage: true,
+                    },
+                });
 
                 if (dbUser) {
                     token.id = dbUser.id;
+                    token.email = dbUser.email;
                     token.username = dbUser.username;
                     token.role = dbUser.role;
                     token.isPro = dbUser.isPro;
@@ -237,7 +208,8 @@ export const authOptions: NextAuthOptions = {
                 session.user.username = token.username as string;
                 session.user.role = token.role as Role | null;
                 session.user.isPro = token.isPro as boolean;
-                session.user.profileImage = token.profileImage as string | null;
+                session.user.profileImage =
+                    token.profileImage as string | null;
             }
 
             return session;
@@ -248,6 +220,5 @@ export const authOptions: NextAuthOptions = {
         signIn: "/signin",
     },
 
-    debug:
-        process.env.NODE_ENV === "development",
+    debug: process.env.NODE_ENV === "development",
 };

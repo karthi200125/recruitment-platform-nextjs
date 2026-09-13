@@ -12,11 +12,12 @@ import { getJobAIMatches } from "@/actions/ai/jobs/get-job-ai-matches";
 export const dynamic = "force-dynamic";
 
 const MAX_JOBS_PER_REQUEST = 10;
+const CACHE_MAX_AGE = 300;
 
 export async function POST(req: NextRequest) {
     try {
         // ─────────────────────────────────────────────────────────────
-        // 1. Authenticate the request
+        // 1. Authenticate
         // ─────────────────────────────────────────────────────────────
 
         const session = await getServerSession(authOptions);
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
         }
 
         // ─────────────────────────────────────────────────────────────
-        // 2. Read request body
+        // 2. Parse request body
         // ─────────────────────────────────────────────────────────────
 
         const body: unknown = await req.json();
@@ -54,7 +55,11 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const rawJobIds = (body as { jobIds?: unknown }).jobIds;
+        const rawJobIds = (
+            body as {
+                jobIds?: unknown;
+            }
+        ).jobIds;
 
         if (!Array.isArray(rawJobIds)) {
             return NextResponse.json(
@@ -67,74 +72,100 @@ export async function POST(req: NextRequest) {
         // 3. Validate + deduplicate job IDs
         // ─────────────────────────────────────────────────────────────
 
+        const uniqueJobIds = new Set<number>();
+
+        for (const value of rawJobIds) {
+            const id = Number(value);
+
+            if (
+                Number.isInteger(id) &&
+                id > 0
+            ) {
+                uniqueJobIds.add(id);
+
+                if (
+                    uniqueJobIds.size >=
+                    MAX_JOBS_PER_REQUEST
+                ) {
+                    break;
+                }
+            }
+        }
+
         const jobIds = Array.from(
-            new Set(
-                rawJobIds
-                    .map(Number)
-                    .filter(
-                        (id) =>
-                            Number.isInteger(id) &&
-                            id > 0
-                    )
-            )
-        ).slice(0, MAX_JOBS_PER_REQUEST);
+            uniqueJobIds
+        );
 
         if (jobIds.length === 0) {
             return NextResponse.json([]);
         }
 
-        console.log("🤖 AI MATCH REQUEST:", {
-            userId,
-            jobIds,
-        });
-
         // ─────────────────────────────────────────────────────────────
-        // 4. Get user's AI profile
+        // 4. Fetch profile + jobs IN PARALLEL
         // ─────────────────────────────────────────────────────────────
+        //
+        // These two operations are independent.
+        //
+        // OLD:
+        //
+        // await getAIUserProfile()
+        //        ↓
+        // await db.job.findMany()
+        //
+        // NEW:
+        //
+        // ┌─ getAIUserProfile()
+        // │
+        // └─ db.job.findMany()
+        //        ↓
+        //   getJobAIMatches()
+        //
 
-        const userProfile = await getAIUserProfile(userId);
+        const [userProfile, jobs] = await Promise.all([
+            getAIUserProfile(userId),
 
-        // ─────────────────────────────────────────────────────────────
-        // 5. Get the requested ACTIVE jobs
-        // ─────────────────────────────────────────────────────────────
-
-        const jobs = await db.job.findMany({
-            where: {
-                id: {
-                    in: jobIds,
+            db.job.findMany({
+                where: {
+                    id: {
+                        in: jobIds,
+                    },
+                    status: "ACTIVE",
                 },
-                status: "ACTIVE",
-            },
 
-            select: {
-                id: true,
-                jobTitle: true,
-                jobDesc: true,
-                experience: true,
-                city: true,
-                state: true,
-                country: true,
-                type: true,
-                mode: true,
-                skills: true,
-            },
-        });
+                select: {
+                    id: true,
+                    jobTitle: true,
+                    jobDesc: true,
+                    experience: true,
+                    city: true,
+                    state: true,
+                    country: true,
+                    type: true,
+                    mode: true,
+                    skills: true,
+                },
+            }),
+        ]);
+
+        // ─────────────────────────────────────────────────────────────
+        // 5. No active jobs
+        // ─────────────────────────────────────────────────────────────
 
         if (jobs.length === 0) {
             return NextResponse.json([]);
         }
 
         // ─────────────────────────────────────────────────────────────
-        // 6. MAIN AI MATCHING FUNCTION
+        // 6. Main AI matching function
         // ─────────────────────────────────────────────────────────────
         //
-        // route.ts does NOT contain Gemini matching logic.
+        // This remains server-side.
         //
+        // route.ts
+        //     ↓
         // getJobAIMatches()
-        //        ↓
-        //      Gemini
-        //        ↓
-        //   AI match results
+        //     ↓
+        // Gemini
         //
 
         const aiMatches = await getJobAIMatches(
@@ -142,25 +173,27 @@ export async function POST(req: NextRequest) {
             jobs
         );
 
-        console.log("🤖 AI MATCH RESULTS:", aiMatches);
-
         // ─────────────────────────────────────────────────────────────
-        // 7. Return AI results to JobsClient
+        // 7. Return results
         // ─────────────────────────────────────────────────────────────
 
-        return NextResponse.json(aiMatches, {
-            status: 200,
-            headers: {
-                "Cache-Control": "private, max-age=300",
-            },
-        });
+        return NextResponse.json(
+            aiMatches,
+            {
+                status: 200,
+                headers: {
+                    "Cache-Control":
+                        `private, max-age=${CACHE_MAX_AGE}`,
+                },
+            }
+        );
     } catch (error) {
         // ─────────────────────────────────────────────────────────────
-        // 8. AI failure should not crash the application
+        // 8. Graceful failure
         // ─────────────────────────────────────────────────────────────
 
         console.error(
-            "❌ AI JOB MATCH ROUTE ERROR:",
+            "AI JOB MATCH ROUTE ERROR:",
             error
         );
 

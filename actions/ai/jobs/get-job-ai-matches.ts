@@ -28,6 +28,7 @@ interface AIUserProfile {
     city: string | null;
     state: string | null;
     country: string | null;
+
     educations: {
         instituteName: string;
         degree: string;
@@ -59,43 +60,50 @@ interface AIJob {
     skills: string[];
 }
 
-const MAX_JOB_DESCRIPTION_LENGTH = 1200;
+/*
+|--------------------------------------------------------------------------
+| AI request limits
+|--------------------------------------------------------------------------
+|
+| These limits protect:
+| - Gemini latency
+| - token usage
+| - Vercel execution time
+| - request size
+|
+*/
 
-const MAX_JOBS_PER_AI_REQUEST = 10;
+const MAX_JOBS_PER_AI_REQUEST = 5;
 
-const MAX_SKILLS_PER_JOB = 30;
+const MAX_JOB_DESCRIPTION_LENGTH = 900;
 
-const MAX_PROFILE_SKILLS = 50;
+const MAX_SKILLS_PER_JOB = 20;
 
-const MAX_EXPERIENCES = 10;
+const MAX_PROFILE_SKILLS = 30;
 
-const MAX_PROJECTS = 10;
+const MAX_EXPERIENCES = 5;
 
-const MAX_EDUCATIONS = 10;
+const MAX_PROJECTS = 5;
 
-function clampScore(value: unknown): number {
-    const number = Number(value);
+const MAX_EDUCATIONS = 5;
 
-    if (!Number.isFinite(number)) {
-        return 0;
-    }
+const MAX_EXPERIENCE_DESCRIPTION_LENGTH = 400;
 
-    return Math.min(
-        100,
-        Math.max(
-            0,
-            Math.round(number)
-        )
-    );
-}
+const MAX_PROJECT_DESCRIPTION_LENGTH = 400;
+
+
+/*
+|--------------------------------------------------------------------------
+| Normalization helpers
+|--------------------------------------------------------------------------
+*/
 
 function normalizeString(value: unknown): string {
-    if (typeof value !== "string") {
-        return "";
-    }
-
-    return value.trim();
+    return typeof value === "string"
+        ? value.trim()
+        : "";
 }
+
 
 function normalizeStringArray(
     value: unknown
@@ -113,11 +121,36 @@ function normalizeStringArray(
         .filter(Boolean);
 }
 
+
 function normalizeBoolean(
     value: unknown
 ): boolean {
     return value === true;
 }
+
+
+function clampScore(value: unknown): number {
+    const number = Number(value);
+
+    if (!Number.isFinite(number)) {
+        return 0;
+    }
+
+    return Math.min(
+        100,
+        Math.max(
+            0,
+            Math.round(number)
+        )
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Skill normalization
+|--------------------------------------------------------------------------
+*/
 
 function normalizeSkill(
     skill: string
@@ -129,9 +162,82 @@ function normalizeSkill(
         .replace(/\s+/g, " ");
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Skill matching
-// ─────────────────────────────────────────────────────────────────────────────
+
+/*
+|--------------------------------------------------------------------------
+| Skill aliases
+|--------------------------------------------------------------------------
+*/
+
+const SKILL_ALIASES: Record<string, string[]> = {
+    javascript: [
+        "js",
+        "ecmascript",
+    ],
+
+    typescript: [
+        "ts",
+    ],
+
+    react: [
+        "reactjs",
+        "react js",
+    ],
+
+    nextjs: [
+        "next",
+        "next js",
+        "next.js",
+    ],
+
+    nodejs: [
+        "node",
+        "node js",
+        "node.js",
+    ],
+
+    express: [
+        "expressjs",
+        "express js",
+    ],
+
+    postgres: [
+        "postgresql",
+        "postgre sql",
+    ],
+
+    mongodb: [
+        "mongo",
+    ],
+
+    mysql: [
+        "my sql",
+    ],
+
+    aws: [
+        "amazon web services",
+    ],
+
+    docker: [
+        "docker container",
+    ],
+
+    tailwindcss: [
+        "tailwind",
+        "tailwind css",
+    ],
+
+    github: [
+        "git hub",
+    ],
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| Fast deterministic skill matching
+|--------------------------------------------------------------------------
+*/
 
 function skillsMatch(
     userSkill: string,
@@ -148,90 +254,19 @@ function skillsMatch(
         return true;
     }
 
-    // Common technology aliases.
-    const aliases: Record<string, string[]> = {
-        javascript: [
-            "js",
-            "ecmascript",
-        ],
-
-        typescript: [
-            "ts",
-        ],
-
-        react: [
-            "reactjs",
-            "react js",
-        ],
-
-        nextjs: [
-            "next",
-            "next js",
-            "next.js",
-        ],
-
-        nodejs: [
-            "node",
-            "node js",
-            "node.js",
-        ],
-
-        express: [
-            "expressjs",
-            "express js",
-        ],
-
-        postgres: [
-            "postgresql",
-            "postgre sql",
-        ],
-
-        mongodb: [
-            "mongo",
-        ],
-
-        mysql: [
-            "my sql",
-        ],
-
-        aws: [
-            "amazon web services",
-        ],
-
-        docker: [
-            "docker container",
-        ],
-
-        tailwindcss: [
-            "tailwind",
-            "tailwind css",
-        ],
-
-        github: [
-            "git hub",
-        ],
-
-        git: [
-            "github",
-        ],
-    };
-
     for (const [
         canonical,
-        variations,
-    ] of Object.entries(aliases)) {
+        aliases,
+    ] of Object.entries(SKILL_ALIASES)) {
         const userMatches =
             user === canonical ||
-            variations.includes(user);
+            aliases.includes(user);
 
         const jobMatches =
             job === canonical ||
-            variations.includes(job);
+            aliases.includes(job);
 
-        if (
-            userMatches &&
-            jobMatches
-        ) {
+        if (userMatches && jobMatches) {
             return true;
         }
     }
@@ -239,17 +274,15 @@ function skillsMatch(
     return false;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Deterministic fallback
-// ─────────────────────────────────────────────────────────────────────────────
-//
-// This is NOT AI.
-//
-// It guarantees that a Gemini quota/network/model failure does not break
-// the Jobs page.
-//
-// The user will still receive a useful compatibility score.
-// ─────────────────────────────────────────────────────────────────────────────
+
+/*
+|--------------------------------------------------------------------------
+| Deterministic fallback
+|--------------------------------------------------------------------------
+|
+| Used when Gemini is unavailable.
+|
+*/
 
 function computeFallbackMatch(
     user: AIUserProfile,
@@ -258,15 +291,15 @@ function computeFallbackMatch(
     const matchedSkills: string[] = [];
 
     for (const jobSkill of job.skills) {
-        const matched = user.skills.some(
-            (userSkill) =>
-                skillsMatch(
-                    userSkill,
-                    jobSkill
-                )
-        );
-
-        if (matched) {
+        if (
+            user.skills.some(
+                (userSkill) =>
+                    skillsMatch(
+                        userSkill,
+                        jobSkill
+                    )
+            )
+        ) {
             matchedSkills.push(jobSkill);
         }
     }
@@ -287,10 +320,6 @@ function computeFallbackMatch(
                 100
             )
             : 60;
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Profession signal
-    // ────────────────────────────────────────────────────────────────────────
 
     const userProfession =
         user.profession
@@ -322,10 +351,6 @@ function computeFallbackMatch(
             ? 85
             : 55;
 
-    // ────────────────────────────────────────────────────────────────────────
-    // Experience signal
-    // ────────────────────────────────────────────────────────────────────────
-
     const experienceScore =
         user.experiences.length > 0
             ? 70
@@ -333,10 +358,6 @@ function computeFallbackMatch(
 
     const experienceMatch =
         user.experiences.length > 0;
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Location signal
-    // ────────────────────────────────────────────────────────────────────────
 
     const userCity =
         user.city
@@ -364,13 +385,13 @@ function computeFallbackMatch(
             .includes("remote");
 
     const sameCity =
-        !!userCity &&
-        !!jobCity &&
+        Boolean(userCity) &&
+        Boolean(jobCity) &&
         userCity === jobCity;
 
     const sameState =
-        !!userState &&
-        !!jobState &&
+        Boolean(userState) &&
+        Boolean(jobState) &&
         userState === jobState;
 
     const locationScore =
@@ -382,17 +403,7 @@ function computeFallbackMatch(
                     ? 85
                     : 50;
 
-    // ────────────────────────────────────────────────────────────────────────
-    // Job type
-    // ────────────────────────────────────────────────────────────────────────
-
-    // The current profile shape does not contain a reliable job-type
-    // preference, so keep this neutral instead of inventing compatibility.
     const jobTypeScore = 60;
-
-    // ────────────────────────────────────────────────────────────────────────
-    // Overall score
-    // ────────────────────────────────────────────────────────────────────────
 
     const matchScore = clampScore(
         skillsScore * 0.45 +
@@ -414,56 +425,54 @@ function computeFallbackMatch(
 
     return {
         matchScore,
-
         matchedSkills,
-
         missingSkills,
-
         experienceMatch,
-
         skillsScore,
-
         experienceScore,
-
         requirementsScore,
-
         locationScore,
-
         jobTypeScore,
-
         summary,
     };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Sanitize input before sending to Gemini
-// ─────────────────────────────────────────────────────────────────────────────
+
+/*
+|--------------------------------------------------------------------------
+| Sanitize candidate profile
+|--------------------------------------------------------------------------
+*/
 
 function sanitizeUser(
     user: AIUserProfile
 ): AIUserProfile {
     return {
         profession:
-            normalizeString(user.profession) ||
-            null,
+            normalizeString(
+                user.profession
+            ) || null,
 
         skills:
-            user.skills
-                .slice(0, MAX_PROFILE_SKILLS)
-                .map(normalizeString)
-                .filter(Boolean),
+            normalizeStringArray(
+                user.skills
+            )
+                .slice(0, MAX_PROFILE_SKILLS),
 
         city:
-            normalizeString(user.city) ||
-            null,
+            normalizeString(
+                user.city
+            ) || null,
 
         state:
-            normalizeString(user.state) ||
-            null,
+            normalizeString(
+                user.state
+            ) || null,
 
         country:
-            normalizeString(user.country) ||
-            null,
+            normalizeString(
+                user.country
+            ) || null,
 
         educations:
             user.educations
@@ -505,7 +514,7 @@ function sanitizeUser(
                                 experience.description
                             ).slice(
                                 0,
-                                800
+                                MAX_EXPERIENCE_DESCRIPTION_LENGTH
                             )
                             : null,
                 })),
@@ -524,11 +533,18 @@ function sanitizeUser(
                             project.proDesc
                         ).slice(
                             0,
-                            800
+                            MAX_PROJECT_DESCRIPTION_LENGTH
                         ),
                 })),
     };
 }
+
+
+/*
+|--------------------------------------------------------------------------
+| Sanitize jobs
+|--------------------------------------------------------------------------
+*/
 
 function sanitizeJobs(
     jobs: AIJob[]
@@ -582,244 +598,138 @@ function sanitizeJobs(
                 ),
 
             skills:
-                job.skills
-                    .slice(
-                        0,
-                        MAX_SKILLS_PER_JOB
-                    )
-                    .map(normalizeString)
-                    .filter(Boolean),
+                normalizeStringArray(
+                    job.skills
+                )
+                    .slice(0, MAX_SKILLS_PER_JOB),
         }));
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Build prompt
-// ─────────────────────────────────────────────────────────────────────────────
+
+/*
+|--------------------------------------------------------------------------
+| Compact prompt builder
+|--------------------------------------------------------------------------
+|
+| IMPORTANT:
+| Keep the prompt short.
+| The model already understands how to perform matching.
+|
+*/
 
 function buildPrompt(
     user: AIUserProfile,
     jobs: AIJob[]
 ): string {
-    const jobsText = jobs
-        .map(
-            (job) => `
-JOB ID: ${job.id}
-
-TITLE:
-${job.jobTitle}
-
-DESCRIPTION:
-${job.jobDesc || "Not provided"}
-
-REQUIRED EXPERIENCE:
-${job.experience || "Not specified"}
-
-REQUIRED SKILLS:
-${job.skills.join(", ") || "None"}
-
-LOCATION:
-${[
-                    job.city,
-                    job.state,
-                    job.country,
-                ]
-                    .filter(Boolean)
-                    .join(", ") || "Not specified"}
-
-JOB TYPE:
-${job.type || "Not specified"}
-
-WORK MODE:
-${job.mode || "Not specified"}
-`
-        )
-        .join(
-            "\n-----------------------------\n"
-        );
-
-    return `
-You are Jobify's AI job matching engine.
-
-Evaluate ONE candidate against EVERY provided job.
-
-Your job is to estimate genuine compatibility based ONLY on the evidence supplied.
-
-Accuracy is more important than being generous.
-
-══════════════════════════════════════
-CANDIDATE
-══════════════════════════════════════
-
-Profession:
-${user.profession ?? "Not provided"}
-
-Skills:
-${user.skills.join(", ") || "None"}
-
-Location:
-${[
+    const candidate = {
+        profession: user.profession,
+        skills: user.skills,
+        location: [
             user.city,
             user.state,
             user.country,
         ]
             .filter(Boolean)
-            .join(", ") || "Not provided"}
+            .join(", "),
 
-Education:
-${user.educations.length
-            ? user.educations
-                .map(
-                    (education) =>
-                        `${education.degree} in ${education.fieldOfStudy} at ${education.instituteName}`
-                )
-                .join("\n")
-            : "None"
-        }
+        education:
+            user.educations.map(
+                (education) => ({
+                    degree: education.degree,
+                    field: education.fieldOfStudy,
+                    institute: education.instituteName,
+                })
+            ),
 
-Experience:
-${user.experiences.length
-            ? user.experiences
-                .map(
-                    (experience) =>
-                        `${experience.position} at ${experience.companyName}\nDescription: ${experience.description ?? "None"}`
-                )
-                .join("\n")
-            : "None"
-        }
+        experience:
+            user.experiences.map(
+                (experience) => ({
+                    position: experience.position,
+                    company: experience.companyName,
+                    description:
+                        experience.description,
+                })
+            ),
 
-Projects:
-${user.projects.length
-            ? user.projects
-                .map(
-                    (project) =>
-                        `${project.proName}: ${project.proDesc}`
-                )
-                .join("\n")
-            : "None"
-        }
+        projects:
+            user.projects.map(
+                (project) => ({
+                    name: project.proName,
+                    description: project.proDesc,
+                })
+            ),
+    };
 
-══════════════════════════════════════
-JOBS
-══════════════════════════════════════
+    const jobData = jobs.map(
+        (job) => ({
+            id: job.id,
+            title: job.jobTitle,
+            description: job.jobDesc,
+            experience: job.experience,
+            skills: job.skills,
+            location: [
+                job.city,
+                job.state,
+                job.country,
+            ]
+                .filter(Boolean)
+                .join(", "),
+            type: job.type,
+            mode: job.mode,
+        })
+    );
 
-${jobsText}
+    return JSON.stringify({
+        task:
+            "Match the candidate against every job. Use only supplied evidence. Return one result per job.",
 
-══════════════════════════════════════
-MATCHING RULES
-══════════════════════════════════════
+        rules: [
+            "Never invent skills, experience, projects, or education.",
+            "Do not assume related technologies are identical.",
+            "matchedSkills must be supported by the candidate.",
+            "missingSkills must contain important missing requirements.",
+            "Evaluate experience against the stated requirement.",
+            "Consider location and remote work.",
+            "Consider job type.",
+            "Scores must be integers from 0 to 100.",
+            "Return exactly one result for every job.",
+            "Return only the JSON array.",
+        ],
 
-Evaluate every job independently.
+        scoring: {
+            skills: 45,
+            experience: 20,
+            requirements: 15,
+            location: 10,
+            jobType: 10,
+        },
 
-Consider:
+        candidate,
 
-1. Direct technical skill matches.
-2. Closely related technologies.
-3. Semantic similarity between technologies.
-4. Actual demonstrated experience.
-5. Required experience level.
-6. Important job requirements.
-7. Candidate profession.
-8. Projects that demonstrate relevant abilities.
-9. Relevant education.
-10. Location compatibility.
-11. Remote/work-mode compatibility.
-12. Job-type compatibility.
+        jobs: jobData,
 
-══════════════════════════════════════
-STRICT ACCURACY RULES
-══════════════════════════════════════
-
-- NEVER invent candidate skills.
-- NEVER invent candidate experience.
-- NEVER invent candidate projects.
-- NEVER invent candidate education.
-- NEVER assume a candidate knows a technology merely because they know a related technology.
-- Related technologies may be considered compatible only when there is a reasonable technical relationship.
-- matchedSkills must contain only skills clearly supported by the candidate profile.
-- missingSkills should contain only important job skills that the candidate does not clearly demonstrate.
-- Do not treat every word in a job description as a required skill.
-- Distinguish required skills from optional or nice-to-have skills.
-- Do not give a high score simply because the job title is similar.
-- Projects may support a skill match when the project description provides evidence.
-- experienceMatch is true only when demonstrated experience reasonably satisfies the stated requirement.
-- For remote jobs, locationScore should generally be high unless the job explicitly restricts geography.
-- For location-sensitive jobs, compare the candidate's location with the job location.
-- Job type compatibility should only be scored highly when supported by available evidence.
-- Scores must reflect evidence, not optimism.
-
-══════════════════════════════════════
-SCORING
-══════════════════════════════════════
-
-skillsScore:
-How strongly the candidate's demonstrated skills match the important required skills.
-
-experienceScore:
-How strongly the candidate's actual experience matches the required experience.
-
-requirementsScore:
-How strongly the candidate satisfies the important requirements of the role overall.
-
-locationScore:
-How compatible the candidate's location is with the job location and work mode.
-
-jobTypeScore:
-How compatible the candidate appears to be with the job type/work arrangement based on available information.
-
-matchScore:
-Overall suitability.
-
-Use this approximate weighting:
-
-skillsScore: 45%
-experienceScore: 20%
-requirementsScore: 15%
-locationScore: 10%
-jobTypeScore: 10%
-
-Do not blindly calculate the score if doing so contradicts the actual evidence.
-
-══════════════════════════════════════
-OUTPUT REQUIREMENTS
-══════════════════════════════════════
-
-- Return EXACTLY one result for every provided job.
-- Preserve every provided JOB ID.
-- jobId MUST correspond to an actual provided JOB ID.
-- Never create a job ID.
-- All score fields must be integers from 0 to 100.
-- matchedSkills must be an array of strings.
-- missingSkills must be an array of strings.
-- experienceMatch must be boolean.
-- summary must be one concise sentence.
-- Return ONLY a JSON array.
-- Do NOT return markdown.
-- Do NOT return explanations outside the JSON.
-- Do NOT omit any job.
-
-Return exactly this shape:
-
-[
-  {
-    "jobId": 123,
-    "matchScore": 0,
-    "matchedSkills": [],
-    "missingSkills": [],
-    "experienceMatch": false,
-    "skillsScore": 0,
-    "experienceScore": 0,
-    "requirementsScore": 0,
-    "locationScore": 0,
-    "jobTypeScore": 0,
-    "summary": ""
-  }
-]
-`;
+        output: {
+            jobId: "number",
+            matchScore: "number",
+            matchedSkills: "string[]",
+            missingSkills: "string[]",
+            experienceMatch: "boolean",
+            skillsScore: "number",
+            experienceScore: "number",
+            requirementsScore: "number",
+            locationScore: "number",
+            jobTypeScore: "number",
+            summary: "one concise sentence",
+        },
+    });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Parse Gemini JSON safely
-// ─────────────────────────────────────────────────────────────────────────────
+
+/*
+|--------------------------------------------------------------------------
+| Parse Gemini response
+|--------------------------------------------------------------------------
+*/
 
 function parseGeminiResponse(
     text: string,
@@ -827,12 +737,20 @@ function parseGeminiResponse(
 ): AIJobMatchResult[] {
     let cleaned = text.trim();
 
-    // Remove markdown fences if the model adds them.
-    cleaned = cleaned
-        .replace(/^```json\s*/i, "")
-        .replace(/^```\s*/i, "")
-        .replace(/\s*```$/i, "")
-        .trim();
+    if (
+        cleaned.startsWith("```")
+    ) {
+        cleaned = cleaned
+            .replace(
+                /^```(?:json)?\s*/i,
+                ""
+            )
+            .replace(
+                /\s*```$/,
+                ""
+            )
+            .trim();
+    }
 
     const parsed: unknown =
         JSON.parse(cleaned);
@@ -843,11 +761,16 @@ function parseGeminiResponse(
         );
     }
 
-    const validJobIds = new Set(
-        jobs.map((job) => job.id)
-    );
+    const validJobIds =
+        new Set(
+            jobs.map(
+                (job) => job.id
+            )
+        );
 
     const results: AIJobMatchResult[] = [];
+    const seenJobIds =
+        new Set<number>();
 
     for (const item of parsed) {
         if (
@@ -866,15 +789,17 @@ function parseGeminiResponse(
         const jobId =
             Number(raw.jobId);
 
-        if (!Number.isInteger(jobId)) {
+        if (
+            !Number.isInteger(jobId) ||
+            !validJobIds.has(jobId) ||
+            seenJobIds.has(jobId)
+        ) {
             continue;
         }
 
-        if (!validJobIds.has(jobId)) {
-            continue;
-        }
+        seenJobIds.add(jobId);
 
-        const result: AIJobMatchResult = {
+        results.push({
             jobId,
 
             matchScore:
@@ -926,67 +851,78 @@ function parseGeminiResponse(
                 normalizeString(
                     raw.summary
                 ),
-        };
-
-        results.push(result);
+        });
     }
 
-    // Every job MUST have exactly one result.
-    if (results.length !== jobs.length) {
+    if (
+        results.length !== jobs.length
+    ) {
         throw new Error(
             `Gemini returned ${results.length} matches for ${jobs.length} jobs`
-        );
-    }
-
-    // Also verify there are no duplicate IDs.
-    const uniqueIds = new Set(
-        results.map(
-            (result) => result.jobId
-        )
-    );
-
-    if (uniqueIds.size !== jobs.length) {
-        throw new Error(
-            "Gemini returned duplicate job IDs"
         );
     }
 
     return results;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Main function
-// ─────────────────────────────────────────────────────────────────────────────
+
+/*
+|--------------------------------------------------------------------------
+| Main AI matching function
+|--------------------------------------------------------------------------
+*/
 
 export async function getJobAIMatches(
     user: AIUserProfile,
     jobs: AIJob[]
-): Promise<AIJobMatchResult[]> {    
-
-    if (!jobs.length) {
+): Promise<AIJobMatchResult[]> {
+    if (
+        !jobs.length
+    ) {
         return [];
     }
 
-    const safeUser = sanitizeUser(user);
-    const safeJobs = sanitizeJobs(jobs);
-    if (!safeJobs.length) {
+    const safeUser =
+        sanitizeUser(user);
+
+    const safeJobs =
+        sanitizeJobs(jobs);
+
+    if (
+        !safeJobs.length
+    ) {
         return [];
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    /*
+    |--------------------------------------------------------------------------
+    | Local fallback
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        !process.env.GEMINI_API_KEY
+    ) {
         console.error(
             "❌ GEMINI_API_KEY is not configured"
         );
 
-        return safeJobs.map((job) => ({
-            jobId: job.id,
-
-            ...computeFallbackMatch(
-                safeUser,
-                job
-            ),
-        }));
+        return safeJobs.map(
+            (job) => ({
+                jobId: job.id,
+                ...computeFallbackMatch(
+                    safeUser,
+                    job
+                ),
+            })
+        );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Build compact prompt
+    |--------------------------------------------------------------------------
+    */
 
     const prompt =
         buildPrompt(
@@ -1007,7 +943,11 @@ export async function getJobAIMatches(
 
                     temperature: 0.1,
 
-                    maxOutputTokens: 4096,
+                    /*
+                    * Smaller output budget because
+                    * summaries are intentionally concise.
+                    */
+                    maxOutputTokens: 2048,
                 },
             });
 
@@ -1050,13 +990,20 @@ export async function getJobAIMatches(
             );
         }
 
-        return safeJobs.map((job) => ({
-            jobId: job.id,
+        /*
+        |--------------------------------------------------------------------------
+        | Never break jobs page because AI failed.
+        |--------------------------------------------------------------------------
+        */
 
-            ...computeFallbackMatch(
-                safeUser,
-                job
-            ),
-        }));
+        return safeJobs.map(
+            (job) => ({
+                jobId: job.id,
+                ...computeFallbackMatch(
+                    safeUser,
+                    job
+                ),
+            })
+        );
     }
 }

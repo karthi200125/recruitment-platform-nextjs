@@ -1,19 +1,19 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { useDispatch } from "react-redux";
 import {
     Crown,
     Lock,
     MessageSquare,
     UserCircle2,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useDispatch } from "react-redux";
 
-import { openModal } from "@/store/ModalSlice";
 import Model from "@/components/Model";
-import MessageBox from "../../app/(protected)/messages/MessageBox";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { openModal } from "@/store/ModalSlice";
+import MessageBox from "../../app/(protected)/messages/MessageBox";
 
 type Role =
     | "CANDIDATE"
@@ -177,8 +177,8 @@ const JobRecruiter = ({
                             : "Upgrade to Premium to message recruiters"
                     }
                     className={`inline-flex flex-shrink-0 items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-all duration-200 ${canMessage
-                            ? "border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
-                            : "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
+                        ? "border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
+                        : "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
                         }`}
                 >
                     {canMessage ? (

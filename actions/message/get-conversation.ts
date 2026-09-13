@@ -3,36 +3,61 @@
 import { db } from "@/lib/db";
 import { ConversationData } from "@/types/chat";
 
+const MAX_MESSAGES = 30;
+
 export const getConversation = async (
     currentUserId: number,
     otherUserId: number
 ): Promise<ConversationData | null> => {
     try {
+        // Validate IDs before hitting the database.
         if (
+            currentUserId === undefined ||
             !Number.isInteger(currentUserId) ||
-            !Number.isInteger(otherUserId)
+            !Number.isInteger(otherUserId) ||
+            currentUserId <= 0 ||
+            otherUserId <= 0 ||
+            currentUserId === otherUserId
         ) {
-            throw new Error("Invalid user IDs");
+            return null;
         }
 
-        const [user1, user2] = [currentUserId, otherUserId].sort(
-            (a, b) => a - b
-        );
+        // Chats are stored using the lower user ID as senderId
+        // and the higher user ID as receiverId.
+        const [senderId, receiverId] = [
+            currentUserId,
+            otherUserId,
+        ].sort((a, b) => a - b);
 
         const chat = await db.chats.findUnique({
             where: {
                 senderId_receiverId: {
-                    senderId: user1,
-                    receiverId: user2,
+                    senderId,
+                    receiverId,
                 },
             },
-            include: {
+
+            select: {
+                id: true,
+
                 messages: {
                     orderBy: {
                         createdAt: "asc",
                     },
-                    take: 30,
-                    include: {
+
+                    take: MAX_MESSAGES,
+
+                    select: {
+                        id: true,
+                        senderId: true,
+                        text: true,
+                        image: true,
+                        file: true,
+                        fileName: true,
+                        fileType: true,
+                        isSeen: true,
+                        createdAt: true,
+
                         sender: {
                             select: {
                                 id: true,
@@ -50,6 +75,7 @@ export const getConversation = async (
 
         return {
             id: chat.id,
+
             messages: chat.messages.map((message) => ({
                 id: message.id,
                 senderId: message.senderId,
@@ -60,6 +86,7 @@ export const getConversation = async (
                 fileType: message.fileType,
                 isSeen: message.isSeen,
                 createdAt: message.createdAt.toISOString(),
+
                 sender: {
                     id: message.sender.id,
                     profileImage: message.sender.profileImage,

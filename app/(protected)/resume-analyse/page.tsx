@@ -1,6 +1,8 @@
 import { getMyResume } from "@/actions/ai/resume/get-my-resume";
 import ResumeAnalyseClient from "./ResumeAnalyseClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function ResumeAnalysePage() {
     const result = await getMyResume();
 

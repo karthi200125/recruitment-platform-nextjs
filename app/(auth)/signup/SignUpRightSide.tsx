@@ -1,5 +1,3 @@
-'use client'
-
 import GoogleAuth from '@/app/(auth)/GoogleAuth';
 import RegisterForm from '@/components/forms/RegisterForm';
 import Link from 'next/link';
@@ -15,7 +13,7 @@ export default function SignUpRightSide() {
             </div>
 
             {/* Google auth */}
-            <GoogleAuth />
+            <GoogleAuth isSignIn={true} />
 
             {/* Divider */}
             <div className="flex items-center gap-3 my-6">

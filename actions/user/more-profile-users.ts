@@ -20,9 +20,9 @@ const MAX_CANDIDATES = 40;
 const MAX_RESULTS = 8;
 const FOLLOWER_SAMPLE_CAP = 500;
 
-export const getSuggestedUsers = async (profileUserId: number): Promise<MoreProfileUser[]> => {
+export const getSuggestedUsers = async (userId: number): Promise<MoreProfileUser[]> => {
   try {
-    if (!profileUserId) {
+    if (!userId) {
       return [];
     }
 
@@ -30,7 +30,7 @@ export const getSuggestedUsers = async (profileUserId: number): Promise<MoreProf
     const currentUserId = session?.user?.id ? Number(session.user.id) : null;
 
     const profileUser = await db.user.findUnique({
-      where: { id: profileUserId },
+      where: { id: userId },
       select: {
         id: true,
         role: true,

@@ -1,8 +1,7 @@
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+    TooltipTrigger
 } from "@/components/ui/tooltip";
 import { Role } from "@prisma/client";
 import { BadgeCheck, Crown, Medal } from "lucide-react";
@@ -38,25 +37,23 @@ const Badge = ({ type }: BadgeProps) => {
     const { icon, title } = badgeConfig[type];
 
     return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <div
-                        className="flex items-center justify-center cursor-pointer"
-                        aria-label={title}
-                    >
-                        {icon}
-                    </div>
-                </TooltipTrigger>
-
-                <TooltipContent
-                    side="top"
-                    className="rounded-md bg-black px-3 py-2 text-xs text-white"
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <div
+                    className="flex items-center justify-center cursor-pointer"
+                    aria-label={title}
                 >
-                    <p>{title}</p>
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+                    {icon}
+                </div>
+            </TooltipTrigger>
+
+            <TooltipContent
+                side="top"
+                className="rounded-md bg-black px-3 py-2 text-xs text-white"
+            >
+                <p>{title}</p>
+            </TooltipContent>
+        </Tooltip>
     );
 };
 

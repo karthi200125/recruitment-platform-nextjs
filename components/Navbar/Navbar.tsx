@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense, useState } from "react";
 import { useSession } from "next-auth/react";
+import { Suspense, useState } from "react";
 
 import Logo from "../Logo";
 import AuthButtons from "./AuthButtons";
@@ -14,13 +14,8 @@ import {
     NavIconSkeleton,
     UserProfileSkeleton,
 } from "@/components/skeletons/NavbarSkeletons";
-import { SessionUser } from "@/types";
+const Navbar = () => {
 
-interface NavbarProps {
-    user: SessionUser | null;
-}
-
-const Navbar = ({ user: initialUser }: NavbarProps) => {
     const [searchOpen, setSearchOpen] = useState(false);
 
     const {
@@ -28,19 +23,8 @@ const Navbar = ({ user: initialUser }: NavbarProps) => {
         status,
     } = useSession();
 
+    const user = session?.user
     const isSessionLoading = status === "loading";
-
-    const user =
-        session?.user
-            ? ({
-                ...initialUser,
-                ...session.user,
-            } as SessionUser)
-            : status === "authenticated"
-                ? initialUser
-                : null;
-
-    const isAuthenticated = status === "authenticated" && !!user?.id;
 
     return (
         <>
@@ -99,7 +83,7 @@ const Navbar = ({ user: initialUser }: NavbarProps) => {
                         {/* Authentication */}
                         {isSessionLoading ? (
                             <UserProfileSkeleton />
-                        ) : isAuthenticated ? (
+                        ) : user ? (
                             <Suspense
                                 fallback={
                                     <UserProfileSkeleton />

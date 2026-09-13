@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   ArrowRight,
@@ -9,6 +7,8 @@ import {
   Crown,
   TrendingUp,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import CreateJobForm from "@/components/forms/CreateJobForm";
 import type {

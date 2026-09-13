@@ -1,6 +1,5 @@
 import CtaButton from "../ui/CtaButton";
 
-
 const AuthButtons = () => {
     return (
         <div

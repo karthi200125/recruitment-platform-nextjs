@@ -1,14 +1,15 @@
 "use client";
 
+import { resetPassword } from "@/actions/auth/reset-password";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, CheckCircle2, KeyRound, Lock, LockOpen, ShieldAlert } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useState, useTransition } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { KeyRound, ArrowLeft, CheckCircle2, ShieldAlert, Lock, LockOpen } from "lucide-react";
-import { resetPassword } from "@/actions/auth/reset-password";
 
+import Button from "@/components/Button";
 import {
     Form,
     FormControl,
@@ -16,9 +17,8 @@ import {
     FormItem,
     FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import Button from "@/components/Button";
 import FormError from "@/components/ui/FormError";
+import { Input } from "@/components/ui/input";
 
 // ─── Schema ────────────────────────────────────────────────────────────────
 

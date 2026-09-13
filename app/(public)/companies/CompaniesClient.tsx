@@ -1,5 +1,3 @@
-"use client";
-
 import CompanyCard from "./CompanyCard";
 import CompaniesEmpty from "./CompaniesEmpty";
 

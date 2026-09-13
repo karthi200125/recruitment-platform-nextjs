@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -14,14 +14,20 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo } from "react";
 
 import Model from "@/components/Model";
 import SaveJobButton from "@/components/SaveJobButton";
 import JobTitlesSkeleton from "@/components/skeletons/JobTitlesSkeleton";
 
+import dynamic from "next/dynamic";
 import EasyApply from "./EasyApply/EasyApply";
-import AIJobMatch from "./AIJobMatch";
+
+const AIJobMatch = dynamic(
+  () => import("./AIJobMatch"),
+  {
+    ssr: false,
+  }
+);
 
 import { FilteredJob } from "@/actions/job/get-filter-all-jobs";
 import { SearchParams } from "@/types";
@@ -66,15 +72,7 @@ const JobTitles = ({
    * ---------------------------------------------------------
    */
 
-  const isApplied = useMemo(() => {
-    if (!user || !job.jobApplications) {
-      return false;
-    }
-
-    return job.jobApplications.some(
-      (app) => app.userId === user.id
-    );
-  }, [job.jobApplications, user]);
+  const isApplied = user != null && job.jobApplications?.some((app) => app.userId === user.id) === true
 
   /*
    * ---------------------------------------------------------

@@ -1,3 +1,4 @@
+'use client'
 import { FilteredJob } from "@/actions/job/get-filter-all-jobs";
 import SaveJobButton from "@/components/SaveJobButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -112,10 +113,10 @@ const JobList = ({ job, selectedJob, isHover, border, onSelect }: Props) => {
                 {job.type}
               </span>
             )}
-            {(job.jobApplications?.length ?? 0) > 0 && (
+            {job._count.jobApplications > 0 && (
               <span className="flex items-center gap-1 text-[10px] font-medium text-slate-400">
                 <Users className="w-2.5 h-2.5" strokeWidth={2} />
-                {job.jobApplications?.length} applied
+                {job._count.jobApplications} applied
               </span>
             )}
           </div>

@@ -1,7 +1,4 @@
-"use client";
-
 import { MessageCircle, Users, UserPlus } from "lucide-react";
-
 
 const ConversationEmptyState = () => {
     return (

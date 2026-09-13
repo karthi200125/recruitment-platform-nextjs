@@ -1,5 +1,3 @@
-'use client';
-
 import JobDescriptionSkeleton from '@/components/skeletons/JobDescriptionSkeleton';
 import DOMPurify from 'isomorphic-dompurify';
 import { FileText } from 'lucide-react';

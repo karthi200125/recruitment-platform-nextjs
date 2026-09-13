@@ -1,8 +1,7 @@
+import { Building2 } from "lucide-react";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Building2 } from "lucide-react";
 
 import CompanyForm from "@/components/forms/CompanyForm";
 import { authOptions } from "@/lib/authentication/authOptions";

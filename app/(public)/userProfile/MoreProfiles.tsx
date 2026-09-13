@@ -1,55 +1,84 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Lock, MessageSquare, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useDispatch } from "react-redux";
 
-import { MoreProfileUser, getSuggestedUsers } from "@/actions/user/more-profile-users";
+import type { MoreProfileUser } from "@/actions/user/more-profile-users";
 import { openModal } from "@/store/ModalSlice";
 
 import Batch from "@/components/Batch";
 import FollowButton from "@/components/FollowButton";
 import Model from "@/components/Model";
-import { SkeletonRow } from "@/components/skeletons/MoreProfileSkeleton";
 import noAvatar from "@/public/noProfile.webp";
+
 import MessageBox from "../../(protected)/messages/MessageBox";
 
-import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { ProfileUser } from "@/types/userProfile";
+import type { ProfileUser } from "@/types/userProfile";
+
+interface CurrentUser {
+    id: number;
+    isPro: boolean;
+}
 
 interface Props {
     profileUser?: ProfileUser;
+    suggestedUsers?: MoreProfileUser[];
+    currentUser?: CurrentUser | null;
 }
 
-function EmptyState({ text }: { text: string }) {
+function EmptyState({
+    text,
+}: {
+    text: string;
+}) {
     return (
         <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
-                <Users className="h-5 w-5 text-slate-400" strokeWidth={1.75} />
+                <Users
+                    className="h-5 w-5 text-slate-400"
+                    strokeWidth={1.75}
+                />
             </div>
-            <p className="text-sm text-slate-400">{text}</p>
+
+            <p className="text-sm text-slate-400">
+                {text}
+            </p>
         </div>
     );
 }
 
 interface MoreUserProfileProps {
     moreUser: MoreProfileUser;
+    currentUser?: CurrentUser | null;
 }
 
-const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
-    const { user } = useCurrentUser();
+const MoreUserProfile = ({
+    moreUser,
+    currentUser,
+}: MoreUserProfileProps) => {
     const dispatch = useDispatch();
-    const isCurrentUser = user?.id === moreUser.id;
-    const canMessage = !!user?.isPro;
+
+    const isCurrentUser =
+        currentUser?.id === moreUser.id;
+
+    const canMessage =
+        Boolean(currentUser?.isPro);
 
     return (
         <div className="flex items-start gap-3 border-b border-slate-100 py-3 last:border-b-0">
-            <Link href={`/userProfile/${moreUser.id}`} className="flex-shrink-0">
+            {/* Profile image */}
+            <Link
+                href={`/userProfile/${moreUser.id}`}
+                className="flex-shrink-0"
+            >
                 <div className="relative h-10 w-10 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
                     <Image
-                        src={moreUser.image || noAvatar.src}
+                        src={
+                            moreUser.image ||
+                            noAvatar.src
+                        }
                         alt={moreUser.displayName}
                         fill
                         sizes="40px"
@@ -58,6 +87,7 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                 </div>
             </Link>
 
+            {/* Profile information */}
             <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex flex-wrap items-center gap-1.5">
                     <Link
@@ -66,6 +96,7 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                     >
                         {moreUser.displayName}
                     </Link>
+
                     {moreUser.role === "ORGANIZATION" ? (
                         <Batch type="ORGANIZATION" />
                     ) : moreUser.isPro ? (
@@ -73,31 +104,61 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                     ) : null}
                 </div>
 
-                {moreUser.subtitle && <p className="truncate text-xs text-slate-500">{moreUser.subtitle}</p>}
+                {moreUser.subtitle && (
+                    <p className="truncate text-xs text-slate-500">
+                        {moreUser.subtitle}
+                    </p>
+                )}
 
                 {!isCurrentUser && (
                     <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                        <FollowButton targetUserId={moreUser.id} />
+                        <FollowButton
+                            targetUserId={moreUser.id}
+                        />
+
                         <button
-                            onClick={() => canMessage && dispatch(openModal(`messageModel-${moreUser.id}`))}
+                            type="button"
+                            onClick={() => {
+                                if (!canMessage) {
+                                    return;
+                                }
+
+                                dispatch(
+                                    openModal(
+                                        `messageModel-${moreUser.id}`
+                                    )
+                                );
+                            }}
                             disabled={!canMessage}
-                            title={!canMessage ? "Upgrade to Premium to message" : `Message ${moreUser.displayName}`}
+                            title={
+                                !canMessage
+                                    ? "Upgrade to Premium to message"
+                                    : `Message ${moreUser.displayName}`
+                            }
                             className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-all duration-200 ${canMessage
                                 ? "border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
                                 : "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
                                 }`}
                         >
                             {canMessage ? (
-                                <MessageSquare className="h-3 w-3" strokeWidth={2} />
+                                <MessageSquare
+                                    className="h-3 w-3"
+                                    strokeWidth={2}
+                                />
                             ) : (
-                                <Lock className="h-3 w-3" strokeWidth={2} />
+                                <Lock
+                                    className="h-3 w-3"
+                                    strokeWidth={2}
+                                />
                             )}
+
                             Message
                         </button>
                     </div>
                 )}
             </div>
 
+            {/* Message modal */}
             <Model
                 modalId={`messageModel-${moreUser.id}`}
                 title={`Message ${moreUser.displayName}`}
@@ -107,8 +168,10 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
                         receiverId={moreUser.id}
                         chatUser={{
                             id: moreUser.id,
-                            username: moreUser.displayName,
-                            profileImage: moreUser.image,
+                            username:
+                                moreUser.displayName,
+                            profileImage:
+                                moreUser.image,
                         }}
                     />
                 }
@@ -119,37 +182,57 @@ const MoreUserProfile = ({ moreUser }: MoreUserProfileProps) => {
     );
 };
 
-const MoreProfiles = ({ profileUser }: Props) => {
-    const { user, isLoading: isUserLoading } = useCurrentUser();
-    const profileUserId = profileUser?.id;
-    const isOwnProfile = user?.id === profileUserId;
+const MoreProfiles = ({
+    profileUser,
+    suggestedUsers = [],
+    currentUser,
+}: Props) => {
+    const profileUserId =
+        profileUser?.id;
 
-    const { data: profiles = [], isPending } = useQuery<MoreProfileUser[]>({
-        queryKey: ["moreProfiles", profileUserId],
-        queryFn: () => getSuggestedUsers(profileUserId as number),
-        enabled: typeof profileUserId === "number",
-        staleTime: 1000 * 60 * 5,
-    });
+    const isOwnProfile =
+        currentUser?.id === profileUserId;
 
     return (
         <aside className="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            {/* Header */}
             <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-4">
-                <Users className="h-4 w-4 text-slate-500" strokeWidth={1.75} />
-                <h3 className="text-sm font-bold text-slate-800">{isOwnProfile ? "More Profiles" : "Profile Followers"}</h3>
-                {!isPending && profiles.length > 0 && (
+                <Users
+                    className="h-4 w-4 text-slate-500"
+                    strokeWidth={1.75}
+                />
+
+                <h3 className="text-sm font-bold text-slate-800">
+                    {isOwnProfile
+                        ? "More Profiles"
+                        : "Profile Followers"}
+                </h3>
+
+                {suggestedUsers.length > 0 && (
                     <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-400">
-                        {profiles.length}
+                        {suggestedUsers.length}
                     </span>
                 )}
             </div>
 
+            {/* Profiles */}
             <div className="px-5 py-1">
-                {isUserLoading || isPending ? (
-                    Array.from({ length: 3 }).map((_, i) => <SkeletonRow key={i} />)
-                ) : profiles.length > 0 ? (
-                    profiles.map((profile) => <MoreUserProfile key={profile.id} moreUser={profile} />)
+                {suggestedUsers.length > 0 ? (
+                    suggestedUsers.map((profile) => (
+                        <MoreUserProfile
+                            key={profile.id}
+                            moreUser={profile}
+                            currentUser={currentUser}
+                        />
+                    ))
                 ) : (
-                    <EmptyState text={isOwnProfile ? "No similar profiles found." : "No followers yet."} />
+                    <EmptyState
+                        text={
+                            isOwnProfile
+                                ? "No similar profiles found."
+                                : "No followers yet."
+                        }
+                    />
                 )}
             </div>
         </aside>

@@ -69,7 +69,7 @@ const EasyApplyQuestions = ({
 
   const handleBack = () => {
     if (isSubmitting) return;
-    onAnswers?.(answers); 
+    onAnswers?.(answers);
     onBack?.(currentStep - 1);
   };
 

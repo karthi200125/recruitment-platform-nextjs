@@ -1,6 +1,4 @@
-'use client'
-
-import { MoreHorizontal, Circle } from "lucide-react";
+import { Circle, MoreHorizontal } from "lucide-react";
 import Image from "next/image";
 
 interface ChatUserType { id: number; username?: string; profileImage?: string | null; }

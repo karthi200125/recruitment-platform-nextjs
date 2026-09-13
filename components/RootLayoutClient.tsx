@@ -1,20 +1,24 @@
-'use client';
+"use client";
 
 import { usePathname } from "next/navigation";
-import Navbar from "@/components/Navbar/Navbar";
+
 import LpNavbar from "@/components/Navbar/LandingPageNavbar";
-import { SessionUser } from "@/types";
 
 interface RootLayoutClientProps {
   children: React.ReactNode;
-  user: SessionUser | null;
 }
 
-const HIDDEN_NAV_PATHS = ["/signin", "/signup", "/select-role"];
+const HIDDEN_NAV_PATHS = [
+  "/signin",
+  "/signup",
+  "/select-role",
+];
 
 const LP_NAV_PATHS = ["/"];
 
-export default function RootLayoutClient({ children, user }: RootLayoutClientProps) {
+export default function RootLayoutClient({
+  children,
+}: RootLayoutClientProps) {
   const pathname = usePathname();
 
   const isHiddenNav = HIDDEN_NAV_PATHS.includes(pathname);
@@ -22,7 +26,10 @@ export default function RootLayoutClient({ children, user }: RootLayoutClientPro
   const isDarkBg = isHiddenNav || isLpNav;
 
   return (
-    <div className={`w-full min-h-screen ${isDarkBg ? "bg-black" : "bg-white"}`}>
+    <div
+      className={`w-full min-h-screen ${isDarkBg ? "bg-black" : "bg-white"
+        }`}
+    >
       <div
         className={`
                     max-w-[1440px] min-h-screen mx-auto
@@ -30,12 +37,8 @@ export default function RootLayoutClient({ children, user }: RootLayoutClientPro
                     ${isDarkBg ? "bg-black" : "bg-white"}
                 `}
       >
-        {/* Navbar selection */}
-        {!isHiddenNav && (
-          isLpNav
-            ? <LpNavbar />
-            : <Navbar user={user} />
-        )}
+        {/* Landing page navbar only */}
+        {!isHiddenNav && isLpNav && <LpNavbar />}
 
         {children}
       </div>

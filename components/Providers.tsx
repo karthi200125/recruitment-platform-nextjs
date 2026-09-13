@@ -15,8 +15,8 @@ interface ProvidersProps {
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            staleTime: 1000 * 60 * 5, 
-            gcTime: 1000 * 60 * 10, 
+            staleTime: 1000 * 60 * 5,
+            gcTime: 1000 * 60 * 10,
         },
     },
 });
@@ -25,7 +25,7 @@ const Providers = ({ children }: ProvidersProps) => {
     return (
         <SessionProvider>
             <Provider store={Store}>
-                <QueryClientProvider client={queryClient}>                        
+                <QueryClientProvider client={queryClient}>
                     {children}
                 </QueryClientProvider>
             </Provider>

@@ -19,7 +19,7 @@ export default function SaveJobButton({
 }: SaveJobButtonProps) {
   const queryClient = useQueryClient();
   const [isPending, startTransition] = useTransition();
-  
+
   const { data: saved } = useQuery({
     queryKey: ["saved-job", userId, jobId],
     queryFn: () => isSaved({ userId, jobId }),
@@ -28,7 +28,7 @@ export default function SaveJobButton({
 
   const mutation = useMutation({
     mutationFn: () => toggleSavedJob({ userId, jobId }),
-    
+
     onMutate: async () => {
       await queryClient.cancelQueries({
         queryKey: ["saved-job", userId, jobId],
@@ -72,7 +72,7 @@ export default function SaveJobButton({
       mutation.mutate();
     });
   };
-  
+
   if (isIcon) {
     return (
       <button
@@ -82,8 +82,8 @@ export default function SaveJobButton({
         aria-label={saved ? "Remove saved job" : "Save job"}
         title={saved ? "Remove saved job" : "Save job"}
         className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 ${saved
-            ? "text-violet-600 hover:bg-violet-50"
-            : "text-gray-500 hover:bg-gray-100 hover:text-violet-600"
+          ? "text-violet-600 hover:bg-violet-50"
+          : "text-gray-500 hover:bg-gray-100 hover:text-violet-600"
           } ${isPending ? "cursor-not-allowed opacity-50" : ""}`}
       >
         <svg
@@ -105,15 +105,15 @@ export default function SaveJobButton({
       </button>
     );
   }
-  
+
   return (
     <button
       type="button"
       onClick={handleClick}
       disabled={isPending}
       className={`rounded-md px-4 py-2 text-sm font-medium transition ${saved
-          ? "bg-yellow-500 text-black"
-          : "bg-gray-200 text-black"
+        ? "bg-yellow-500 text-black"
+        : "bg-gray-200 text-black"
         } ${isPending ? "cursor-not-allowed opacity-50" : ""}`}
     >
       {saved ? "Saved" : "Save"}

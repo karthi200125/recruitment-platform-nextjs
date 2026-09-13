@@ -61,18 +61,18 @@ export default function SubscriptionPlans({
                             <div
                                 key={plan.priceId}
                                 className={`relative flex flex-col rounded-2xl border-2 p-6 transition-all duration-200 ${isCurrent
-                                        ? "border-indigo-400 bg-indigo-50/50"
-                                        : plan.popular
-                                            ? "border-violet-300 bg-violet-50/30"
-                                            : "border-slate-200 bg-white hover:border-slate-300"
+                                    ? "border-indigo-400 bg-indigo-50/50"
+                                    : plan.popular
+                                        ? "border-violet-300 bg-violet-50/30"
+                                        : "border-slate-200 bg-white hover:border-slate-300"
                                     }`}
                             >
                                 {/* Popular / Current badge */}
                                 {(isCurrent || plan.popular) && (
                                     <div className="absolute -top-3 left-5">
                                         <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold tracking-wide ${isCurrent
-                                                ? "bg-indigo-600 text-white"
-                                                : "bg-violet-600 text-white"
+                                            ? "bg-indigo-600 text-white"
+                                            : "bg-violet-600 text-white"
                                             }`}>
                                             {isCurrent ? "✓ Current Plan" : "Most Popular"}
                                         </span>
@@ -131,8 +131,8 @@ export default function SubscriptionPlans({
                                         onClick={() => handleSubscribe(plan.priceId)}
                                         disabled={isPending}
                                         className={`w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed ${plan.popular
-                                                ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-sm shadow-indigo-200"
-                                                : "bg-slate-900 text-white hover:bg-slate-700"
+                                            ? "bg-indigo-600 text-white hover:bg-indigo-500 shadow-sm shadow-indigo-200"
+                                            : "bg-slate-900 text-white hover:bg-slate-700"
                                             }`}
                                     >
                                         {isLoadingThis ? (

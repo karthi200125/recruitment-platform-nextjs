@@ -1,5 +1,3 @@
-"use client";
-
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 import { FilteredJob } from "@/actions/job/get-filter-all-jobs";

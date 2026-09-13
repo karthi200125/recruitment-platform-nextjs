@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { getUserProfileUserById } from "@/actions/user/getuser/getUserProfileUserById";
 import { siteConfig } from "@/config";
 import UserProfileClient from "./UserProfileClient";
+import { getSuggestedUsers } from "@/actions/user/more-profile-users";
 
 interface Props {
   params: {
@@ -130,6 +131,8 @@ export default async function UserProfilePage({
 
   const result = await getUserProfileUserById(userId);
 
+  const moreUsers = await getSuggestedUsers(userId);
+
   if (!result.success || !result.data) {
     notFound();
   }
@@ -137,6 +140,7 @@ export default async function UserProfilePage({
   return (
     <UserProfileClient
       initialProfile={result.data}
+      moreUsers={moreUsers}
     />
   );
 }

@@ -1,4 +1,4 @@
-'use server'
+"use server";
 
 import { db } from "@/lib/db";
 import { cache } from "react";
@@ -17,7 +17,9 @@ export const getCompanies = cache(
     async (): Promise<CompanyWithJobsCount[]> => {
         try {
             const companies = await db.company.findMany({
-                where: { companyIsVerified: true },
+                where: {
+                    companyIsVerified: true,
+                },
                 select: {
                     id: true,
                     userId: true,
@@ -26,22 +28,24 @@ export const getCompanies = cache(
                     companyCity: true,
                     companyCountry: true,
                     _count: {
-                        select: { jobs: true },
+                        select: {
+                            jobs: true,
+                        },
                     },
                 },
-                orderBy: { createdAt: "desc" },
+                orderBy: {
+                    createdAt: "desc",
+                },
             });
 
-            const test = await db.company.findMany({
-                where: { companyIsVerified: true },
-                select: {
-                    companyImage: true,
-                },
-            });            
-
-            return companies.map((c: any) => ({
-                ...c,
-                jobsCount: c._count.jobs,
+            return companies.map((company) => ({
+                id: company.id,
+                userId: company.userId,
+                companyName: company.companyName,
+                companyImage: company.companyImage,
+                companyCity: company.companyCity,
+                companyCountry: company.companyCountry,
+                jobsCount: company._count.jobs,
             }));
         } catch (error) {
             console.error("[getCompanies]", error);
@@ -64,7 +68,9 @@ export const getCompanyNames = async (): Promise<string[]> => {
             },
         });
 
-        return companies.map((company) => company.companyName);
+        return companies.map(
+            (company) => company.companyName
+        );
     } catch (error) {
         console.error("[getCompanyNames]", error);
         return [];

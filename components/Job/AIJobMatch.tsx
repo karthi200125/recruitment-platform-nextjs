@@ -77,16 +77,6 @@ const AIJobMatch = ({
 }: AIJobMatchProps) => {
     const [showDetails, setShowDetails] = useState(false);
 
-    // console.log('result', result)
-    // console.log('laoding', isAIMatching)
-    // console.log('error', isAIError)
-
-    /*
-     * IMPORTANT:
-     * This hook MUST be called before any conditional return.
-     *
-     * When result is undefined/null, we simply use an empty array.
-     */
     const breakdown = useMemo(() => {
         if (!result) {
             return [];

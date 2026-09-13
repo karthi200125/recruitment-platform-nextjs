@@ -1,5 +1,3 @@
-"use client";
-
 import { Lightbulb } from "lucide-react";
 
 const ConversationTipBanner = () => {

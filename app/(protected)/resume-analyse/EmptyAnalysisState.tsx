@@ -1,3 +1,5 @@
+'use client'
+
 import { ExternalLink, FileText, Loader2, Sparkles } from "lucide-react";
 
 export function EmptyAnalysisState({

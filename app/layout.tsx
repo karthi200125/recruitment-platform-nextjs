@@ -1,43 +1,46 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import { getServerSession } from "next-auth";
 
 import "./globals.css";
-import "react-quill/dist/quill.snow.css";
-import "react-circular-progressbar/dist/styles.css";
 
+import NetworkStatus from "@/components/NetworkStatus";
 import Providers from "@/components/Providers";
 import RootLayoutClient from "@/components/RootLayoutClient";
-import { Toaster } from "@/components/ui/toaster";
-import { authOptions } from "@/lib/authentication/authOptions";
-import { siteConfig } from "@/config";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
-import NetworkStatus from "@/components/NetworkStatus";
+import { Toaster } from "@/components/ui/toaster";
+import { siteConfig } from "@/config";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",
-  preload: true,
   variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
   metadataBase: siteConfig.metadataBase,
+
   applicationName: siteConfig.applicationName,
+
   title: {
     default: siteConfig.title,
     template: siteConfig.titleTemplate,
   },
+
   description: siteConfig.description,
+
   creator: siteConfig.creator,
   publisher: siteConfig.publisher,
   category: siteConfig.category,
+
   alternates: {
     canonical: siteConfig.url,
   },
+
   robots: {
     index: siteConfig.robots.index,
     follow: siteConfig.robots.follow,
+
     googleBot: {
       index: true,
       follow: true,
@@ -46,12 +49,23 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+
   manifest: siteConfig.manifest,
+
   icons: {
     icon: [{ url: siteConfig.favicon }],
-    apple: [{ url: siteConfig.appleTouchIcon, sizes: "180x180", type: "image/png" }],
+
+    apple: [
+      {
+        url: siteConfig.appleTouchIcon,
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+
     shortcut: [{ url: siteConfig.favicon }],
   },
+
   openGraph: {
     type: "website",
     locale: siteConfig.locale,
@@ -59,19 +73,30 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     title: siteConfig.title,
     description: siteConfig.description,
-    images: [{ url: siteConfig.ogImage, width: 1200, height: 630, alt: siteConfig.name }],
+
+    images: [
+      {
+        url: siteConfig.ogImage,
+        width: 1200,
+        height: 630,
+        alt: siteConfig.name,
+      },
+    ],
   },
+
   twitter: {
     card: "summary_large_image",
     title: siteConfig.title,
     description: siteConfig.description,
     images: [siteConfig.twitterImage],
   },
+
   appleWebApp: {
     capable: true,
     title: siteConfig.shortName,
     statusBarStyle: "default",
   },
+
   formatDetection: {
     email: false,
     address: false,
@@ -91,21 +116,27 @@ interface RootLayoutProps {
   children: React.ReactNode;
 }
 
-export default async function RootLayout({ children }: Readonly<RootLayoutProps>) {
-  const session = await getServerSession(authOptions);
-  const user = session?.user ?? null;
-
+export default function RootLayout({
+  children,
+}: Readonly<RootLayoutProps>) {
   return (
-    <html lang={siteConfig.language} suppressHydrationWarning>
+    <html
+      lang={siteConfig.language}
+      suppressHydrationWarning
+    >
       <body
         className={`${inter.variable} ${inter.className} min-h-screen bg-background font-sans antialiased`}
       >
         <Providers>
-          <RootLayoutClient user={user}>
-            {/* <ServiceWorkerRegister /> */}
-            {/* <NetworkStatus /> */}
-            {children}
-            <Toaster />
+          <RootLayoutClient>
+            <TooltipProvider>
+              <ServiceWorkerRegister />
+              <NetworkStatus />
+
+              {children}
+
+              <Toaster />
+            </TooltipProvider>
           </RootLayoutClient>
         </Providers>
       </body>

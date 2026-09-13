@@ -1,64 +1,87 @@
-import React, { ButtonHTMLAttributes, ReactNode } from "react";
+"use client";
+
+import type {
+    ButtonHTMLAttributes,
+    ReactNode,
+} from "react";
+import { twMerge } from "tailwind-merge";
+
 import Loader from "./loader/CustomLoader";
 
-interface ButtonProps {
+interface ButtonProps
+    extends ButtonHTMLAttributes<HTMLButtonElement> {
     children: ReactNode;
-    onClick?: React.MouseEventHandler<HTMLButtonElement>;
-    disabled?: boolean;
     isLoading?: boolean;
     variant?: "border" | "default";
-    className?: string;
     icon?: ReactNode;
-    type?: ButtonHTMLAttributes<HTMLButtonElement>["type"];
 }
 
 const Button = ({
     children,
-    onClick,
-    disabled = false,
     isLoading = false,
     variant = "default",
-    className = "",
     icon,
+    className,
+    disabled,
     type = "button",
+    ...props
 }: ButtonProps) => {
-    const buttonClassNames = `
-    ${className}
-    text-sm font-bold h-[40px] flex flex-row items-center justify-center gap-2
-    px-5 rounded-full trans
-    hover:opacity-80
-    ${variant === "border"
-            ? "bg-[var(--white)] border border-solid border-[var(--voilet)] text-[var(--voilet)]"
-            : "bg-[var(--voilet)] text-white"
-        }
-    ${isLoading || disabled
-            ? "cursor-not-allowed opacity-50 hover:opacity-50"
-            : "cursor-pointer"
-        }
-  `;
+    const isDisabled = disabled || isLoading;
 
     return (
         <button
+            {...props}
             type={type}
-            className={buttonClassNames}
-            disabled={isLoading || disabled}
-            onClick={onClick}
+            disabled={isDisabled}
+            aria-busy={isLoading}
+            className={twMerge(
+                `
+                flex h-10 flex-row items-center justify-center gap-2
+                rounded-full px-5 text-sm font-bold
+                transition-opacity duration-200
+                hover:opacity-80
+                `,
+                variant === "border"
+                    ? `
+                      border border-solid
+                      border-[var(--voilet)]
+                      bg-[var(--white)]
+                      text-[var(--voilet)]
+                      `
+                    : `
+                      bg-[var(--voilet)]
+                      text-white
+                      `,
+                isDisabled
+                    ? `
+                      cursor-not-allowed
+                      opacity-50
+                      hover:opacity-50
+                      `
+                    : "cursor-pointer",
+                className
+            )}
         >
-            {!isLoading && icon && <div>{icon}</div>}
-
             {isLoading ? (
-                <div
-                    className={`flex flex-row items-center gap-2 font-bold ${variant === "border" ? "text-[var(--voilet)]" : ""
-                        }`}
+                <span
+                    className={twMerge(
+                        "flex items-center gap-2 font-bold",
+                        variant === "border"
+                            ? "text-[var(--voilet)]"
+                            : ""
+                    )}
                 >
                     <Loader />
-                    <h4>Loading</h4>
-                </div>
+                    <span>Loading</span>
+                </span>
             ) : (
-                children
+                <>
+                    {icon && <span>{icon}</span>}
+                    {children}
+                </>
             )}
         </button>
     );
 };
 
-export default React.memo(Button);
+export default Button;

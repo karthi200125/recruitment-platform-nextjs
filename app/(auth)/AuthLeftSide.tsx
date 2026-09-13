@@ -1,21 +1,19 @@
 import AvatarGroup from "@/components/AvatarGroup";
 import Logo from "@/components/Logo";
 import { Briefcase, Users, Zap } from "lucide-react";
-import Image from "next/image";
 
 const FEATURES = [
     { icon: Zap, text: "AI-matched job recommendations" },
     { icon: Users, text: "12,000+ companies actively hiring" },
     { icon: Briefcase, text: "One-click apply to any role" },
-];
-
-const AVATARS = ["IK", "PS", "RV", "AM", "SN"];
+] as const;
 
 export default function AuthLeftSide() {
     return (
         <div className="relative flex h-full w-full flex-col justify-between overflow-hidden px-10 py-12">
-            {/* Background grid pattern */}
+            {/* Background grid */}
             <div
+                aria-hidden="true"
                 className="pointer-events-none absolute inset-0 opacity-[0.03]"
                 style={{
                     backgroundImage:
@@ -24,14 +22,21 @@ export default function AuthLeftSide() {
                 }}
             />
 
-            {/* Glow */}
-            <div className="pointer-events-none absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-indigo-600/20 blur-[100px]" />
-            <div className="pointer-events-none absolute -bottom-40 -right-20 h-[400px] w-[400px] rounded-full bg-violet-600/15 blur-[100px]" />
+            {/* Background glows */}
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-indigo-600/20 blur-[100px]"
+            />
+
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -bottom-40 -right-20 h-[400px] w-[400px] rounded-full bg-violet-600/15 blur-[100px]"
+            />
 
             {/* Logo */}
             <Logo />
 
-            {/* Center content */}
+            {/* Main content */}
             <div className="relative space-y-8">
                 <div>
                     <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-indigo-400">
@@ -47,17 +52,21 @@ export default function AuthLeftSide() {
                     </h2>
 
                     <p className="max-w-xs text-sm leading-relaxed text-zinc-400">
-                        Join 50,000+ professionals who found their next role through
-                        Jobify&apos;s AI-powered platform.
+                        Join 50,000+ professionals who found their next role
+                        through Jobify&apos;s AI-powered platform.
                     </p>
                 </div>
 
-                {/* Feature list */}
+                {/* Features */}
                 <ul className="space-y-3">
                     {FEATURES.map(({ icon: Icon, text }) => (
-                        <li key={text} className="flex items-center gap-3">
+                        <li
+                            key={text}
+                            className="flex items-center gap-3"
+                        >
                             <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-500/15">
                                 <Icon
+                                    aria-hidden="true"
                                     className="h-3.5 w-3.5 text-indigo-400"
                                     strokeWidth={2}
                                 />

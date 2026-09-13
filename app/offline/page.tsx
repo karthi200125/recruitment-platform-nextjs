@@ -1,51 +1,92 @@
-"use client";
-
-import { RefreshCw, WifiOff, Briefcase } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
+import {
+    Briefcase,
+    WifiOff,
+} from "lucide-react";
+import TryAgainButton from "./TryAgainButton";
+
+export const metadata: Metadata = {
+    title: "You're Offline",
+    description:
+        "You're currently offline. Check your internet connection and try again. Recently visited Jobify pages may still be available.",
+
+    robots: {
+        index: false,
+        follow: false,
+    },
+};
 
 export default function OfflinePage() {
     return (
-        <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+        <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
             <div className="w-full max-w-md space-y-8 text-center">
 
                 {/* Icon */}
                 <div className="flex justify-center">
                     <div className="relative">
-                        <div className="w-24 h-24 rounded-3xl bg-white border border-slate-200 shadow-sm flex items-center justify-center">
-                            <WifiOff className="w-10 h-10 text-slate-400" strokeWidth={1.5} />
+                        <div
+                            className="
+                                flex h-24 w-24 items-center justify-center
+                                rounded-3xl border border-slate-200
+                                bg-white shadow-sm
+                            "
+                        >
+                            <WifiOff
+                                className="h-10 w-10 text-slate-400"
+                                strokeWidth={1.5}
+                                aria-hidden="true"
+                            />
                         </div>
-                        <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-amber-100 border-2 border-white flex items-center justify-center">
+
+                        <div
+                            className="
+                                absolute -bottom-2 -right-2
+                                flex h-8 w-8 items-center justify-center
+                                rounded-full border-2 border-white
+                                bg-amber-100
+                            "
+                            aria-hidden="true"
+                        >
                             <span className="text-sm">!</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Text */}
+                {/* Content */}
                 <div className="space-y-3">
-                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                         No internet connection
                     </h1>
-                    <p className="text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">
-                        It looks like you&apos;re offline. Check your Wi-Fi or mobile data and try again.
-                        Any Jobify pages you visited recently are still available.
+
+                    <p className="mx-auto max-w-sm text-sm leading-relaxed text-slate-500">
+                        It looks like you&apos;re offline. Check your Wi-Fi or
+                        mobile data and try again. Any Jobify pages you visited
+                        recently may still be available.
                     </p>
                 </div>
 
                 {/* Actions */}
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                    <button
-                        type="button"
-                        onClick={() => window.location.reload()}
-                        className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 active:bg-indigo-700 transition-all duration-200 shadow-sm shadow-indigo-200 w-full sm:w-auto justify-center"
-                    >
-                        <RefreshCw className="w-4 h-4" strokeWidth={2.5} />
-                        Try Again
-                    </button>
+                <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+                    <TryAgainButton />
+
                     <Link
                         href="/jobs"
-                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 w-full sm:w-auto justify-center"
+                        className="
+                            inline-flex w-full items-center justify-center
+                            gap-2 rounded-xl border border-slate-200
+                            bg-white px-6 py-2.5 text-sm font-semibold
+                            text-slate-700 transition-all duration-200
+                            hover:border-slate-300 hover:bg-slate-50
+                            sm:w-auto
+                        "
                     >
-                        <Briefcase className="w-4 h-4 text-slate-400" strokeWidth={1.75} />
+                        <Briefcase
+                            className="h-4 w-4 text-slate-400"
+                            strokeWidth={1.75}
+                            aria-hidden="true"
+                        />
+
                         Browse Cached Jobs
                     </Link>
                 </div>

@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import React from 'react';
 import Link from 'next/link';
@@ -56,41 +56,39 @@ const Icon = ({
     );
 
     return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    {href ? (
-                        <Link
-                            href={href}
-                            aria-label={title}
-                            className={commonClassName}
-                        >
-                            {content}
-                        </Link>
-                    ) : (
-                        <button
-                            type="button"
-                            aria-label={title}
-                            onClick={onClick}
-                            className={commonClassName}
-                        >
-                            {content}
-                        </button>
-                    )}
-                </TooltipTrigger>
-
-                {title && (
-                    <TooltipContent
-                        className={`rounded-[5px] px-3 py-2 text-xs ${tooltipBg === 'white'
-                            ? 'border bg-white text-black'
-                            : 'bg-black text-white'
-                            }`}
+        <Tooltip>
+            <TooltipTrigger asChild>
+                {href ? (
+                    <Link
+                        href={href}
+                        aria-label={title}
+                        className={commonClassName}
                     >
-                        <p className="font-bold">{title}</p>
-                    </TooltipContent>
+                        {content}
+                    </Link>
+                ) : (
+                    <button
+                        type="button"
+                        aria-label={title}
+                        onClick={onClick}
+                        className={commonClassName}
+                    >
+                        {content}
+                    </button>
                 )}
-            </Tooltip>
-        </TooltipProvider>
+            </TooltipTrigger>
+
+            {title && (
+                <TooltipContent
+                    className={`rounded-[5px] px-3 py-2 text-xs ${tooltipBg === 'white'
+                        ? 'border bg-white text-black'
+                        : 'bg-black text-white'
+                        }`}
+                >
+                    <p className="font-bold">{title}</p>
+                </TooltipContent>
+            )}
+        </Tooltip>
     );
 };
 

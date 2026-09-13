@@ -1,5 +1,4 @@
-'use client';
-
+'use client'
 import { FilteredJob } from '@/actions/job/get-filter-all-jobs';
 import CustomPagination from '@/components/CustomPagination';
 import { Briefcase } from 'lucide-react';

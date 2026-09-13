@@ -8,8 +8,14 @@ import BottomDrawer from "@/components/BottomDrawer";
 import type { FilteredJob } from "@/actions/job/get-filter-all-jobs";
 import type { JobSearchParams } from "@/types";
 
-import JobDetails from "../../../components/Job/JobDetails";
+const JobDetails = dynamic(
+    () => import("../../../components/Job/JobDetails"),
+    {
+        ssr: false,
+    }
+);
 import JobLists from "../../../components/Job/JobLists/JobLists";
+import dynamic from "next/dynamic";
 
 interface Props {
     jobs: FilteredJob[];
@@ -97,7 +103,6 @@ const Jobb = ({
             <div className="flex min-h-0 flex-1 overflow-hidden">
 
                 <div className="flex w-full min-w-0 flex-shrink-0 flex-col overflow-hidden border-r border-slate-100 bg-white lg:w-[420px]">
-
                     <JobLists
                         jobs={jobs}
                         isLoading={isPending}
@@ -120,9 +125,7 @@ const Jobb = ({
                     {job ? (
                         <JobDetails
                             job={job}
-                            safeSearchParams={
-                                safeSearchParams
-                            }
+                            safeSearchParams={safeSearchParams}
                             isAIMatching={isAIMatching}
                             isAIError={isAIError}
                         />
@@ -150,15 +153,15 @@ const Jobb = ({
                         ) : undefined
                     }
                 >
-                    {job && (
+                    {job ? (
                         <JobDetails
                             job={job}
-                            safeSearchParams={
-                                safeSearchParams
-                            }
+                            safeSearchParams={safeSearchParams}
                             isAIMatching={isAIMatching}
                             isAIError={isAIError}
                         />
+                    ) : (
+                        <NoJobSelected />
                     )}
                 </BottomDrawer>
             </div>
