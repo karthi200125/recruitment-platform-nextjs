@@ -1,14 +1,16 @@
-"use client";
+'use client';
 
-import { useCallback, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Check, ChevronDown, Search, X, Zap } from "lucide-react";
-
+import { useQuery } from '@tanstack/react-query';
+import { Check, ChevronDown, X, Zap } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    useTransition,
+} from 'react';
 
 import {
     DatePosted,
@@ -16,364 +18,239 @@ import {
     getStates,
     JobMode,
 } from "@/lib/getOptionsData";
-import { useQuery } from "@tanstack/react-query";
-import AIMatchBadge from "./Navbar/AIMatchBadge";
 
 interface Filter {
     id: number;
     title: string;
     options: string[];
-    searchable?: boolean;
+}
+
+interface FilterDropdownProps {
+    filter: Filter;
+    activeValue: string;
+    open: boolean;
+    onOpen: () => void;
+    onClose: () => void;
+    onApply: (value: string) => void;
 }
 
 interface FilterNavbarProps {
     companynames: string[];
 }
 
-const FilterNavbar = ({ companynames }: FilterNavbarProps) => {
-    const router = useRouter();
 
-    const { data: states = [] } = useQuery({
-        queryKey: ["getStates"],
-        queryFn: getStates,
-    });
+const FilterDropdown = ({
+    filter, activeValue, open, onOpen, onClose, onApply,
+}: FilterDropdownProps) => {
+    const triggerRef = useRef<HTMLButtonElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const [pending, setPending] = useState(activeValue);
 
-    const locations = useMemo(
-        () => states.map((state: any) => state.name),
-        [states]
-    );
+    useEffect(() => { setPending(activeValue); }, [activeValue]);
 
-    const filters: Filter[] = useMemo(
-        () => [
-            {
-                id: 1,
-                title: "Date Posted",
-                options: DatePosted,
-            },
-            {
-                id: 2,
-                title: "Experience",
-                options: experiences,
-            },
-            {
-                id: 3,
-                title: "Type",
-                options: JobMode,
-            },
-            {
-                id: 4,
-                title: "Location",
-                options: locations,
-                searchable: true,
-            },
-            {
-                id: 5,
-                title: "Company",
-                options: companynames,
-                searchable: true,
-            },
-        ],
-        [locations, companynames]
-    );
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e: MouseEvent) => {
+            if (
+                triggerRef.current?.contains(e.target as Node) ||
+                panelRef.current?.contains(e.target as Node)
+            ) return;
+            setPending(activeValue);
+            onClose();
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [open, activeValue, onClose]);
 
-    const defaultFilters = useMemo(
-        () =>
-            filters.reduce(
-                (acc, filter) => {
-                    acc[filter.title] = "";
-                    return acc;
-                },
-                {} as Record<string, string>
-            ),
-        [filters]
-    );
-
-    const [selectedFilters, setSelectedFilters] =
-        useState<Record<string, string>>(defaultFilters);
-
-    const [easyApply, setEasyApply] = useState(false);
-
-    // Which dropdown is currently open
-    const [openFilter, setOpenFilter] = useState<number | null>(null);
-
-    // Search text for Location / Company dropdowns
-    const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
-
-    const updateUrlParams = useCallback(
-        (filters: Record<string, string>, easy: boolean) => {
-            const params = new URLSearchParams();
-
-            Object.entries(filters).forEach(([key, value]) => {
-                if (value) {
-                    params.set(
-                        key.toLowerCase().replace(/ /g, ""),
-                        value
-                    );
-                }
-            });
-
-            if (easy) {
-                params.set("easyApply", "true");
-            }
-
-            const queryString = params.toString();
-
-            router.push(queryString ? `/jobs?${queryString}` : "/jobs");
-        },
-        [router]
-    );
-
-    const handleOptionSelect = useCallback(
-        (title: string, option: string) => {
-            setSelectedFilters((prev) => {
-                const next = {
-                    ...prev,
-                    [title]: prev[title] === option ? "" : option,
-                };
-
-                updateUrlParams(next, easyApply);
-
-                return next;
-            });
-
-            // Close dropdown after selection
-            setOpenFilter(null);
-
-            // Clear search text
-            setSearchTerms((prev) => ({
-                ...prev,
-                [title]: "",
-            }));
-        },
-        [easyApply, updateUrlParams]
-    );
-
-    const handleDropdownOpen = useCallback(
-        (filterId: number, open: boolean) => {
-            setOpenFilter(open ? filterId : null);
-
-            if (!open) {
-                const filter = filters.find((item) => item.id === filterId);
-
-                if (filter) {
-                    setSearchTerms((prev) => ({
-                        ...prev,
-                        [filter.title]: "",
-                    }));
-                }
-            }
-        },
-        [filters]
-    );
-
-    const handleSearch = useCallback(
-        (title: string, value: string) => {
-            setSearchTerms((prev) => ({
-                ...prev,
-                [title]: value,
-            }));
-        },
-        []
-    );
-
-    const getFilteredOptions = useCallback(
-        (filter: Filter) => {
-            if (!filter.searchable) {
-                return filter.options;
-            }
-
-            const search = (searchTerms[filter.title] || "")
-                .trim()
-                .toLowerCase();
-
-            if (!search) {
-                return filter.options;
-            }
-
-            return filter.options.filter((option) =>
-                option.toLowerCase().includes(search)
-            );
-        },
-        [searchTerms]
-    );
-
-    const resetAll = useCallback(() => {
-        setSelectedFilters(defaultFilters);
-        setEasyApply(false);
-        setSearchTerms({});
-        setOpenFilter(null);
-
-        router.push("/jobs");
-    }, [defaultFilters, router]);
-
-    const handleEasyApply = useCallback(() => {
-        const next = !easyApply;
-
-        setEasyApply(next);
-        updateUrlParams(selectedFilters, next);
-    }, [easyApply, selectedFilters, updateUrlParams]);
-
-    const activeCount =
-        Object.values(selectedFilters).filter(Boolean).length +
-        (easyApply ? 1 : 0);
+    const isActive = !!activeValue;
 
     return (
-        <div className="w-full bg-white border-b border-slate-100 py-2.5 flex items-center gap-2 overflow-x-auto">
-            {/* Filter pills */}
-            {filters.map((filter) => {
-                const active = selectedFilters[filter.title];
-                const isActive = !!active;
+        <div className="relative flex-shrink-0">
+            <button
+                ref={triggerRef}
+                type="button"
+                onClick={() => open ? onClose() : onOpen()}
+                className={`
+                    inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border
+                    text-xs font-semibold whitespace-nowrap select-none
+                    outline-none transition-all duration-150
+                    ${isActive
+                        ? 'bg-indigo-50 border-indigo-400 text-indigo-700'
+                        : open
+                            ? 'bg-slate-50 border-slate-300 text-slate-800'
+                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-800'
+                    }
+                `}
+            >
+                {isActive && <Check className="w-3 h-3" strokeWidth={2.5} />}
+                {activeValue || filter.title}
+                <ChevronDown
+                    className={`w-3 h-3 opacity-60 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+                    strokeWidth={2.5}
+                />
+            </button>
 
-                const filteredOptions = getFilteredOptions(filter);
-                const searchValue = searchTerms[filter.title] || "";
+            {open && (
+                <div
+                    ref={panelRef}
+                    className="absolute top-full left-0 mt-2 z-50 w-60 rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden"
+                    onTouchStart={(e) => e.stopPropagation()}
+                >
+                    {/* Header */}
+                    <div className="px-4 py-3 border-b border-slate-100">
+                        <p className="text-xs font-bold text-slate-800">{filter.title}</p>
+                    </div>
 
-                return (
-                    <DropdownMenu
-                        key={filter.id}
-                        open={openFilter === filter.id}
-                        onOpenChange={(open) =>
-                            handleDropdownOpen(filter.id, open)
-                        }
-                    >
-                        <DropdownMenuTrigger asChild>
-                            <button
-                                type="button"
-                                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-semibold whitespace-nowrap transition-all duration-200 outline-none flex-shrink-0 ${isActive
-                                    ? "bg-indigo-50 border-indigo-400 text-indigo-700"
-                                    : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-800"
-                                    }`}
-                            >
-                                {isActive && (
-                                    <Check
-                                        className="w-3 h-3"
-                                        strokeWidth={2.5}
-                                    />
-                                )}
+                    {/* Options */}
+                    <ul className="max-h-52 overflow-y-auto py-1">
+                        {filter.options.map((opt) => {
+                            const checked = pending === opt;
+                            return (
+                                <li
+                                    key={opt}
+                                    onClick={() => setPending(checked ? '' : opt)}
+                                    className="flex items-center justify-between gap-3 px-4 py-2.5 cursor-pointer hover:bg-indigo-50 active:bg-indigo-100 transition-colors duration-100 select-none"
+                                >
+                                    <span className={`text-sm capitalize ${checked ? 'text-indigo-700 font-semibold' : 'text-slate-700'}`}>
+                                        {opt}
+                                    </span>
+                                    {checked && (
+                                        <div className="w-4 h-4 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
+                                            <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                                        </div>
+                                    )}
+                                </li>
+                            );
+                        })}
+                    </ul>
 
-                                {active || filter.title}
-
-                                <ChevronDown
-                                    className="w-3 h-3 opacity-60"
-                                    strokeWidth={2.5}
-                                />
-                            </button>
-                        </DropdownMenuTrigger>
-
-                        <DropdownMenuContent
-                            align="start"
-                            className="w-[280px] rounded-2xl border border-slate-200 bg-white shadow-lg p-0 overflow-hidden"
-                            sideOffset={6}
+                    {/* Footer */}
+                    <div className="flex items-center justify-between gap-2 px-4 py-3 border-t border-slate-100 bg-slate-50/60">
+                        <button
+                            type="button"
+                            onClick={() => { setPending(''); }}
+                            className="text-xs font-semibold text-slate-500 hover:text-slate-700 transition-colors"
                         >
-                            {/* Header */}
-                            <div className="px-4 py-3 border-b border-slate-100">
-                                <p className="text-xs font-bold text-slate-800">
-                                    {filter.title}
-                                </p>
+                            Clear
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { onApply(pending); onClose(); }}
+                            className="rounded-lg bg-indigo-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 active:bg-indigo-700 transition-colors"
+                        >
+                            Apply
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
-                                {isActive && (
-                                    <p className="text-[11px] text-indigo-600 mt-0.5">
-                                        Selected: {active}
-                                    </p>
-                                )}
-                            </div>
+// ─── FilterNavbar ─────────────────────────────────────────────────────────────
 
-                            {/* Search — only Location & Company */}
-                            {filter.searchable && (
-                                <div className="px-3 py-2 border-b border-slate-100">
-                                    <div className="relative">
-                                        <Search
-                                            className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400"
-                                            strokeWidth={2}
-                                        />
+export default function FilterNavbar({ companynames }: FilterNavbarProps) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
 
-                                        <input
-                                            type="text"
-                                            value={searchValue}
-                                            onChange={(event) =>
-                                                handleSearch(
-                                                    filter.title,
-                                                    event.target.value
-                                                )
-                                            }
-                                            onKeyDown={(event) =>
-                                                event.stopPropagation()
-                                            }
-                                            placeholder={`Search ${filter.title.toLowerCase()}...`}
-                                            className="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-xs text-slate-700 placeholder:text-slate-400 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-                                        />
-                                    </div>
-                                </div>
-                            )}
+    const [isPending, startTransition] = useTransition();
 
-                            {/* Options */}
-                            <ul className="max-h-60 overflow-y-auto py-1">
-                                {filteredOptions.length > 0 ? (
-                                    filteredOptions.map((option) => {
-                                        const isSelected =
-                                            active === option;
+    const [openId, setOpenId] = useState<number | null>(null);
 
-                                        return (
-                                            <li
-                                                key={option}
-                                                onClick={() =>
-                                                    handleOptionSelect(
-                                                        filter.title,
-                                                        option
-                                                    )
-                                                }
-                                                className={`flex items-center justify-between gap-3 px-4 py-2.5 cursor-pointer transition-colors duration-150 ${isSelected
-                                                    ? "bg-indigo-50"
-                                                    : "hover:bg-indigo-50"
-                                                    }`}
-                                            >
-                                                <span
-                                                    className={`text-sm capitalize ${isSelected
-                                                        ? "text-indigo-700 font-semibold"
-                                                        : "text-slate-700"
-                                                        }`}
-                                                >
-                                                    {option}
-                                                </span>
+    const { data: states = [] } = useQuery({ queryKey: ['getStates'], queryFn: getStates });
 
-                                                {isSelected && (
-                                                    <div className="w-4 h-4 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                                                        <Check
-                                                            className="w-2.5 h-2.5 text-white"
-                                                            strokeWidth={3}
-                                                        />
-                                                    </div>
-                                                )}
-                                            </li>
-                                        );
-                                    })
-                                ) : (
-                                    <li className="px-4 py-8 text-center text-xs text-slate-400">
-                                        No {filter.title.toLowerCase()} found
-                                    </li>
-                                )}
-                            </ul>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                );
-            })}
+
+    const locations = useMemo(() => states.map((s: any) => s.name), [states]);
+
+    const filters: Filter[] = useMemo(() => [
+        { id: 1, title: 'Date Posted', options: DatePosted },
+        { id: 2, title: 'Experience', options: experiences },
+        { id: 3, title: 'Type', options: JobMode },
+        { id: 4, title: 'Location', options: locations },
+        { id: 5, title: 'Company', options: companynames },
+    ], [locations, companynames]);
+
+    const PARAM_KEYS: Record<string, string> = {
+        'Date Posted': 'dateposted',
+        'Experience': 'experiencelevel',
+        'Type': 'type',
+        'Location': 'location',
+        'Company': 'company',
+    };
+
+    const getActive = (title: string) =>
+        searchParams.get(PARAM_KEYS[title]) ?? '';
+
+    const easyApply = searchParams.get('easyApply') === 'true';
+
+    const updateUrl = useCallback((updates: Record<string, string | null>) => {
+        startTransition(() => {
+            const params = new URLSearchParams(searchParams.toString());
+
+            params.delete('page');
+
+            Object.entries(updates).forEach(([key, val]) => {
+                if (val) params.set(key, val);
+                else params.delete(key);
+            });
+
+            router.replace(`/jobs?${params.toString()}`, { scroll: false });
+        });
+    }, [router, searchParams]);
+
+    const handleApply = useCallback((filter: Filter, value: string) => {
+        const key = PARAM_KEYS[filter.title];
+        updateUrl({ [key]: value || null });
+        setOpenId(null);
+    }, [updateUrl]);
+
+    const toggleEasyApply = useCallback(() => {
+        updateUrl({ easyApply: easyApply ? null : 'true' });
+    }, [easyApply, updateUrl]);
+
+    const resetAll = useCallback(() => {
+        startTransition(() => {
+            router.replace('/jobs', { scroll: false });
+        });
+        setOpenId(null);
+    }, [router]);
+
+    const activeCount = filters.filter((f) => !!getActive(f.title)).length + (easyApply ? 1 : 0);
+
+    return (
+        <div className={`
+            w-full bg-white border-b border-slate-100 px-4 py-2.5
+            flex items-center gap-2 overflow-x-auto scrollbar-hide
+            transition-opacity duration-200 ${isPending ? 'opacity-70' : 'opacity-100'}
+        `}>
+            {filters.map((filter) => (
+                <FilterDropdown
+                    key={filter.id}
+                    filter={filter}
+                    activeValue={getActive(filter.title)}
+                    open={openId === filter.id}
+                    onOpen={() => setOpenId(filter.id)}
+                    onClose={() => setOpenId(null)}
+                    onApply={(val) => handleApply(filter, val)}
+                />
+            ))}
 
             {/* Easy Apply */}
             <button
                 type="button"
-                onClick={handleEasyApply}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 ${easyApply
-                    ? "bg-indigo-600 border-indigo-600 text-white"
-                    : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-800"
-                    }`}
+                onClick={toggleEasyApply}
+                disabled={isPending}
+                className={`
+                    inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border
+                    text-xs font-semibold whitespace-nowrap select-none
+                    transition-all duration-150 flex-shrink-0
+                    ${easyApply
+                        ? 'bg-indigo-600 border-indigo-600 text-white'
+                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                    }
+                `}
             >
-                <Zap
-                    className={`w-3 h-3 ${easyApply
-                        ? "text-white"
-                        : "text-slate-400"
-                        }`}
-                    strokeWidth={2.5}
-                />
-
+                <Zap className={`w-3 h-3 ${easyApply ? 'text-white' : 'text-slate-400'}`} strokeWidth={2.5} />
                 Easy Apply
             </button>
 
@@ -382,20 +259,13 @@ const FilterNavbar = ({ companynames }: FilterNavbarProps) => {
                 <button
                     type="button"
                     onClick={resetAll}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-red-500 hover:bg-red-50 transition-all duration-200 flex-shrink-0 whitespace-nowrap"
+                    disabled={isPending}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-red-500 hover:bg-red-50 transition-all duration-150 flex-shrink-0 whitespace-nowrap select-none"
                 >
-                    <X
-                        className="w-3 h-3"
-                        strokeWidth={2.5}
-                    />
-
-                    Reset
-                    {activeCount > 1 ? ` (${activeCount})` : ""}
+                    <X className="w-3 h-3" strokeWidth={2.5} />
+                    Reset{activeCount > 1 ? ` (${activeCount})` : ''}
                 </button>
             )}
-            <AIMatchBadge />
         </div>
     );
-};
-
-export default FilterNavbar;
+}

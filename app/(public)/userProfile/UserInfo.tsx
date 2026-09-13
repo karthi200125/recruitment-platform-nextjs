@@ -1,7 +1,13 @@
 "use client";
 
-import CompanyForm from "@/components/forms/CompanyForm";
-import { UserInfoForm } from "@/components/forms/UserInfoForm";
+import dynamic from "next/dynamic";
+const CompanyForm = dynamic(() => import("@/components/forms/CompanyForm"), { ssr: false });
+const UserInfoForm = dynamic(
+    () => import("@/components/forms/UserInfoForm").then((mod) => mod.UserInfoForm),
+    {
+        ssr: false,
+    }
+);
 import { openModal } from "@/store/ModalSlice";
 
 import Batch from "@/components/Batch";

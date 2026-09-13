@@ -1,29 +1,39 @@
 "use client";
 
 import type { Experience } from "@prisma/client";
-import { useMemo, useState, useTransition } from "react";
-import Image from "next/image";
-import { useDispatch } from "react-redux";
 import {
-  Plus,
-  Pencil,
-  Trash2,
-  Loader2,
-  Building2,
-  MapPin,
-  Calendar,
-  ExternalLink,
   Briefcase,
+  Building2,
+  Calendar,
+  Loader2,
+  MapPin,
+  Pencil,
+  Plus,
+  Trash2
 } from "lucide-react";
+import Image from "next/image";
+import { useMemo, useState, useTransition } from "react";
+import { useDispatch } from "react-redux";
 
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useCustomToast } from "@/lib/CustomToast";
 import { openModal } from "@/store/ModalSlice";
 
 import { deleteExperience } from "@/actions/user/delete-experience";
-
 import Model from "@/components/Model";
-import { UserExperienceForm } from "@/components/forms/UserExperienceForm";
+import dynamic from "next/dynamic";
+const UserExperienceForm = dynamic(
+  () => import("@/components/forms/UserExperienceForm").then((mod) => mod.UserExperienceForm),
+  {
+    ssr: false,
+  }
+);
+const DeleteExperienceForm = dynamic(
+  () => import("@/components/forms/DeleteExperienceForm"),
+  {
+    ssr: false,
+  }
+);
 
 import noImage from "@/public/noImage.webp";
 
@@ -400,7 +410,7 @@ const Experiences = ({
               <UserExperienceForm
                 experience={
                   selectedExperience
-                }                
+                }
                 edit={
                   !!selectedExperience
                 }

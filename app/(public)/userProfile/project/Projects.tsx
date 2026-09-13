@@ -9,8 +9,21 @@ import type { AppDispatch } from "@/store/Store";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 import Model from "@/components/Model";
-import { UserProjectForm } from "@/components/forms/UserProjectForm";
-import DeleteProjectForm from "@/components/forms/DeleteProjectForm";
+import dynamic from "next/dynamic";
+
+const UserProjectForm = dynamic(
+    () => import("@/components/forms/UserProjectForm").then((mod) => mod.UserProjectForm),
+    {
+        ssr: false,
+    }
+);
+
+const DeleteProjectForm = dynamic(
+    () => import("@/components/forms/DeleteProjectForm"),
+    {
+        ssr: false,
+    }
+);
 
 import ProjectCard, {
     type ProjectCardProject,

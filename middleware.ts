@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PUBLIC_ROUTES = [
+const PUBLIC_PATHS = new Set([
   "/",
   "/jobs",
   "/companies",
@@ -9,94 +9,52 @@ const PUBLIC_ROUTES = [
   "/forgot-password",
   "/reset-password",
   "/offline",
-];
+  "/robots.txt",
+  "/sitemap.xml",
+  "/manifest.webmanifest",
+]);
 
-const AUTH_ROUTES = [
+const AUTH_PATHS = new Set([
   "/signin",
   "/signup",
   "/forgot-password",
   "/reset-password",
-];
+]);
 
-function isPathMatch(
-  pathname: string,
-  route: string
-) {
-  return (
-    pathname === route ||
-    pathname.startsWith(`${route}/`)
-  );
+const PUBLIC_PREFIXES = ["/jobs/", "/companies/"];
+
+function isPublicRoute(pathname: string): boolean {
+  if (PUBLIC_PATHS.has(pathname)) return true;
+  return PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
-function isPublicRoute(pathname: string) {
-  return PUBLIC_ROUTES.some((route) =>
-    isPathMatch(pathname, route)
-  );
-}
-
-function isAuthRoute(pathname: string) {
-  return AUTH_ROUTES.some((route) =>
-    isPathMatch(pathname, route)
-  );
-}
-
-function redirect(
-  req: NextRequest,
-  path: string
-) {
-  return NextResponse.redirect(
-    new URL(path, req.url)
-  );
+function isAuthRoute(pathname: string): boolean {
+  return AUTH_PATHS.has(pathname);
 }
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-
-  // Skip internals, API routes, and files
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/api") ||
-    pathname.includes(".")
-  ) {
-    return NextResponse.next();
-  }
-
   const token =
-    req.cookies.get(
-      "next-auth.session-token"
-    )?.value ||
-    req.cookies.get(
-      "__Secure-next-auth.session-token"
-    )?.value;
+    req.cookies.get("next-auth.session-token")?.value ||
+    req.cookies.get("__Secure-next-auth.session-token")?.value;
 
   const isLoggedIn = !!token;
 
-  // ─────────────────────────────────────────────
-  // NOT LOGGED IN
-  // ─────────────────────────────────────────────
-
   if (!isLoggedIn) {
-    if (isPublicRoute(pathname)) {
-      return NextResponse.next();
-    }
+    if (isPublicRoute(pathname)) return NextResponse.next();
 
-    return redirect(req, "/signin");
+    const signInUrl = new URL("/signin", req.url);
+    signInUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(signInUrl);
   }
 
-  // ─────────────────────────────────────────────
-  // LOGGED IN
-  // ─────────────────────────────────────────────
 
-  // Authenticated users should not see the
-  // public landing page.
   if (pathname === "/") {
-    return redirect(req, "/dashboard");
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // Authenticated users should not see
-  // authentication pages.
   if (isAuthRoute(pathname)) {
-    return redirect(req, "/dashboard");
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return NextResponse.next();
@@ -104,6 +62,6 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)",
+    "/((?!_next/static|_next/image|api|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|eot|css|js|map|txt|xml|webmanifest)).*)",
   ],
 };

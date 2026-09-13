@@ -30,7 +30,8 @@ const nextConfig = {
         turbo: {
             enabled: true,
         },
+        optimizePackageImports: ["lucide-react", "recharts", "date-fns"],
     },
-};
+};  
 
 export default withBundleAnalyzer(nextConfig);

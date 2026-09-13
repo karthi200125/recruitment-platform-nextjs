@@ -1,8 +1,20 @@
 "use client";
 
 import Button from "@/components/Button";
-import DeleteEducationForm from "@/components/forms/DeleteEducationForm";
-import { UserEducationForm } from "@/components/forms/UserEducationForm";
+import dynamic from "next/dynamic";
+
+const DeleteEducationForm = dynamic(
+    () => import("@/components/forms/DeleteEducationForm"),
+    {
+        ssr: false,
+    }
+);
+const UserEducationForm = dynamic(
+    () => import("@/components/forms/UserEducationForm").then((mod) => mod.UserEducationForm),
+    {
+        ssr: false,
+    }
+);
 import Icon from "@/components/Icon";
 import Model from "@/components/Model";
 import EducationsSkeleton from "@/components/skeletons/EducationsSkeleton";
