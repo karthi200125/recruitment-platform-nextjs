@@ -5,7 +5,15 @@ import { cache } from "react";
 import { db } from "@/lib/db";
 import { getUserProfileUserById } from "@/actions/user/getuser/getUserProfileUserById";
 import { siteConfig } from "@/config";
-import UserProfileClient from "./UserProfileClient";
+import dynamic from "next/dynamic";
+
+const UserProfileClient = dynamic(
+  () => import('./UserProfileClient'),
+  {
+    ssr: false,
+  }
+);
+
 import { getSuggestedUsers } from "@/actions/user/more-profile-users";
 
 interface Props {

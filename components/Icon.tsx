@@ -1,13 +1,12 @@
 'use client'
 
-import React from 'react';
-import Link from 'next/link';
 import {
     Tooltip,
     TooltipContent,
-    TooltipTrigger,
-    TooltipProvider
+    TooltipTrigger
 } from '@/components/ui/tooltip';
+import Link from 'next/link';
+import React from 'react';
 
 interface IconProps {
     icon: React.ReactNode;

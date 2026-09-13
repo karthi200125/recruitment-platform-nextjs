@@ -1,12 +1,12 @@
 "use client";
 
-import { Loader } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import google from "@/public/google.webp";
+import Loader from "@/components/loader/CustomLoader";
 
 const GoogleAuth = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +34,7 @@ const GoogleAuth = () => {
                 className="flex w-full items-center justify-center gap-4 rounded-full border border-white/10 bg-white/[0.02] py-2 transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
             >
                 {isLoading ? (
-                    <Loader className="h-5 w-5 animate-spin" />
+                    <Loader />
                 ) : (
                     <Image
                         src={google}

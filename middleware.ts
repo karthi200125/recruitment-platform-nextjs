@@ -8,6 +8,7 @@ const PUBLIC_ROUTES = [
   "/signup",
   "/forgot-password",
   "/reset-password",
+  "/offline",
 ];
 
 const AUTH_ROUTES = [
@@ -48,13 +49,10 @@ function redirect(
   );
 }
 
-export function middleware(
-  req: NextRequest
-) {
-  const { pathname } =
-    req.nextUrl;
+export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
-  // Skip internals
+  // Skip internals, API routes, and files
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
@@ -73,7 +71,10 @@ export function middleware(
 
   const isLoggedIn = !!token;
 
+  // ─────────────────────────────────────────────
   // NOT LOGGED IN
+  // ─────────────────────────────────────────────
+
   if (!isLoggedIn) {
     if (isPublicRoute(pathname)) {
       return NextResponse.next();
@@ -82,12 +83,20 @@ export function middleware(
     return redirect(req, "/signin");
   }
 
-  // BLOCK AUTH PAGES
+  // ─────────────────────────────────────────────
+  // LOGGED IN
+  // ─────────────────────────────────────────────
+
+  // Authenticated users should not see the
+  // public landing page.
+  if (pathname === "/") {
+    return redirect(req, "/dashboard");
+  }
+
+  // Authenticated users should not see
+  // authentication pages.
   if (isAuthRoute(pathname)) {
-    return redirect(
-      req,
-      "/dashboard"
-    );
+    return redirect(req, "/dashboard");
   }
 
   return NextResponse.next();

@@ -4,6 +4,9 @@ import dynamic from 'next/dynamic';
 import HeroSection from './(public)/home/Hero';
 import TrustedBy from './(public)/home/TrustedBy';
 import JobCategories from './(public)/home/JobCategories';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/authentication/authOptions';
+import { redirect } from 'next/navigation';
 
 const SectionSkeleton = () => (
   <div className="w-full max-w-6xl mx-auto px-4 py-20 animate-pulse">
@@ -170,9 +173,14 @@ const websiteJsonLd = {
   },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
 
-  
+  const session = await getServerSession(authOptions);
+
+  if (session?.user) {
+    redirect('/dashboard');
+  }
+
   return (
     <>
       {/* Structured data */}

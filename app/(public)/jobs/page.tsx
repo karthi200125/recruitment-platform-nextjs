@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 
-import { getFilteredJobs } from "@/actions/job/get-filter-all-jobs";
 import { getCompanyNames } from "@/actions/company/get-companies";
-import { authOptions } from "@/lib/authentication/authOptions";
+import { getFilteredJobs } from "@/actions/job/get-filter-all-jobs";
 import { siteConfig } from "@/config";
+import { authOptions } from "@/lib/authentication/authOptions";
+import dynamic from "next/dynamic";
 
-import JobsClient from "./JobsClient";
+const JobsClient = dynamic(
+  () => import('./JobsClient'),
+  {
+    ssr: false,
+  }
+);
 
 export interface JobsPageProps {
   searchParams: {
