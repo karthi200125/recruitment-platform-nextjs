@@ -13,7 +13,7 @@ export default function SigninRightSide() {
             </div>
 
             {/* Google auth */}
-            <GoogleAuth isSignIn={true} />
+            <GoogleAuth/>
 
             {/* Divider */}
             <div className="flex items-center gap-3 my-6">
