@@ -58,6 +58,8 @@ const JobLists = ({
   if (isLoading) return <JobListSkeleton />;
   if (!jobs.length) return <EmptyState />;
 
+  const aiMatch = null
+
   return (
     <div className="flex flex-col h-full">
       {/* Count */}
@@ -76,7 +78,7 @@ const JobLists = ({
             className="cursor-pointer"
           >
             <JobList
-              job={job}
+              job={{ ...job, aiMatch }}
               selectedJob={selectedJobId}
               isHover
               border

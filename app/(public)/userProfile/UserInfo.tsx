@@ -278,7 +278,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                         >
                             <Users className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 flex-shrink-0" strokeWidth={2} />
                             <span className="text-xs font-bold text-slate-700 group-hover:text-indigo-700">
-                                {profileUser?.followers?.length ?? 0}
+                                {profileUser?._count?.followers ?? 0}
                             </span>
                             <span className="text-xs text-slate-500 group-hover:text-indigo-600">Followers</span>
                         </Link>
@@ -288,7 +288,7 @@ const UserInfo = ({ profileUser, isLoading = false, isOrg = false, company }: Pr
                             className="group inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 bg-slate-50 border border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 transition-all duration-200"
                         >
                             <span className="text-xs font-bold text-slate-700 group-hover:text-indigo-700">
-                                {profileUser?.following?.length ?? 0}
+                                {profileUser?._count?.following ?? 0}
                             </span>
                             <span className="text-xs text-slate-500 group-hover:text-indigo-600">Following</span>
                         </Link>

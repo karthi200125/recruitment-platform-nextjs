@@ -1,16 +1,15 @@
-'use client'
+"use client";
 
 import { formatDistanceToNow } from "date-fns";
 import {
   Briefcase,
-  CheckCircle2,
   Clock,
   ExternalLink,
   MapPin,
   MoreHorizontal,
   Timer,
   Users,
-  Zap,
+  Zap
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,40 +18,30 @@ import Model from "@/components/Model";
 import SaveJobButton from "@/components/SaveJobButton";
 import JobTitlesSkeleton from "@/components/skeletons/JobTitlesSkeleton";
 
-import dynamic from "next/dynamic";
+import AIJobMatch from "./AIJobMatch";
 import EasyApply from "./EasyApply/EasyApply";
 
-const AIJobMatch = dynamic(
-  () => import("./AIJobMatch"),
-  {
-    ssr: false,
-  }
-);
-
-import { FilteredJob } from "@/actions/job/get-filter-all-jobs";
-import { SearchParams } from "@/types";
-import { Question } from "@/types/easyApply";
+import type { FilteredJob, JobWithAI } from "@/actions/job/get-filter-all-jobs";
+import type { SearchParams } from "@/types";
+import type { Question } from "@/types/easyApply";
 
 interface JobTitlesProps {
   user: any;
-  job: FilteredJob;
+  job: JobWithAI;
   company: FilteredJob["company"];
   isPending: boolean;
   safeSearchParams?: SearchParams;
-  isAIError: boolean,
-  isAIMatching: boolean,
+  isAIMatching: boolean;
+  isAIError: boolean;
 }
 
 const MODE_STYLES: Record<string, string> = {
   remote:
     "bg-emerald-50 text-emerald-700 border-emerald-200",
-
   hybrid:
     "bg-violet-50 text-violet-700 border-violet-200",
-
   onsite:
     "bg-amber-50 text-amber-700 border-amber-200",
-
   on_site:
     "bg-amber-50 text-amber-700 border-amber-200",
 };
@@ -62,33 +51,12 @@ const JobTitles = ({
   job,
   company,
   isPending,
-  safeSearchParams,
   isAIMatching,
-  isAIError
+  isAIError,
 }: JobTitlesProps) => {
-  /*
-   * ---------------------------------------------------------
-   * Applied status
-   * ---------------------------------------------------------
-   */
-
-  const isApplied = user != null && job.jobApplications?.some((app) => app.userId === user.id) === true
-
-  /*
-   * ---------------------------------------------------------
-   * Loading
-   * ---------------------------------------------------------
-   */
-
   if (isPending) {
     return <JobTitlesSkeleton />;
   }
-
-  /*
-   * ---------------------------------------------------------
-   * Job mode badge
-   * ---------------------------------------------------------
-   */
 
   const modeLower = (job.mode ?? "")
     .toLowerCase()
@@ -98,97 +66,65 @@ const JobTitles = ({
     MODE_STYLES[modeLower] ??
     "bg-slate-100 text-slate-600 border-slate-200";
 
-  /*
-   * ---------------------------------------------------------
-   * AI MATCH
-   *
-   * IMPORTANT:
-   *
-   * We DO NOT call Gemini here.
-   *
-   * getFilteredJobs() already fetched the AI result
-   * and attached it to:
-   *
-   * job.aiMatch
-   *
-   * So this component only displays it.
-   * ---------------------------------------------------------
-   */
+  const applicantCount =
+    job._count?.jobApplications ?? 0;
 
   const aiMatch = job.aiMatch;
 
-
   return (
     <div className="space-y-5">
-
-      {/* ===================================================== */}
-      {/* Company row */}
-      {/* ===================================================== */}
-
+      {/* Company */}
       <div className="flex items-center justify-between">
-
         <div className="flex items-center gap-2.5">
-
           <Link
             href={`/userProfile/${company?.id}`}
             className="flex-shrink-0"
           >
-            <div className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 bg-white">
+            <div className="h-8 w-8 overflow-hidden rounded-lg border border-slate-200 bg-white">
               <Image
                 src={
                   company?.companyImage ||
                   "/noImage.webp"
                 }
                 alt={
-                  company?.companyName ??
-                  "Company"
+                  company?.companyName ?? "Company"
                 }
                 width={40}
                 height={40}
                 sizes="40px"
-                className="w-full h-full object-contain"
+                className="h-full w-full object-contain"
               />
             </div>
           </Link>
 
           <Link
             href={`/userProfile/${company?.userId}`}
-            className="text-sm font-semibold text-slate-700 hover:text-indigo-600 transition-colors duration-200"
+            className="text-sm font-semibold text-slate-700 transition-colors duration-200 hover:text-indigo-600"
           >
-            {company?.companyName ??
-              "Company"}
+            {company?.companyName ?? "Company"}
           </Link>
-
         </div>
 
         <button
           type="button"
           aria-label="More options"
-          className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors duration-200"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors duration-200 hover:bg-slate-100"
         >
-          <MoreHorizontal className="w-4 h-4" />
+          <MoreHorizontal className="h-4 w-4" />
         </button>
-
       </div>
 
-
-      {/* ===================================================== */}
-      {/* Title + meta */}
-      {/* ===================================================== */}
-
+      {/* Job title / meta */}
       <div>
-
-        <h1 className="text-xl font-bold text-slate-900 capitalize leading-snug mb-2">
+        <h1 className="mb-2 text-xl font-bold leading-snug text-slate-900 capitalize">
           {job.jobTitle}
         </h1>
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-slate-500">
-
           {(job.city || job.state) && (
             <span className="flex items-center gap-1.5">
-
               <MapPin
-                className="w-3.5 h-3.5 flex-shrink-0"
+                className="h-3.5 w-3.5 flex-shrink-0"
                 strokeWidth={2}
               />
 
@@ -199,14 +135,12 @@ const JobTitles = ({
               ]
                 .filter(Boolean)
                 .join(", ")}
-
             </span>
           )}
 
           <span className="flex items-center gap-1.5">
-
             <Clock
-              className="w-3.5 h-3.5 flex-shrink-0"
+              className="h-3.5 w-3.5 flex-shrink-0"
               strokeWidth={2}
             />
 
@@ -216,39 +150,27 @@ const JobTitles = ({
                 addSuffix: true,
               }
             )}
-
           </span>
 
           <span className="flex items-center gap-1.5">
-
             <Users
-              className="w-3.5 h-3.5 flex-shrink-0"
+              className="h-3.5 w-3.5 flex-shrink-0"
               strokeWidth={2}
             />
 
-            {job.jobApplications?.length ??
-              0}{" "}
-            applicants
-
+            {applicantCount} applicants
           </span>
-
         </div>
-
       </div>
 
-
-      {/* ===================================================== */}
       {/* Job badges */}
-      {/* ===================================================== */}
-
       <div className="flex flex-wrap gap-2">
-
         {job.mode && (
           <span
-            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border capitalize ${modeBadge}`}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold capitalize ${modeBadge}`}
           >
             <Briefcase
-              className="w-3 h-3"
+              className="h-3 w-3"
               strokeWidth={2}
             />
 
@@ -257,9 +179,9 @@ const JobTitles = ({
         )}
 
         {job.type && (
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border bg-slate-50 text-slate-600 border-slate-200 capitalize">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 capitalize">
             <Timer
-              className="w-3 h-3"
+              className="h-3 w-3"
               strokeWidth={2}
             />
 
@@ -268,154 +190,93 @@ const JobTitles = ({
         )}
 
         {company?.companyTotalEmployees && (
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border bg-slate-50 text-slate-600 border-slate-200">
-
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
             <Users
-              className="w-3 h-3"
+              className="h-3 w-3"
               strokeWidth={2}
             />
 
-            {company.companyTotalEmployees}{" "}
-            employees
-
+            {company.companyTotalEmployees} employees
           </span>
         )}
-
       </div>
 
+      {/* AI Match */}
+      <AIJobMatch result={aiMatch} />
 
-      {/* ===================================================== */}
-      {/* AI JOB MATCH */}
-      {/* ===================================================== */}
-
-      {/* {user?.role === "CANDIDATE" && (aiMatch || isAIMatching || isAIError) && ( */}
-      <AIJobMatch
-        result={aiMatch}
-        isAIMatching={isAIMatching}
-        isAIError={isAIError}
-      />
-      {/* )} */}
-
-
-      {/* ===================================================== */}
-      {/* Actions */}
-      {/* ===================================================== */}
-
+      {/* Apply / Save */}
       {user ? (
-
         <div className="flex flex-wrap gap-3 pt-1">
-
-          {isApplied ? (
-
-            <div className="inline-flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-5 py-2.5 text-sm font-semibold text-emerald-700">
-
-              <CheckCircle2
-                className="w-4 h-4"
-                strokeWidth={2}
-              />
-
-              Applied
-
-            </div>
-
-          ) : (
-
-            user?.role !== "ORGANIZATION" && (
-
-              <>
-
-                {/* Easy Apply */}
-
-                {job.isEasyApply ? (
-
-                  <Model
-                    bodyContent={
-                      <EasyApply
-                        job={{
-                          id: job.id,
-                          jobTitle:
-                            job.jobTitle,
-                          questions:
-                            (job.questions ??
-                              []) as unknown as Question[],
-                        }}
-                      />
-                    }
-                    title={`Apply to ${company?.companyName}`}
-                    modalId="easyapplyModal"
-                    className="max-w-5xl"
-                  >
-
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors duration-200 shadow-sm shadow-indigo-200"
-                    >
-
-                      <Zap
-                        className="w-4 h-4"
-                        strokeWidth={2}
-                      />
-
-                      Easy Apply
-
-                    </button>
-
-                  </Model>
-
-                ) : (
-
-                  /* External Apply */
-
+          {user?.role !== "ORGANIZATION" && (
+            <>
+              {/* Easy Apply */}
+              {job.isEasyApply ? (
+                <Model
+                  bodyContent={
+                    <EasyApply
+                      job={{
+                        id: job.id,
+                        jobTitle: job.jobTitle,
+                        questions:
+                          (job.questions ??
+                            []) as unknown as Question[],
+                      }}
+                    />
+                  }
+                  title={`Apply to ${company?.companyName}`}
+                  modalId="easyapplyModal"
+                  className="max-w-5xl"
+                >
                   <button
                     type="button"
-                    onClick={() =>
-                      job.applyLink &&
-                      window.open(
-                        job.applyLink,
-                        "_blank"
-                      )
-                    }
-                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors duration-200 shadow-sm shadow-indigo-200"
+                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-indigo-200 transition-colors duration-200 hover:bg-indigo-500"
                   >
-
-                    Apply
-
-                    <ExternalLink
-                      className="w-3.5 h-3.5"
+                    <Zap
+                      className="h-4 w-4"
                       strokeWidth={2}
                     />
 
+                    Easy Apply
                   </button>
+                </Model>
+              ) : (
+                /* External Apply */
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (job.applyLink) {
+                      window.open(
+                        job.applyLink,
+                        "_blank",
+                        "noopener,noreferrer"
+                      );
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-indigo-200 transition-colors duration-200 hover:bg-indigo-500"
+                >
+                  Apply
 
-                )}
-
-                {/* Save */}
-
-                {user?.id && (
-                  <SaveJobButton
-                    userId={user.id}
-                    jobId={job.id}
+                  <ExternalLink
+                    className="h-3.5 w-3.5"
+                    strokeWidth={2}
                   />
-                )}
+                </button>
+              )}
 
-              </>
-
-            )
-
+              {/* Save */}
+              {user?.id && (
+                <SaveJobButton
+                  userId={user.id}
+                  jobId={job.id}
+                />
+              )}
+            </>
           )}
-
         </div>
-
       ) : (
-
-        /* =================================================== */
         /* Not signed in */
-        /* =================================================== */
-
-        <div className="max-w-max flex items-center gap-2 rounded-xl bg-amber-50 border border-indigo-200 px-3 py-2.5">
-
+        <div className="flex max-w-max items-center gap-2 rounded-xl border border-indigo-200 bg-amber-50 px-3 py-2.5">
           <p className="text-xs text-indigo-700">
-
             <span className="font-semibold">
               Signin
             </span>{" "}
@@ -423,17 +284,13 @@ const JobTitles = ({
 
             <Link
               href="/signin"
-              className="underline underline-offset-2 hover:text-indigo-800 transition-colors"
+              className="underline underline-offset-2 transition-colors hover:text-indigo-800"
             >
               SignIn
             </Link>
-
           </p>
-
         </div>
-
       )}
-
     </div>
   );
 };

@@ -85,9 +85,11 @@ const DeleteJobForm = ({
     });
   };
 
+  const aiMatch = null
+
   return (
     <div className="space-y-5">
-      <JobList job={job} />
+      <JobList job={{ ...job, aiMatch }} />
 
       <Button
         onClick={handleDelete}

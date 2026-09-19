@@ -1,5 +1,5 @@
 'use client'
-import { FilteredJob } from "@/actions/job/get-filter-all-jobs";
+import { JobWithAI } from "@/actions/job/get-filter-all-jobs";
 import SaveJobButton from "@/components/SaveJobButton";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { formatDistanceToNow } from "date-fns";
@@ -7,7 +7,7 @@ import { Clock, MapPin, Users } from 'lucide-react';
 import Image from 'next/image';
 
 interface Props {
-  job: FilteredJob;
+  job: JobWithAI;
   selectedJob?: number | null;
   isHover?: boolean;
   border?: boolean;

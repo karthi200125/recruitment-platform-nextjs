@@ -15,16 +15,14 @@ import noAvatar from "@/public/noProfile.webp";
 
 import MessageBox from "../../(protected)/messages/MessageBox";
 
-import type { ProfileUser } from "@/types/userProfile";
-
 interface CurrentUser {
     id: number;
     isPro: boolean;
 }
 
 interface Props {
-    profileUser?: ProfileUser;
-    suggestedUsers?: MoreProfileUser[];
+    profileUserId: number;
+    suggestedUsers: MoreProfileUser[];
     currentUser?: CurrentUser | null;
 }
 
@@ -68,6 +66,7 @@ const MoreUserProfile = ({
 
     return (
         <div className="flex items-start gap-3 border-b border-slate-100 py-3 last:border-b-0">
+
             {/* Profile image */}
             <Link
                 href={`/userProfile/${moreUser.id}`}
@@ -89,6 +88,7 @@ const MoreUserProfile = ({
 
             {/* Profile information */}
             <div className="min-w-0 flex-1 space-y-1">
+
                 <div className="flex flex-wrap items-center gap-1.5">
                     <Link
                         href={`/userProfile/${moreUser.id}`}
@@ -112,6 +112,7 @@ const MoreUserProfile = ({
 
                 {!isCurrentUser && (
                     <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+
                         <FollowButton
                             targetUserId={moreUser.id}
                         />
@@ -136,8 +137,8 @@ const MoreUserProfile = ({
                                     : `Message ${moreUser.displayName}`
                             }
                             className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-all duration-200 ${canMessage
-                                ? "border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
-                                : "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
+                                    ? "border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
+                                    : "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
                                 }`}
                         >
                             {canMessage ? (
@@ -154,6 +155,7 @@ const MoreUserProfile = ({
 
                             Message
                         </button>
+
                     </div>
                 )}
             </div>
@@ -178,25 +180,25 @@ const MoreUserProfile = ({
             >
                 <div />
             </Model>
+
         </div>
     );
 };
 
 const MoreProfiles = ({
-    profileUser,
-    suggestedUsers = [],
+    profileUserId,
+    suggestedUsers,
     currentUser,
 }: Props) => {
-    const profileUserId =
-        profileUser?.id;
-
     const isOwnProfile =
         currentUser?.id === profileUserId;
 
     return (
         <aside className="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white">
+
             {/* Header */}
             <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-4">
+
                 <Users
                     className="h-4 w-4 text-slate-500"
                     strokeWidth={1.75}
@@ -213,10 +215,12 @@ const MoreProfiles = ({
                         {suggestedUsers.length}
                     </span>
                 )}
+
             </div>
 
             {/* Profiles */}
             <div className="px-5 py-1">
+
                 {suggestedUsers.length > 0 ? (
                     suggestedUsers.map((profile) => (
                         <MoreUserProfile
@@ -234,6 +238,7 @@ const MoreProfiles = ({
                         }
                     />
                 )}
+
             </div>
         </aside>
     );

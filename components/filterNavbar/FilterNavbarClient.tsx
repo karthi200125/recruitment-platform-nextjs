@@ -1,6 +1,5 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { Check, ChevronDown, X, Zap } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -15,8 +14,7 @@ import {
 import {
     DatePosted,
     experiences,
-    getStates,
-    JobMode,
+    JobMode
 } from "@/lib/getOptionsData";
 
 interface Filter {
@@ -36,7 +34,16 @@ interface FilterDropdownProps {
 
 interface FilterNavbarProps {
     companynames: string[];
+    states: string[];
 }
+
+const PARAM_KEYS: Record<string, string> = {
+    "Date Posted": "dateposted",
+    "Experience": "experiencelevel",
+    "Type": "type",
+    "Location": "location",
+    "Company": "company",
+};
 
 
 const FilterDropdown = ({
@@ -149,16 +156,13 @@ const FilterDropdown = ({
 
 // ─── FilterNavbar ─────────────────────────────────────────────────────────────
 
-export default function FilterNavbar({ companynames }: FilterNavbarProps) {
+export default function FilterNavbarClient({ companynames, states }: FilterNavbarProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
     const [isPending, startTransition] = useTransition();
 
     const [openId, setOpenId] = useState<number | null>(null);
-
-    const { data: states = [] } = useQuery({ queryKey: ['getStates'], queryFn: getStates });
-
 
     const locations = useMemo(() => states.map((s: any) => s.name), [states]);
 
@@ -169,14 +173,6 @@ export default function FilterNavbar({ companynames }: FilterNavbarProps) {
         { id: 4, title: 'Location', options: locations },
         { id: 5, title: 'Company', options: companynames },
     ], [locations, companynames]);
-
-    const PARAM_KEYS: Record<string, string> = {
-        'Date Posted': 'dateposted',
-        'Experience': 'experiencelevel',
-        'Type': 'type',
-        'Location': 'location',
-        'Company': 'company',
-    };
 
     const getActive = (title: string) =>
         searchParams.get(PARAM_KEYS[title]) ?? '';
@@ -198,11 +194,18 @@ export default function FilterNavbar({ companynames }: FilterNavbarProps) {
         });
     }, [router, searchParams]);
 
-    const handleApply = useCallback((filter: Filter, value: string) => {
-        const key = PARAM_KEYS[filter.title];
-        updateUrl({ [key]: value || null });
-        setOpenId(null);
-    }, [updateUrl]);
+    const handleApply = useCallback(
+        (filter: Filter, value: string) => {
+            const key = PARAM_KEYS[filter.title];
+
+            updateUrl({
+                [key]: value || null,
+            });
+
+            setOpenId(null);
+        },
+        [updateUrl]
+    );
 
     const toggleEasyApply = useCallback(() => {
         updateUrl({ easyApply: easyApply ? null : 'true' });

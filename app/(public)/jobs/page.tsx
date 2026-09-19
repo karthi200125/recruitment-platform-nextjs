@@ -5,14 +5,7 @@ import { getCompanyNames } from "@/actions/company/get-companies";
 import { getFilteredJobs } from "@/actions/job/get-filter-all-jobs";
 import { siteConfig } from "@/config";
 import { authOptions } from "@/lib/authentication/authOptions";
-import dynamic from "next/dynamic";
-
-const JobsClient = dynamic(
-  () => import('./JobsClient'),
-  {
-    ssr: false,
-  }
-);
+import JobsClient from './JobsClient'
 
 export interface JobsPageProps {
   searchParams: {
@@ -141,18 +134,7 @@ export default async function JobsPage({
     page: currentPage,
   };
 
-  // ─────────────────────────────────────────────────────────────
-  // NORMAL JOB DATA ONLY
-  // No Gemini
-  // No AI profile
-  // No AI matching
-  // ─────────────────────────────────────────────────────────────
-
-  const [companynames, { jobs, count }] =
-    await Promise.all([
-      getCompanyNames(),
-      getFilteredJobs(filters),
-    ]);
+  const { jobs, count } = await getFilteredJobs(filters)
 
   return (
     <JobsClient
@@ -160,7 +142,6 @@ export default async function JobsPage({
       initialCount={count}
       searchParams={filters}
       currentPage={currentPage}
-      companynames={companynames}
       userId={userId}
     />
   );

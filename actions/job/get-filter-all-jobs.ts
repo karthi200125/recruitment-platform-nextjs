@@ -4,11 +4,7 @@ import { db } from "@/lib/db";
 import { SearchParams } from "@/types";
 import { Prisma } from "@prisma/client";
 import { searchJobIds } from "../searchJobs";
-import type { AIJobMatchResult } from "@/actions/ai/jobs/get-job-ai-matches";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
+import { AIJobMatchResult } from "../ai/jobs/get-job-ai-matches";
 
 export type FilteredJob = Prisma.JobGetPayload<{
     select: {
@@ -57,25 +53,15 @@ export type FilteredJob = Prisma.JobGetPayload<{
             };
         };
 
-        // Keep this because existing UI uses jobApplications.
-        //
-        // IMPORTANT:
-        // We only select userId instead of loading the entire
-        // JobApplication records.
-        jobApplications: {
-            select: {
-                userId: true;
-            };
-        };
-
         _count: {
             select: {
                 jobApplications: true;
             };
         };
     };
-}> & {
-    // AI matching is attached client-side.
+}>
+
+export type JobWithAI = FilteredJob & {
     aiMatch: AIJobMatchResult | null;
 };
 
@@ -89,10 +75,6 @@ const DATE_POSTED_DAYS: Record<string, number> = {
     "Past Week": 7,
     "Past Month": 30,
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Action
-// ─────────────────────────────────────────────────────────────────────────────
 
 export async function getFilteredJobs(
     params: SearchParams
@@ -121,10 +103,7 @@ export async function getFilteredJobs(
     try {
         const where: Prisma.JobWhereInput = {};
 
-        // ─────────────────────────────────────────────────────────────
         // Search
-        // ─────────────────────────────────────────────────────────────
-
         if (trimmedQuery) {
             const ids = await searchJobIds(trimmedQuery);
 
@@ -133,14 +112,12 @@ export async function getFilteredJobs(
             };
         }
 
-        // ─────────────────────────────────────────────────────────────
-        // Filters
-        // ─────────────────────────────────────────────────────────────
-
+        // Easy Apply
         if (easyApply === "true") {
             where.isEasyApply = true;
         }
 
+        // Company
         if (trimmedCompany) {
             where.company = {
                 companyName: {
@@ -150,6 +127,7 @@ export async function getFilteredJobs(
             };
         }
 
+        // Date Posted
         if (dateposted) {
             const days = DATE_POSTED_DAYS[dateposted];
 
@@ -162,14 +140,17 @@ export async function getFilteredJobs(
             }
         }
 
+        // Job Type / Mode
         if (type) {
             where.mode = type;
         }
 
+        // Experience
         if (experiencelevel) {
             where.experience = experiencelevel;
         }
 
+        // Location
         if (trimmedLocation) {
             where.OR = [
                 {
@@ -193,10 +174,10 @@ export async function getFilteredJobs(
             ];
         }
 
-        // ─────────────────────────────────────────────────────────────
-        // Exclude current user's own jobs / company jobs / applications
-        // ─────────────────────────────────────────────────────────────
-
+        // Exclude:
+        // 1. Current user's own jobs
+        // 2. Jobs belonging to current user's company
+        // 3. Jobs already applied to by current user
         if (userId !== undefined) {
             where.NOT = [
                 {
@@ -217,16 +198,8 @@ export async function getFilteredJobs(
             ];
         }
 
-        // ─────────────────────────────────────────────────────────────
-        // Pagination
-        // ─────────────────────────────────────────────────────────────
-
         const skip =
             (currentPage - 1) * ITEMS_PER_PAGE;
-
-        // ─────────────────────────────────────────────────────────────
-        // Database queries
-        // ─────────────────────────────────────────────────────────────
 
         const [count, rawJobs] = await Promise.all([
             db.job.count({
@@ -282,20 +255,6 @@ export async function getFilteredJobs(
                         },
                     },
 
-                    // Keep only what the current UI needs.
-                    //
-                    // This is much lighter than:
-                    //
-                    // jobApplications: true
-                    //
-                    jobApplications: {
-                        select: {
-                            userId: true,
-                        },
-                    },
-
-                    // Gives the total application count without
-                    // transferring all application rows.
                     _count: {
                         select: {
                             jobApplications: true,
@@ -312,30 +271,13 @@ export async function getFilteredJobs(
             }),
         ]);
 
-        // ─────────────────────────────────────────────────────────────
-        // Attach initial AI state.
-        //
-        // JobsClient fills this after the AI request completes.
-        // ─────────────────────────────────────────────────────────────
-
-        const jobs: FilteredJob[] =
-            rawJobs.map((job) => ({
-                ...job,
-                aiMatch: null,
-            }));
-
         return {
-            jobs,
+            jobs: rawJobs,
             count,
         };
     } catch (error) {
-        console.error(
-            "❌ getFilteredJobs:",
-            error
-        );
+        console.error("❌ getFilteredJobs:", error);
 
-        throw new Error(
-            "Failed to fetch jobs"
-        );
+        throw new Error("Failed to fetch jobs");
     }
 }

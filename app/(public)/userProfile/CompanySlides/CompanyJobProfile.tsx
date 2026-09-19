@@ -11,6 +11,8 @@ const CompanyJobProfile = ({
 }: CompanyJobProfileProps) => {
     const jobs = company?.jobs ?? [];
 
+    const aiMatch = null; // Placeholder for AI match data, replace with actual logic if needed
+
     return (
         <div className="grid grid-cols-1 gap-5 rounded-[10px] border p-2 md:grid-cols-2 md:p-5">
             {jobs.length === 0 && (
@@ -24,7 +26,7 @@ const CompanyJobProfile = ({
                     key={job.id}
                     className="rounded-md border p-5"
                 >
-                    <JobList job={job} />
+                    <JobList job={{ ...job, aiMatch }} />
                 </div>
             ))}
         </div>

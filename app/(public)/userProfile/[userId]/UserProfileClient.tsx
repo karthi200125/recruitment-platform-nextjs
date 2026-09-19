@@ -1,37 +1,63 @@
-import AboutMe from "../AboutMe";
-import CompanySlides from "../CompanySlides/CompanySlides";
-import Education from "../Educations";
-import Experiences from "../Experiences";
-import MoreProfiles from "../MoreProfiles";
-import Projects from "../project/Projects";
+"use client";
+
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
+
 import UserInfo from "../UserInfo";
-import ProfileResume from "../ProfileResume";
+
+import CompanySlidesSkeleton from "@/components/skeletons/CompanySlidesSkeleton";
+import { SkeletonRow } from "@/components/skeletons/MoreProfileSkeleton";
 
 import {
     ProfileUser,
     isCandidateRecruiterProfile,
     isOrganizationProfile,
 } from "@/types/userProfile";
+import CompanySlidesServer from "../CompanySlides/CompanySlides";
+import MoreProfilesServer from "../MoreProfilesServer";
 
-import dynamic from "next/dynamic";
-import { MoreProfileUser } from "@/actions/user/more-profile-users";
-
-const ProfileViewTracker = dynamic(
-    () => import("../ProfileViewTracker"),
-    {
-        ssr: false,
-    }
-);
-
-interface UserProfileProps {
-    initialProfile: ProfileUser;
-    moreUsers: MoreProfileUser[];
+interface CurrentUser {
+    id: number;
+    isPro: boolean;
 }
 
-const UserProfile = ({
+interface UserProfileClientProps {
+    initialProfile: ProfileUser;
+    currentUser?: CurrentUser | null;
+}
+
+/* ---------------------------------------
+   Dynamic profile sections
+---------------------------------------- */
+
+const ProfileResume = dynamic(
+    () => import("../ProfileResume")
+);
+
+const AboutMe = dynamic(
+    () => import("../AboutMe")
+);
+
+const Education = dynamic(
+    () => import("../Educations")
+);
+
+const Projects = dynamic(
+    () => import("../project/Projects")
+);
+
+const Experiences = dynamic(
+    () => import("../Experiences")
+);
+
+/* ---------------------------------------
+   Main component
+---------------------------------------- */
+
+const UserProfileClient = ({
     initialProfile,
-    moreUsers,
-}: UserProfileProps) => {
+    currentUser,
+}: UserProfileClientProps) => {
     const profileData = initialProfile;
 
     if (!profileData) {
@@ -44,77 +70,132 @@ const UserProfile = ({
     const isCandidateRecruiter =
         isCandidateRecruiterProfile(profileData);
 
-    const company = profileData.company ?? null;
+    const company = isOrganization
+        ? profileData.company
+        : null;
 
     return (
-        <>
-            <ProfileViewTracker />
+        <main className="flex min-h-screen w-full flex-col gap-5 py-6 md:flex-row">
 
-            <main className="flex min-h-screen w-full flex-col gap-5 py-6 md:flex-row">
+            {/* Main column */}
+            <div className="w-full space-y-5 md:w-[70%]">
 
-                {/* Main column */}
-                <div className="w-full space-y-5 md:w-[70%]">
+                {/* Immediate */}
+                <UserInfo
+                    profileUser={profileData}
+                    isLoading={false}
+                    company={company}
+                    isOrg={isOrganization}
+                />
 
-                    <UserInfo
-                        profileUser={profileData}
-                        isLoading={false}
-                        company={company}
-                        isOrg={isOrganization}
-                    />
-
+                {/* Resume */}
+                <Suspense
+                    fallback={
+                        <div className="h-24 w-full animate-pulse rounded-2xl bg-slate-100" />
+                    }
+                >
                     <ProfileResume
                         resume={profileData.resume}
-                        resumePublicId={profileData.resumePublicId}
+                        resumePublicId={
+                            profileData.resumePublicId
+                        }
                     />
+                </Suspense>
 
+                {/* About */}
+                <Suspense
+                    fallback={
+                        <div className="h-32 w-full animate-pulse rounded-2xl bg-slate-100" />
+                    }
+                >
                     <AboutMe
                         profileUser={profileData}
                         isLoading={false}
                         company={company}
                         isOrg={isOrganization}
                     />
+                </Suspense>
 
-                    {isCandidateRecruiter && (
-                        <>
+                {/* Candidate / Recruiter */}
+                {isCandidateRecruiter && (
+                    <>
+                        <Suspense
+                            fallback={
+                                <div className="h-40 w-full animate-pulse rounded-2xl bg-slate-100" />
+                            }
+                        >
                             <Education
-                                educations={profileData.educations}
-                                profileUserId={profileData.id}
+                                educations={
+                                    profileData.educations
+                                }
+                                profileUserId={
+                                    profileData.id
+                                }
                                 isLoading={false}
                             />
+                        </Suspense>
 
+                        <Suspense
+                            fallback={
+                                <div className="h-40 w-full animate-pulse rounded-2xl bg-slate-100" />
+                            }
+                        >
                             <Projects
-                                projects={profileData.projects}
-                                profileUserId={profileData.id}
+                                projects={
+                                    profileData.projects
+                                }
+                                profileUserId={
+                                    profileData.id
+                                }
                                 isLoading={false}
                             />
+                        </Suspense>
 
+                        <Suspense
+                            fallback={
+                                <div className="h-40 w-full animate-pulse rounded-2xl bg-slate-100" />
+                            }
+                        >
                             <Experiences
-                                experiences={profileData.experiences}
-                                profileUserId={profileData.id}
+                                experiences={
+                                    profileData.experiences
+                                }
+                                profileUserId={
+                                    profileData.id
+                                }
                                 isLoading={false}
                             />
-                        </>
-                    )}
+                        </Suspense>
+                    </>
+                )}
 
-                    {isOrganization && (
-                        <CompanySlides
-                            company={profileData.company}
-                            profileUser={profileData}
+                {/* Organization only */}
+                {isOrganization && (
+                    <Suspense
+                        fallback={<CompanySlidesSkeleton />}
+                    >
+                        <CompanySlidesServer
+                            userId={profileData.id}
                         />
-                    )}
-                </div>
+                    </Suspense>
+                )}
 
-                {/* Sidebar */}
-                <aside className="sticky top-20 hidden max-h-max w-[30%] self-start space-y-5 overflow-y-auto md:block">
-                    <MoreProfiles
-                        profileUser={profileData}
-                        suggestedUsers={moreUsers}
+            </div>
+
+            {/* Desktop sidebar */}
+            <aside className="hidden w-[30%] self-start md:sticky md:top-20 md:block">
+                <Suspense
+                    fallback={<SkeletonRow />}
+                >
+                    <MoreProfilesServer
+                        profileUserId={profileData.id}
+                        currentUser={currentUser}
                     />
-                </aside>
+                </Suspense>
+            </aside>
 
-            </main>
-        </>
+        </main>
     );
 };
 
-export default UserProfile;
+export default UserProfileClient;

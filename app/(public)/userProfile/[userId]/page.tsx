@@ -139,8 +139,6 @@ export default async function UserProfilePage({
 
   const result = await getUserProfileUserById(userId);
 
-  const moreUsers = await getSuggestedUsers(userId);
-
   if (!result.success || !result.data) {
     notFound();
   }
@@ -148,7 +146,6 @@ export default async function UserProfilePage({
   return (
     <UserProfileClient
       initialProfile={result.data}
-      moreUsers={moreUsers}
     />
   );
 }

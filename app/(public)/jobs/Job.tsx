@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
-import FilterNavbar from "@/components/FilterNavbar";
 import BottomDrawer from "@/components/BottomDrawer";
 
-import type { FilteredJob } from "@/actions/job/get-filter-all-jobs";
+import type { FilteredJob, JobWithAI } from "@/actions/job/get-filter-all-jobs";
 import type { JobSearchParams } from "@/types";
 
 const JobDetails = dynamic(
@@ -16,18 +15,19 @@ const JobDetails = dynamic(
 );
 import JobLists from "../../../components/Job/JobLists/JobLists";
 import dynamic from "next/dynamic";
+import { FilterNavbar } from "@/components/filterNavbar/FilterNavbar";
+import FilterNavbarSkeleton from "@/components/skeletons/FilterNavbarSkeleton";
 
 interface Props {
     jobs: FilteredJob[];
-    job: FilteredJob | null;
+    job: JobWithAI | null;
     isPending: boolean;
     onSelectedJob: (id: number) => void;
     count: number;
     currentPage: number;
     safeSearchParams: JobSearchParams;
-    companynames: string[],
-    isAIError: boolean,
-    isAIMatching: boolean,
+    isAIMatching: boolean;
+    isAIError: boolean;
 }
 
 function NoJobSelected() {
@@ -76,9 +76,8 @@ const Jobb = ({
     isPending,
     onSelectedJob,
     safeSearchParams,
-    companynames,
     isAIMatching,
-    isAIError
+    isAIError,
 }: Props) => {
     const [
         isMobileDetailsOpen,
@@ -97,7 +96,9 @@ const Jobb = ({
         <div className="flex mt-1 h-[calc(100vh-78px)] w-full overflow-hidden flex-col">
 
             <div className="z-20 flex-shrink-0 border-b border-slate-100 bg-white">
-                <FilterNavbar companynames={companynames} />
+                <Suspense fallback={<FilterNavbarSkeleton />}>
+                    <FilterNavbar />
+                </Suspense>
             </div>
 
             <div className="flex min-h-0 flex-1 overflow-hidden">

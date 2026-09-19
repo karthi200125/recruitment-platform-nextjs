@@ -1,6 +1,6 @@
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
-import { FilteredJob } from "@/actions/job/get-filter-all-jobs";
+import { JobWithAI } from "@/actions/job/get-filter-all-jobs";
 import { JobSearchParams } from "@/types";
 
 import JobCompany from "./JobCompany";
@@ -9,17 +9,17 @@ import JobRecruiter from "./JobRecruiter";
 import JobTitles from "./JobTitles";
 
 interface JobDetailsProps {
-    job: FilteredJob;
+    job: JobWithAI;
     safeSearchParams?: JobSearchParams;
-    isAIError: boolean,
-    isAIMatching: boolean,
+    isAIMatching: boolean;
+    isAIError: boolean;
 }
 
 const JobDetails = ({
     job,
     safeSearchParams,
     isAIMatching,
-    isAIError
+    isAIError,
 }: JobDetailsProps) => {
     const { user } = useCurrentUser();
 

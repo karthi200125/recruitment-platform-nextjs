@@ -6,7 +6,6 @@ import { db } from "@/lib/db";
 
 import {
     CandidateRecruiterProfile,
-    EmployeeUser,
     OrganizationProfile,
     ProfileUser,
 } from "@/types/userProfile";
@@ -17,6 +16,11 @@ interface ActionResponse<T> {
     error?: string;
 }
 
+/**
+ * Candidate / Recruiter profile
+ *
+ * Fetch only data required by the core profile.
+ */
 const getCandidateRecruiterProfile = cache(
     async (id: number) => {
         return db.user.findUnique({
@@ -25,42 +29,16 @@ const getCandidateRecruiterProfile = cache(
             },
 
             include: {
-                jobApplications: true,
-
-                postedJobs: true,
-
-                company: {
-                    include: {
-                        jobs: {
-                            orderBy: {
-                                createdAt: "desc",
-                            },
-                            take: 6,
-                        },
-                    },
-                },
-
                 educations: true,
 
                 experiences: true,
 
                 projects: true,
 
-                followers: {
+                _count: {
                     select: {
-                        id: true,
-                        createdAt: true,
-                        followerId: true,
-                        followingId: true,
-                    },
-                },
-
-                following: {
-                    select: {
-                        id: true,
-                        createdAt: true,
-                        followerId: true,
-                        followingId: true,
+                        followers: true,
+                        following: true,
                     },
                 },
             },
@@ -70,6 +48,11 @@ const getCandidateRecruiterProfile = cache(
 
 /**
  * Organization profile
+ *
+ * Only fetch core user + basic company data here.
+ *
+ * Company jobs and employees are handled separately
+ * by the company profile section.
  */
 const getOrganizationProfile = cache(
     async (id: number) => {
@@ -79,60 +62,12 @@ const getOrganizationProfile = cache(
             },
 
             include: {
-                company: {
-    include: {
-        jobs: {
-            orderBy: {
-                createdAt: "desc",
-            },
-            take: 6,
+                company: true,
 
-            include: {
-                company: {
+                _count: {
                     select: {
-                        id: true,
-                        companyName: true,
-                        companyImage: true,
-                    },
-                },
-            },
-        },
-
-        employees: {
-            where: {
-                status: "ACCEPTED",
-            },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        username: true,
-                        userImage: true,
-                        profileImage: true,
-                        firstName: true,
-                        lastName: true,
-                    },
-                },
-            },
-        },
-    },
-},
-
-                followers: {
-                    select: {
-                        id: true,
-                        createdAt: true,
-                        followerId: true,
-                        followingId: true,
-                    },
-                },
-
-                following: {
-                    select: {
-                        id: true,
-                        createdAt: true,
-                        followerId: true,
-                        followingId: true,
+                        followers: true,
+                        following: true,
                     },
                 },
             },
@@ -149,7 +84,7 @@ export const getUserProfileUserById = cache(
     ): Promise<ActionResponse<ProfileUser>> => {
         try {
             /**
-             * Validate before querying the database.
+             * Validate user ID.
              */
             if (!Number.isInteger(id) || id <= 0) {
                 return {
@@ -158,6 +93,9 @@ export const getUserProfileUserById = cache(
                 };
             }
 
+            /**
+             * Get user role.
+             */
             const roleCheck = await db.user.findUnique({
                 where: {
                     id,
@@ -179,7 +117,8 @@ export const getUserProfileUserById = cache(
              * ORGANIZATION
              */
             if (roleCheck.role === "ORGANIZATION") {
-                const user = await getOrganizationProfile(id);
+                const user =
+                    await getOrganizationProfile(id);
 
                 if (!user) {
                     return {
@@ -188,22 +127,21 @@ export const getUserProfileUserById = cache(
                     };
                 }
 
-                const employeeUsers: EmployeeUser[] =
-                    user.company?.employees.map(
-                        (employee) => employee.user
-                    ) ?? [];
-
+                /**
+                 * Normalize userAbout.
+                 */
                 const userAbout =
                     typeof user.userAbout === "string"
                         ? user.userAbout
                         : user.userAbout
-                            ? JSON.stringify(user.userAbout)
+                            ? JSON.stringify(
+                                user.userAbout
+                            )
                             : null;
 
                 const formattedUser: OrganizationProfile = {
                     ...user,
                     userAbout,
-                    employeeUsers,
                 };
 
                 return {
@@ -232,7 +170,9 @@ export const getUserProfileUserById = cache(
                 typeof user.userAbout === "string"
                     ? user.userAbout
                     : user.userAbout
-                        ? JSON.stringify(user.userAbout)
+                        ? JSON.stringify(
+                            user.userAbout
+                        )
                         : null;
 
             const formattedUser: CandidateRecruiterProfile = {

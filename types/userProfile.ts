@@ -12,34 +12,14 @@ export type EmployeeUser = {
 export type CandidateRecruiterProfile =
     Prisma.UserGetPayload<{
         include: {
-            jobApplications: true;
-
-            postedJobs: true;
-
-            company: {
-                include: {
-                    jobs: {
-                        orderBy: {
-                            createdAt: "desc";
-                        };
-                        take: 6;
-                    };
-                };
-            };
-
             educations: true;
             experiences: true;
             projects: true;
 
-            followers: {
+            _count: {
                 select: {
-                    id: true;
-                };
-            };
-
-            following: {
-                select: {
-                    id: true;
+                    followers: true;
+                    following: true;
                 };
             };
         };
@@ -50,57 +30,22 @@ export type CandidateRecruiterProfile =
 export type OrganizationProfile =
     Prisma.UserGetPayload<{
         include: {
-            company: {
-                include: {
-                    jobs: {
-                        orderBy: {
-                            createdAt: "desc";
-                        };
-                        take: 6;
-                    };
+            company: true;
 
-                    employees: {
-                        where: {
-                            status: "ACCEPTED";
-                        };
-
-                        include: {
-                            user: {
-                                select: {
-                                    id: true;
-                                    username: true;
-                                    userImage: true;
-                                    profileImage: true;
-                                    firstName: true;
-                                    lastName: true;
-                                };
-                            };
-                        };
-                    };
-                };
-            };
-
-            followers: {
+            _count: {
                 select: {
-                    id: true;
-                };
-            };
-
-            following: {
-                select: {
-                    id: true;
+                    followers: true;
+                    following: true;
                 };
             };
         };
     }> & {
         userAbout: string | null;
-        employeeUsers: EmployeeUser[];
     };
 
 export type ProfileUser =
     | CandidateRecruiterProfile
     | OrganizationProfile;
-
 
 export function isOrganizationProfile(
     profile: ProfileUser
@@ -112,4 +57,4 @@ export function isCandidateRecruiterProfile(
     profile: ProfileUser
 ): profile is CandidateRecruiterProfile {
     return profile.role !== "ORGANIZATION";
-}    
+}
