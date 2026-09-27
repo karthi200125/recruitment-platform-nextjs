@@ -1,11 +1,14 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { useState } from "react";
 
 import BottomDrawer from "@/components/BottomDrawer";
 
 import type { FilteredJob, JobWithAI } from "@/actions/job/get-filter-all-jobs";
+import FilterNavbarSkeleton from "@/components/skeletons/FilterNavbarSkeleton";
 import type { JobSearchParams } from "@/types";
+import dynamic from "next/dynamic";
+import JobLists from "../../../components/Job/JobLists/JobLists";
 
 const JobDetails = dynamic(
     () => import("../../../components/Job/JobDetails"),
@@ -13,10 +16,6 @@ const JobDetails = dynamic(
         ssr: false,
     }
 );
-import JobLists from "../../../components/Job/JobLists/JobLists";
-import dynamic from "next/dynamic";
-import { FilterNavbar } from "@/components/filterNavbar/FilterNavbar";
-import FilterNavbarSkeleton from "@/components/skeletons/FilterNavbarSkeleton";
 
 interface Props {
     jobs: FilteredJob[];
@@ -96,9 +95,7 @@ const Jobb = ({
         <div className="flex mt-1 h-[calc(100vh-78px)] w-full overflow-hidden flex-col">
 
             <div className="z-20 flex-shrink-0 border-b border-slate-100 bg-white">
-                <Suspense fallback={<FilterNavbarSkeleton />}>
-                    <FilterNavbar />
-                </Suspense>
+                <FilterNavbarSkeleton />
             </div>
 
             <div className="flex min-h-0 flex-1 overflow-hidden">

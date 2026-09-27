@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 
-import { getCompanyNames } from "@/actions/company/get-companies";
 import { getFilteredJobs } from "@/actions/job/get-filter-all-jobs";
 import { siteConfig } from "@/config";
 import { authOptions } from "@/lib/authentication/authOptions";
-import JobsClient from './JobsClient'
+import JobsClient from "./JobsClient";
 
 export interface JobsPageProps {
   searchParams: {
@@ -105,7 +104,11 @@ export async function generateMetadata({
 export default async function JobsPage({
   searchParams,
 }: JobsPageProps) {
+  console.time("JOBS: getServerSession");
+
   const session = await getServerSession(authOptions);
+
+  console.timeEnd("JOBS: getServerSession");
 
   const userId = session?.user?.id
     ? Number(session.user.id)
@@ -118,7 +121,6 @@ export default async function JobsPage({
 
   const filters = {
     userId,
-
     q: searchParams.q?.trim() || undefined,
     location: searchParams.location?.trim() || undefined,
     company: searchParams.company?.trim() || undefined,
@@ -130,11 +132,14 @@ export default async function JobsPage({
       searchParams.dateposted?.trim() || undefined,
     easyApply:
       searchParams.easyApply?.trim() || undefined,
-
     page: currentPage,
   };
 
-  const { jobs, count } = await getFilteredJobs(filters)
+  console.time("JOBS: getFilteredJobs");
+
+  const { jobs, count } = await getFilteredJobs(filters);
+
+  console.timeEnd("JOBS: getFilteredJobs");
 
   return (
     <JobsClient
