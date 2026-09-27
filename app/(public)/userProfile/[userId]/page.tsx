@@ -1,20 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { getServerSession } from "next-auth";
 
 import { db } from "@/lib/db";
-import { getUserProfileUserById } from "@/actions/user/getuser/getUserProfileUserById";
+import { authOptions } from "@/lib/authentication/authOptions";
 import { siteConfig } from "@/config";
-import dynamic from "next/dynamic";
 
-const UserProfileClient = dynamic(
-  () => import('./UserProfileClient'),
-  {
-    ssr: false,
-  }
-);
+import { getUserProfileUserById } from "@/actions/user/getuser/getUserProfileUserById";
 
-import { getSuggestedUsers } from "@/actions/user/more-profile-users";
+import UserProfileClient from "./UserProfileClient";
 
 interface Props {
   params: {
@@ -22,12 +17,17 @@ interface Props {
   };
 }
 
+/* ---------------------------------------
+   Lightweight metadata query
+---------------------------------------- */
+
 const getUserProfileMetadata = cache(
   async (userId: number) => {
     return db.user.findUnique({
       where: {
         id: userId,
       },
+
       select: {
         id: true,
         role: true,
@@ -47,6 +47,10 @@ const getUserProfileMetadata = cache(
     });
   }
 );
+
+/* ---------------------------------------
+   SEO Metadata
+---------------------------------------- */
 
 export async function generateMetadata({
   params,
@@ -75,16 +79,16 @@ export async function generateMetadata({
     };
   }
 
-  const isOrg = profile.role === "ORGANIZATION";
+  const isOrganization = profile.role === "ORGANIZATION";
 
   const fullName =
     `${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim();
 
-  const title = isOrg
+  const title = isOrganization
     ? `${profile.company?.companyName ?? profile.username} | Company Profile`
-    : `${fullName || profile.username}`;
+    : fullName || profile.username;
 
-  const description = isOrg
+  const description = isOrganization
     ? profile.company?.companyBio ??
     "Explore company information, hiring details, and open opportunities on Jobify."
     : profile.userBio ??
@@ -128,24 +132,38 @@ export async function generateMetadata({
   };
 }
 
+
 export default async function UserProfilePage({
   params,
 }: Props) {
   const userId = Number(params.userId);
 
+
   if (!Number.isInteger(userId) || userId <= 0) {
     notFound();
-  }
+  }  
 
-  const result = await getUserProfileUserById(userId);
+  const [session, profileResult] = await Promise.all([
+    getServerSession(authOptions),
+    getUserProfileUserById(userId),
+  ]);
 
-  if (!result.success || !result.data) {
+  
+  if (
+    !profileResult.success ||
+    !profileResult.data
+  ) {
     notFound();
-  }
+  }  
+
+  const currentUserId = session?.user?.id
+    ? Number(session.user.id)
+    : undefined;  
 
   return (
     <UserProfileClient
-      initialProfile={result.data}
+      initialProfile={profileResult.data}
+      currentUserId={currentUserId}
     />
   );
 }

@@ -14,8 +14,6 @@ import {
 import type { FilteredJob, JobWithAI } from "@/actions/job/get-filter-all-jobs";
 import type { JobSearchParams } from "@/types";
 
-import { useJobAIMatches } from "@/hooks/useJobAIMatches";
-
 import Jobb from "./Job";
 
 interface JobsClientProps {
@@ -23,7 +21,6 @@ interface JobsClientProps {
     initialCount: number;
     searchParams: JobSearchParams;
     currentPage: number;
-    userId?: number;
 }
 
 function setJobIdInUrl(
@@ -49,16 +46,9 @@ export default function JobsClient({
     initialCount,
     searchParams,
     currentPage,
-    userId,
 }: JobsClientProps) {
     const pathname = usePathname();
     const urlParams = useSearchParams();
-
-    /*
-     * ---------------------------------------------------------------
-     * Selected job
-     * ---------------------------------------------------------------
-     */
 
     const [selectedJobId, setSelectedJobId] =
         useState<number | null>(() => {
@@ -128,6 +118,22 @@ export default function JobsClient({
         selectedJobId,
     ]);
 
+    const jobsWithAI: JobWithAI[] = initialJobs.map((job) => ({
+        ...job,
+        aiMatch: null,
+    }));
+
+    const selectedJobWithAI = useMemo<JobWithAI | null>(() => {
+        if (!selectedJob) {
+            return null;
+        }
+
+        return {
+            ...selectedJob,
+            aiMatch: null,
+        };
+    }, [selectedJob]);
+
     const handleSelectedJob = useCallback(
         (id: number) => {
             setSelectedJobId(id);
@@ -144,76 +150,6 @@ export default function JobsClient({
         ]
     );
 
-    /*
-     * ---------------------------------------------------------------
-     * Job IDs
-     * ---------------------------------------------------------------
-     */
-
-    const jobIds = useMemo(() => {
-        if (initialJobs.length === 0) {
-            return [];
-        }
-
-        return initialJobs
-            .map((job) => job.id)
-            .sort((a, b) => a - b);
-    }, [initialJobs]);
-
-    /*
-     * ---------------------------------------------------------------
-     * AI matching
-     * ---------------------------------------------------------------
-     *
-     * All AI fetching, loading, error handling and caching
-     * is handled inside useJobAIMatches.
-     */
-
-    const {
-        aiMatchMap,
-        isAIMatching,
-        isAIError,
-    } = useJobAIMatches(
-        jobIds,
-        userId
-    );
-
-    /*
-     * ---------------------------------------------------------------
-     * Attach AI data to jobs
-     * ---------------------------------------------------------------
-     */
-
-    const jobsWithAI = useMemo<JobWithAI[]>(() => {
-        return initialJobs.map((job) => ({
-            ...job,
-            aiMatch: aiMatchMap.get(job.id) ?? null,
-        }));
-    }, [initialJobs, aiMatchMap]);
-
-    /*
-     * ---------------------------------------------------------------
-     * Selected job + AI
-     * ---------------------------------------------------------------
-     */
-
-    const selectedJobWithAI = useMemo<JobWithAI | null>(() => {
-        if (!selectedJob) {
-            return null;
-        }
-
-        return {
-            ...selectedJob,
-            aiMatch: aiMatchMap.get(selectedJob.id) ?? null,
-        };
-    }, [selectedJob, aiMatchMap]);
-
-    /*
-     * ---------------------------------------------------------------
-     * Render
-     * ---------------------------------------------------------------
-     */
-
     return (
         <Jobb
             jobs={jobsWithAI}
@@ -223,8 +159,8 @@ export default function JobsClient({
             isPending={false}
             onSelectedJob={handleSelectedJob}
             safeSearchParams={searchParams}
-            isAIMatching={isAIMatching}
-            isAIError={isAIError}
+            isAIMatching={false}
+            isAIError={false}
         />
     );
 }

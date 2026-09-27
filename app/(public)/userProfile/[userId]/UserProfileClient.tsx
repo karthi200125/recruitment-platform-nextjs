@@ -1,9 +1,17 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { Suspense } from "react";
+import { useEffect, useRef } from "react";
+
+import { updateProfileViews } from "@/actions/user/update-profile-views";
 
 import UserInfo from "../UserInfo";
+import ProfileResume from "../ProfileResume";
+import AboutMe from "../AboutMe";
+import Education from "../Educations";
+import Projects from "../project/Projects";
+import Experiences from "../Experiences";
+
+import MoreProfilesServer from "../MoreProfilesServer";
 
 import CompanySlidesSkeleton from "@/components/skeletons/CompanySlidesSkeleton";
 import { SkeletonRow } from "@/components/skeletons/MoreProfileSkeleton";
@@ -13,8 +21,9 @@ import {
     isCandidateRecruiterProfile,
     isOrganizationProfile,
 } from "@/types/userProfile";
+
+import { Suspense } from "react";
 import CompanySlidesServer from "../CompanySlides/CompanySlides";
-import MoreProfilesServer from "../MoreProfilesServer";
 
 interface CurrentUser {
     id: number;
@@ -23,100 +32,107 @@ interface CurrentUser {
 
 interface UserProfileClientProps {
     initialProfile: ProfileUser;
+    currentUserId?: number;
     currentUser?: CurrentUser | null;
 }
 
-/* ---------------------------------------
-   Dynamic profile sections
----------------------------------------- */
-
-const ProfileResume = dynamic(
-    () => import("../ProfileResume")
-);
-
-const AboutMe = dynamic(
-    () => import("../AboutMe")
-);
-
-const Education = dynamic(
-    () => import("../Educations")
-);
-
-const Projects = dynamic(
-    () => import("../project/Projects")
-);
-
-const Experiences = dynamic(
-    () => import("../Experiences")
-);
-
-/* ---------------------------------------
-   Main component
----------------------------------------- */
-
 const UserProfileClient = ({
     initialProfile,
+    currentUserId,
     currentUser,
 }: UserProfileClientProps) => {
-    const profileData = initialProfile;
+    const hasTrackedView = useRef(false);
 
-    if (!profileData) {
-        return null;
-    }
+    /* ---------------------------------------
+       Profile view tracking
+
+       This is the only client-side behavior
+       that belongs in this boundary.
+    ---------------------------------------- */
+
+    useEffect(() => {
+        if (!currentUserId) return;
+
+        if (currentUserId === initialProfile.id) {
+            return;
+        }
+
+        if (hasTrackedView.current) {
+            return;
+        }
+
+        hasTrackedView.current = true;
+
+        updateProfileViews(
+            currentUserId,
+            initialProfile.id
+        ).catch(() => { });
+    }, [currentUserId, initialProfile.id]);
+
+    /* ---------------------------------------
+       Profile type
+    ---------------------------------------- */
 
     const isOrganization =
-        isOrganizationProfile(profileData);
+        isOrganizationProfile(initialProfile);
 
     const isCandidateRecruiter =
-        isCandidateRecruiterProfile(profileData);
+        isCandidateRecruiterProfile(initialProfile);
 
     const company = isOrganization
-        ? profileData.company
+        ? initialProfile.company
         : null;
 
     return (
         <main className="flex min-h-screen w-full flex-col gap-5 py-6 md:flex-row">
 
-            {/* Main column */}
+            {/* ---------------------------------------
+                Main profile column
+            ---------------------------------------- */}
+
             <div className="w-full space-y-5 md:w-[70%]">
 
-                {/* Immediate */}
+                {/* ---------------------------------------
+                    CRITICAL ABOVE-FOLD CONTENT
+
+                    Keep these immediately renderable.
+                ---------------------------------------- */}
+
                 <UserInfo
-                    profileUser={profileData}
+                    profileUser={initialProfile}
                     isLoading={false}
                     company={company}
                     isOrg={isOrganization}
                 />
 
-                {/* Resume */}
+                <AboutMe
+                    profileUser={initialProfile}
+                    isLoading={false}
+                    company={company}
+                    isOrg={isOrganization}
+                />
+
+                {/* ---------------------------------------
+                    Resume
+                ---------------------------------------- */}
+
                 <Suspense
                     fallback={
                         <div className="h-24 w-full animate-pulse rounded-2xl bg-slate-100" />
                     }
                 >
                     <ProfileResume
-                        resume={profileData.resume}
+                        resume={initialProfile.resume}
                         resumePublicId={
-                            profileData.resumePublicId
+                            initialProfile.resumePublicId
                         }
                     />
                 </Suspense>
 
-                {/* About */}
-                <Suspense
-                    fallback={
-                        <div className="h-32 w-full animate-pulse rounded-2xl bg-slate-100" />
-                    }
-                >
-                    <AboutMe
-                        profileUser={profileData}
-                        isLoading={false}
-                        company={company}
-                        isOrg={isOrganization}
-                    />
-                </Suspense>
+                {/* ---------------------------------------
+                    Candidate / Recruiter sections
+                ---------------------------------------- */}
 
-                {/* Candidate / Recruiter */}
                 {isCandidateRecruiter && (
                     <>
                         <Suspense
@@ -126,10 +142,10 @@ const UserProfileClient = ({
                         >
                             <Education
                                 educations={
-                                    profileData.educations
+                                    initialProfile.educations
                                 }
                                 profileUserId={
-                                    profileData.id
+                                    initialProfile.id
                                 }
                                 isLoading={false}
                             />
@@ -142,10 +158,10 @@ const UserProfileClient = ({
                         >
                             <Projects
                                 projects={
-                                    profileData.projects
+                                    initialProfile.projects
                                 }
                                 profileUserId={
-                                    profileData.id
+                                    initialProfile.id
                                 }
                                 isLoading={false}
                             />
@@ -158,10 +174,10 @@ const UserProfileClient = ({
                         >
                             <Experiences
                                 experiences={
-                                    profileData.experiences
+                                    initialProfile.experiences
                                 }
                                 profileUserId={
-                                    profileData.id
+                                    initialProfile.id
                                 }
                                 isLoading={false}
                             />
@@ -169,31 +185,45 @@ const UserProfileClient = ({
                     </>
                 )}
 
-                {/* Organization only */}
+                {/* ---------------------------------------
+                    Organization sections
+
+                    Fetch independently so company jobs
+                    and employees do not block the core
+                    profile query.
+                ---------------------------------------- */}
+
                 {isOrganization && (
                     <Suspense
-                        fallback={<CompanySlidesSkeleton />}
+                        fallback={
+                            <CompanySlidesSkeleton />
+                        }
                     >
                         <CompanySlidesServer
-                            userId={profileData.id}
+                            userId={initialProfile.id}
                         />
                     </Suspense>
                 )}
-
             </div>
 
-            {/* Desktop sidebar */}
+            {/* ---------------------------------------
+                Desktop secondary sidebar
+
+                Not part of critical profile content.
+            ---------------------------------------- */}
+
             <aside className="hidden w-[30%] self-start md:sticky md:top-20 md:block">
                 <Suspense
                     fallback={<SkeletonRow />}
                 >
                     <MoreProfilesServer
-                        profileUserId={profileData.id}
+                        profileUserId={
+                            initialProfile.id
+                        }
                         currentUser={currentUser}
                     />
                 </Suspense>
             </aside>
-
         </main>
     );
 };
