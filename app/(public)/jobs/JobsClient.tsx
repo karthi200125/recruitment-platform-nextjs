@@ -21,6 +21,7 @@ interface JobsClientProps {
     initialCount: number;
     searchParams: JobSearchParams;
     currentPage: number;
+    userId: number | undefined;
 }
 
 function setJobIdInUrl(
