@@ -201,75 +201,80 @@ export async function getFilteredJobs(
         const skip =
             (currentPage - 1) * ITEMS_PER_PAGE;
 
+        console.time("JOBS: db.count");
+
+        const countPromise = db.job.count({
+            where,
+        });
+
+        console.time("JOBS: db.findMany");
+
+        const jobsPromise = db.job.findMany({
+            where,
+
+            select: {
+                id: true,
+                userId: true,
+                companyId: true,
+                jobTitle: true,
+                jobDesc: true,
+                experience: true,
+                city: true,
+                state: true,
+                country: true,
+                type: true,
+                mode: true,
+                skills: true,
+                isEasyApply: true,
+                applyLink: true,
+                questions: true,
+                createdAt: true,
+
+                user: {
+                    select: {
+                        id: true,
+                        username: true,
+                        profileImage: true,
+                        profession: true,
+                        role: true,
+                        isPro: true,
+                    },
+                },
+
+                company: {
+                    select: {
+                        id: true,
+                        userId: true,
+                        companyName: true,
+                        companyImage: true,
+                        companyAbout: true,
+                        companyTotalEmployees: true,
+                        companyIsVerified: true,
+                    },
+                },
+
+                _count: {
+                    select: {
+                        jobApplications: true,
+                    },
+                },
+            },
+
+            orderBy: {
+                createdAt: "desc",
+            },
+
+            take: ITEMS_PER_PAGE,
+            skip,
+        });
+
         const [count, rawJobs] = await Promise.all([
-            db.job.count({
-                where,
-            }),
-
-            db.job.findMany({
-                where,
-
-                select: {
-                    id: true,
-                    userId: true,
-                    companyId: true,
-
-                    jobTitle: true,
-                    jobDesc: true,
-                    experience: true,
-
-                    city: true,
-                    state: true,
-                    country: true,
-
-                    type: true,
-                    mode: true,
-                    skills: true,
-
-                    isEasyApply: true,
-                    applyLink: true,
-                    questions: true,
-
-                    createdAt: true,
-
-                    user: {
-                        select: {
-                            id: true,
-                            username: true,
-                            profileImage: true,
-                            profession: true,
-                            role: true,
-                            isPro: true,
-                        },
-                    },
-
-                    company: {
-                        select: {
-                            id: true,
-                            userId: true,
-                            companyName: true,
-                            companyImage: true,
-                            companyAbout: true,
-                            companyTotalEmployees: true,
-                            companyIsVerified: true,
-                        },
-                    },
-
-                    _count: {
-                        select: {
-                            jobApplications: true,
-                        },
-                    },
-                },
-
-                orderBy: {
-                    createdAt: "desc",
-                },
-
-                take: ITEMS_PER_PAGE,
-                skip,
-            }),
+            countPromise,
+            jobsPromise,
         ]);
+
+        console.timeEnd("JOBS: db.count");
+        console.timeEnd("JOBS: db.findMany");
 
         return {
             jobs: rawJobs,
