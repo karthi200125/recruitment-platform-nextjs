@@ -15,7 +15,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 import Model from "@/components/Model";
-import SaveJobButton from "@/components/SaveJobButton";
 import JobTitlesSkeleton from "@/components/skeletons/JobTitlesSkeleton";
 
 import AIJobMatch from "./AIJobMatch";
@@ -264,12 +263,12 @@ const JobTitles = ({
               )}
 
               {/* Save */}
-              {user?.id && (
+              {/* {user?.id && (
                 <SaveJobButton
                   userId={user.id}
                   jobId={job.id}
                 />
-              )}
+              )} */}
             </>
           )}
         </div>
