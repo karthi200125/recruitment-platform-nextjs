@@ -22,7 +22,7 @@ interface JobsClientProps {
     searchParams: JobSearchParams;
     currentPage: number;
     userId: number | undefined;
-    savedJobIds: number[] | undefined;
+    savedJobIds: number[];
 }
 
 function setJobIdInUrl(
