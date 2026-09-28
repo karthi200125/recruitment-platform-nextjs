@@ -83,6 +83,8 @@ export async function getFilteredJobs(
     count: number;
     savedJobIds: number[];
 }> {
+    console.time("JOBS: TOTAL");
+
     const {
         userId,
         page = 1,
@@ -95,6 +97,18 @@ export async function getFilteredJobs(
         company,
     } = params;
 
+    console.log("JOBS: params", {
+        userId,
+        page,
+        q,
+        easyApply,
+        dateposted,
+        experiencelevel,
+        type,
+        location,
+        company,
+    });
+
     const currentPage = Math.max(1, page);
 
     const trimmedQuery = q?.trim();
@@ -102,11 +116,26 @@ export async function getFilteredJobs(
     const trimmedLocation = location?.trim();
 
     try {
+        // ============================================================
+        // 1. BUILD WHERE CLAUSE
+        // ============================================================
+
+        console.time("JOBS: buildWhere");
+
         const where: Prisma.JobWhereInput = {};
 
         // Search
         if (trimmedQuery) {
+            console.time("JOBS: searchJobIds");
+
             const ids = await searchJobIds(trimmedQuery);
+
+            console.timeEnd("JOBS: searchJobIds");
+
+            console.log(
+                "JOBS: searchJobIds result count:",
+                ids.length
+            );
 
             where.id = {
                 in: ids.length > 0 ? ids : [-1],
@@ -199,14 +228,34 @@ export async function getFilteredJobs(
             ];
         }
 
+        console.timeEnd("JOBS: buildWhere");
+
+        // ============================================================
+        // 2. PAGINATION
+        // ============================================================
+
         const skip =
             (currentPage - 1) * ITEMS_PER_PAGE;
+
+        console.log("JOBS: pagination", {
+            currentPage,
+            skip,
+            take: ITEMS_PER_PAGE,
+        });
+
+        // ============================================================
+        // 3. DATABASE COUNT
+        // ============================================================
 
         console.time("JOBS: db.count");
 
         const countPromise = db.job.count({
             where,
         });
+
+        // ============================================================
+        // 4. DATABASE FIND MANY
+        // ============================================================
 
         console.time("JOBS: db.findMany");
 
@@ -217,18 +266,23 @@ export async function getFilteredJobs(
                 id: true,
                 userId: true,
                 companyId: true,
+
                 jobTitle: true,
                 jobDesc: true,
                 experience: true,
+
                 city: true,
                 state: true,
                 country: true,
+
                 type: true,
                 mode: true,
                 skills: true,
+
                 isEasyApply: true,
                 applyLink: true,
                 questions: true,
+
                 createdAt: true,
 
                 user: {
@@ -269,6 +323,10 @@ export async function getFilteredJobs(
             skip,
         });
 
+        // ============================================================
+        // 5. WAIT FOR COUNT + JOBS
+        // ============================================================
+
         const [count, rawJobs] = await Promise.all([
             countPromise,
             jobsPromise,
@@ -277,35 +335,77 @@ export async function getFilteredJobs(
         console.timeEnd("JOBS: db.count");
         console.timeEnd("JOBS: db.findMany");
 
-        // Get saved jobs for the current user
-        // One query for all 10 jobs instead of one query per job.
+        console.log("JOBS: DB result", {
+            count,
+            jobsReturned: rawJobs.length,
+            jobIds: rawJobs.map((job) => job.id),
+        });
+
+        // ============================================================
+        // 6. GET SAVED JOB IDS
+        // ============================================================
+
         let savedJobIds: number[] = [];
 
-        if (userId !== undefined && rawJobs.length > 0) {
-            const savedJobs = await db.savedJob.findMany({
-                where: {
-                    userId,
-                    jobId: {
-                        in: rawJobs.map((job) => job.id),
+        if (
+            userId !== undefined &&
+            rawJobs.length > 0
+        ) {
+            console.time(
+                "JOBS: db.savedJob.findMany"
+            );
+
+            const savedJobs =
+                await db.savedJob.findMany({
+                    where: {
+                        userId,
+                        jobId: {
+                            in: rawJobs.map(
+                                (job) => job.id
+                            ),
+                        },
                     },
-                },
-                select: {
-                    jobId: true,
-                },
-            });
+
+                    select: {
+                        jobId: true,
+                    },
+                });
+
+            console.timeEnd(
+                "JOBS: db.savedJob.findMany"
+            );
 
             savedJobIds = savedJobs.map(
                 (savedJob) => savedJob.jobId
             );
+
+            console.log(
+                "JOBS: savedJobIds",
+                savedJobIds
+            );
+        } else {
+            console.log(
+                "JOBS: savedJob query skipped",
+                {
+                    hasUserId:
+                        userId !== undefined,
+                    jobsReturned:
+                        rawJobs.length,
+                }
+            );
         }
 
-        console.time(
-            "JOBS: db.savedJob.findMany"
-        );
+        // ============================================================
+        // 7. FINAL RESULT
+        // ============================================================
 
-        console.timeEnd(
-            "JOBS: db.savedJob.findMany"
-        );
+        console.log("JOBS: FINAL", {
+            jobs: rawJobs.length,
+            count,
+            savedJobIds: savedJobIds.length,
+        });
+
+        console.timeEnd("JOBS: TOTAL");
 
         return {
             jobs: rawJobs,
@@ -314,9 +414,11 @@ export async function getFilteredJobs(
         };
     } catch (error) {
         console.error(
-            "❌ getFilteredJobs:",
+            "❌ getFilteredJobs ERROR:",
             error
         );
+
+        console.timeEnd("JOBS: TOTAL");
 
         throw new Error(
             "Failed to fetch jobs"
