@@ -22,12 +22,13 @@ interface JobsClientProps {
     searchParams: JobSearchParams;
     currentPage: number;
     userId: number | undefined;
+    savedJobIds: number[] | undefined;
 }
 
 function setJobIdInUrl(
     pathname: string,
     urlParams: URLSearchParams,
-    jobId: number
+    jobId: number    
 ) {
     const params = new URLSearchParams(
         urlParams.toString()
@@ -47,6 +48,8 @@ export default function JobsClient({
     initialCount,
     searchParams,
     currentPage,
+    userId,
+    savedJobIds,
 }: JobsClientProps) {
     const pathname = usePathname();
     const urlParams = useSearchParams();
@@ -160,6 +163,7 @@ export default function JobsClient({
             isPending={false}
             onSelectedJob={handleSelectedJob}
             safeSearchParams={searchParams}
+            savedJobIds={savedJobIds}
             isAIMatching={false}
             isAIError={false}
         />

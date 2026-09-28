@@ -25,6 +25,7 @@ interface Props {
     count: number;
     currentPage: number;
     safeSearchParams: JobSearchParams;
+    savedJobIds: number[];
     isAIMatching: boolean;
     isAIError: boolean;
 }
@@ -77,6 +78,7 @@ const Jobb = ({
     safeSearchParams,
     isAIMatching,
     isAIError,
+    savedJobIds
 }: Props) => {
     const [
         isMobileDetailsOpen,
@@ -114,6 +116,7 @@ const Jobb = ({
                         selectedJobId={
                             job?.id ?? null
                         }
+                        savedJobIds={savedJobIds ?? []}
                     />
 
                 </div>
@@ -126,6 +129,7 @@ const Jobb = ({
                             safeSearchParams={safeSearchParams}
                             isAIMatching={isAIMatching}
                             isAIError={isAIError}
+                            savedJobIds={savedJobIds}
                         />
                     ) : (
                         <NoJobSelected />
@@ -157,6 +161,7 @@ const Jobb = ({
                             safeSearchParams={safeSearchParams}
                             isAIMatching={isAIMatching}
                             isAIError={isAIError}
+                            savedJobIds={savedJobIds}
                         />
                     ) : (
                         <NoJobSelected />

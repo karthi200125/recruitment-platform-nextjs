@@ -137,7 +137,7 @@ export default async function JobsPage({
 
   console.time("JOBS: getFilteredJobs");
 
-  const { jobs, count } = await getFilteredJobs(filters);
+  const { jobs, count, savedJobIds, } = await getFilteredJobs(filters);
 
   console.timeEnd("JOBS: getFilteredJobs");
 
@@ -148,6 +148,7 @@ export default async function JobsPage({
       searchParams={filters}
       currentPage={currentPage}
       userId={userId}
+      savedJobIds={savedJobIds}
     />
   );
 }

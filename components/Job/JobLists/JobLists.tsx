@@ -11,6 +11,7 @@ interface Props {
   isLoading: boolean;
   onSelectedJob?: (id: number) => void;
   selectedJobId?: number | null;
+  savedJobIds: number[];
 }
 
 function JobListSkeleton() {
@@ -54,6 +55,7 @@ const JobLists = ({
   isLoading,
   onSelectedJob,
   selectedJobId,
+  savedJobIds
 }: Props) => {
   if (isLoading) return <JobListSkeleton />;
   if (!jobs.length) return <EmptyState />;
@@ -82,6 +84,7 @@ const JobLists = ({
               selectedJob={selectedJobId}
               isHover
               border
+              savedJobIds={savedJobIds}
             />
           </div>
         ))}

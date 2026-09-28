@@ -15,6 +15,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import Model from "@/components/Model";
+import SaveJobButton from "@/components/SaveJobButton";
 import JobTitlesSkeleton from "@/components/skeletons/JobTitlesSkeleton";
 
 import AIJobMatch from "./AIJobMatch";
@@ -32,6 +33,7 @@ interface JobTitlesProps {
   safeSearchParams?: SearchParams;
   isAIMatching: boolean;
   isAIError: boolean;
+  savedJobIds: number[];
 }
 
 const MODE_STYLES: Record<string, string> = {
@@ -50,6 +52,8 @@ const JobTitles = ({
   job,
   company,
   isPending,
+  safeSearchParams,
+  savedJobIds,
   isAIMatching,
   isAIError,
 }: JobTitlesProps) => {
@@ -263,12 +267,13 @@ const JobTitles = ({
               )}
 
               {/* Save */}
-              {/* {user?.id && (
+              {user?.id && (
                 <SaveJobButton
                   userId={user.id}
                   jobId={job.id}
+                  initialSaved={savedJobIds.includes(job.id)}
                 />
-              )} */}
+              )}
             </>
           )}
         </div>

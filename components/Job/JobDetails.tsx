@@ -13,6 +13,7 @@ interface JobDetailsProps {
     safeSearchParams?: JobSearchParams;
     isAIMatching: boolean;
     isAIError: boolean;
+    savedJobIds: number[];
 }
 
 const JobDetails = ({
@@ -20,6 +21,7 @@ const JobDetails = ({
     safeSearchParams,
     isAIMatching,
     isAIError,
+    savedJobIds
 }: JobDetailsProps) => {
     const { user } = useCurrentUser();
 
@@ -55,6 +57,7 @@ const JobDetails = ({
                     }
                     isAIMatching={isAIMatching}
                     isAIError={isAIError}
+                    savedJobIds={savedJobIds}
                 />
 
                 <div className="h-px bg-slate-100" />

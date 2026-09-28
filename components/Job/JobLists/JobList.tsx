@@ -12,6 +12,7 @@ interface Props {
   isHover?: boolean;
   border?: boolean;
   onSelect?: (id: number) => void;
+  savedJobIds: number[];
 }
 
 const MODE_STYLES: Record<string, string> = {
@@ -21,7 +22,7 @@ const MODE_STYLES: Record<string, string> = {
   on_site: "bg-amber-50 text-amber-700 border-amber-200",
 };
 
-const JobList = ({ job, selectedJob, isHover, border, onSelect }: Props) => {
+const JobList = ({ job, selectedJob, isHover, border, onSelect, savedJobIds }: Props) => {
   const isSelected = job.id === selectedJob;
   const modeLower = (job.mode ?? "").toLowerCase().replace(/\s+/g, "_");
   const modeBadge = MODE_STYLES[modeLower];
@@ -48,6 +49,7 @@ const JobList = ({ job, selectedJob, isHover, border, onSelect }: Props) => {
             userId={user.id}
             jobId={job.id}
             isIcon
+            initialSaved={savedJobIds.includes(job.id)}
           />
         </div>
       }

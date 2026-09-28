@@ -59,7 +59,7 @@ export type FilteredJob = Prisma.JobGetPayload<{
             };
         };
     };
-}>
+}>;
 
 export type JobWithAI = FilteredJob & {
     aiMatch: AIJobMatchResult | null;
@@ -81,6 +81,7 @@ export async function getFilteredJobs(
 ): Promise<{
     jobs: FilteredJob[];
     count: number;
+    savedJobIds: number[];
 }> {
     const {
         userId,
@@ -276,13 +277,49 @@ export async function getFilteredJobs(
         console.timeEnd("JOBS: db.count");
         console.timeEnd("JOBS: db.findMany");
 
+        // Get saved jobs for the current user
+        // One query for all 10 jobs instead of one query per job.
+        let savedJobIds: number[] = [];
+
+        if (userId !== undefined && rawJobs.length > 0) {
+            const savedJobs = await db.savedJob.findMany({
+                where: {
+                    userId,
+                    jobId: {
+                        in: rawJobs.map((job) => job.id),
+                    },
+                },
+                select: {
+                    jobId: true,
+                },
+            });
+
+            savedJobIds = savedJobs.map(
+                (savedJob) => savedJob.jobId
+            );
+        }
+
+        console.time(
+            "JOBS: db.savedJob.findMany"
+        );
+
+        console.timeEnd(
+            "JOBS: db.savedJob.findMany"
+        );
+
         return {
             jobs: rawJobs,
             count,
+            savedJobIds,
         };
     } catch (error) {
-        console.error("❌ getFilteredJobs:", error);
+        console.error(
+            "❌ getFilteredJobs:",
+            error
+        );
 
-        throw new Error("Failed to fetch jobs");
+        throw new Error(
+            "Failed to fetch jobs"
+        );
     }
 }
