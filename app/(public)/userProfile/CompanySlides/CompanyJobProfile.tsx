@@ -26,7 +26,7 @@ const CompanyJobProfile = ({
                     key={job.id}
                     className="rounded-md border p-5"
                 >
-                    <JobList job={{ ...job, aiMatch }} />
+                    <JobList job={{ ...job, aiMatch }} savedJobIds={[]} />
                 </div>
             ))}
         </div>

@@ -4,10 +4,13 @@ import { cache } from "react";
 import { db } from "@/lib/db";
 
 export const getCompanyProfileData = cache(
-    async (userId: number) => {
-        return db.user.findUnique({
+    async (
+        companyUserId: number,
+        currentUserId?: number
+    ) => {
+        const companyData = await db.user.findUnique({
             where: {
-                id: userId,
+                id: companyUserId,
                 role: "ORGANIZATION",
             },
 
@@ -68,5 +71,42 @@ export const getCompanyProfileData = cache(
                 },
             },
         });
+
+        if (!companyData?.company) {
+            return null;
+        }
+
+        let savedJobIds: number[] = [];
+
+        if (
+            currentUserId !== undefined &&
+            companyData.company.jobs.length > 0
+        ) {
+            const jobIds = companyData.company.jobs.map(
+                (job) => job.id
+            );
+
+            const savedJobs = await db.savedJob.findMany({
+                where: {
+                    userId: currentUserId,
+                    jobId: {
+                        in: jobIds,
+                    },
+                },
+
+                select: {
+                    jobId: true,
+                },
+            });
+
+            savedJobIds = savedJobs.map(
+                (savedJob) => savedJob.jobId
+            );
+        }
+
+        return {
+            ...companyData,
+            savedJobIds,
+        };
     }
 );

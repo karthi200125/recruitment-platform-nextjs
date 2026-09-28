@@ -89,7 +89,7 @@ const DeleteJobForm = ({
 
   return (
     <div className="space-y-5">
-      <JobList job={{ ...job, aiMatch }} />
+      <JobList job={{ ...job, aiMatch }} savedJobIds={[]} />
 
       <Button
         onClick={handleDelete}

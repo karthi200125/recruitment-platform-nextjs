@@ -26,6 +26,7 @@ interface ProfileUser {
 interface CompanySlidesProps {
     company?: Company | null;
     profileUser?: ProfileUser | null;
+    savedJobIds: number[];
 }
 
 type TabKey = "Home" | "Employees" | "Jobs";
@@ -86,7 +87,7 @@ function Empty({ icon: Icon, text }: { icon: React.ElementType; text: string }) 
     );
 }
 
-const CompanySlideClient = ({ company, profileUser }: CompanySlidesProps) => {
+const CompanySlideClient = ({ company, profileUser , savedJobIds }: CompanySlidesProps) => {
     const [tab, setTab] = useState<TabKey>("Home");
 
     const jobs = company?.jobs ?? [];
@@ -145,7 +146,7 @@ const CompanySlideClient = ({ company, profileUser }: CompanySlidesProps) => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {jobs.map((job) => (
                                     <div key={job.id} className="rounded-2xl border border-slate-200 bg-white p-4 hover:border-indigo-200 hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200">
-                                        <JobList job={job} />
+                                        <JobList job={job} savedJobIds={savedJobIds} />
                                     </div>
                                 ))}
                             </div>

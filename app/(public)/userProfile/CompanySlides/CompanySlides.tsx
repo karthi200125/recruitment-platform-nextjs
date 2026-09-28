@@ -17,6 +17,7 @@ const CompanySlidesServer = async ({
     return (
         <CompanySlideClient
             company={data.company}
+            savedJobIds={data.savedJobIds}
         />
     );
 };
