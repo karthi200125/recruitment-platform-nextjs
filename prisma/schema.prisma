@@ -36,51 +36,53 @@ model User {
   resume               String?
   resumePublicId       String?
   skills               String[]
-  resetPasswordToken   String?           @unique
+  resetPasswordToken   String?            @unique
   resetPasswordExpires DateTime?
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
-  chatsReceived        Chats[]           @relation("ReceiverChats")
-  chatsSent            Chats[]           @relation("SenderChats")
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  chatsReceived        Chats[]            @relation("ReceiverChats")
+  chatsSent            Chats[]            @relation("SenderChats")
   company              Company?
-  sentInvitations      CompanyEmployee[] @relation("CompanyInviter")
-  companyMemberships   CompanyEmployee[] @relation("CompanyMember")
+  sentInvitations      CompanyEmployee[]  @relation("CompanyInviter")
+  companyMemberships   CompanyEmployee[]  @relation("CompanyMember")
   educations           Education[]
   experiences          Experience[]
-  following            Follow[]          @relation("UserFollowing")
-  followers            Follow[]          @relation("UserFollowers")
-  postedJobs           Job[]             @relation("PostedJobs")
+  following            Follow[]           @relation("UserFollowing")
+  followers            Follow[]           @relation("UserFollowers")
+  postedJobs           Job[]              @relation("PostedJobs")
   jobApplications      JobApplication[]
   messages             Message[]
-  profileViewsReceived ProfileView[]     @relation("ProfileUserViews")
-  profileViewsGiven    ProfileView[]     @relation("ViewerUserViews")
+  profileViewsReceived ProfileView[]      @relation("ProfileUserViews")
+  profileViewsGiven    ProfileView[]      @relation("ViewerUserViews")
   projects             Project[]
   savedJobs            SavedJob[]
   subscription         Subscription?
 }
 
 model Company {
-  id                       Int               @id @default(autoincrement())
-  companyName              String            @unique
-  companyImage             String?
-  companyImagePublicId     String?
-  companyBackImage         String?
+  id                    Int               @id @default(autoincrement())
+  companyName           String            @unique
+  companyImage          String?
+  companyImagePublicId  String?
+  companyBackImage      String?
   companyBackImagePublicId String?
-  companyAddress           String
-  companyCity              String
-  companyState             String
-  companyCountry           String
-  companyWebsite           String?
-  companyAbout             String
-  companyBio               String
-  companyTotalEmployees    String
-  companyIsVerified        Boolean           @default(false)
-  userId                   Int               @unique
-  createdAt                DateTime          @default(now())
-  updatedAt                DateTime          @updatedAt
-  user                     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  employees                CompanyEmployee[]
-  jobs                     Job[]
+  companyAddress        String
+  companyCity           String
+  companyState          String
+  companyCountry        String
+  companyWebsite        String?
+  companyAbout          String
+  companyBio            String
+  companyTotalEmployees String
+  companyIsVerified     Boolean           @default(false)
+  userId                Int               @unique
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employees CompanyEmployee[]
+  jobs      Job[]
 
   @@index([companyName(ops: raw("gin_trgm_ops"))], map: "company_name_trgm_idx", type: Gin)
 }
@@ -95,9 +97,10 @@ model CompanyEmployee {
   joinedAt    DateTime?
   createdAt   DateTime              @default(now())
   updatedAt   DateTime              @updatedAt
-  company     Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  invitedBy   User?                 @relation("CompanyInviter", fields: [invitedById], references: [id])
-  user        User                  @relation("CompanyMember", fields: [userId], references: [id], onDelete: Cascade)
+
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invitedBy   User?   @relation("CompanyInviter", fields: [invitedById], references: [id])
+  user        User    @relation("CompanyMember", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([companyId, userId])
   @@index([companyId])
@@ -129,16 +132,21 @@ model Job {
   companyId       Int
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+
   company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
   user            User             @relation("PostedJobs", fields: [userId], references: [id], onDelete: Cascade)
   jobApplications JobApplication[]
   savedBy         SavedJob[]
 
+  // Job listing / filtering indexes
+  @@index([userId])
   @@index([companyId])
   @@index([companyId, status])
   @@index([companyId, createdAt])
+  @@index([createdAt(sort: Desc)])
+
+  // Search indexes
   @@index([city(ops: raw("gin_trgm_ops"))], map: "job_city_trgm_idx", type: Gin)
-  @@index([companyId], map: "job_company_id_idx")
   @@index([jobDesc(ops: raw("gin_trgm_ops"))], map: "job_desc_trgm_idx", type: Gin)
   @@index([status], map: "job_status_idx")
   @@index([jobTitle(ops: raw("gin_trgm_ops"))], map: "job_title_trgm_idx", type: Gin)
@@ -149,8 +157,9 @@ model SavedJob {
   userId    Int
   jobId     Int
   createdAt DateTime @default(now())
-  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, jobId])
   @@index([userId])
@@ -178,8 +187,9 @@ model JobApplication {
   createdAt               DateTime                   @default(now())
   updatedAt               DateTime                   @updatedAt
   statusHistory           ApplicationStatusHistory[]
-  job                     Job                        @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  user                    User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, jobId])
   @@index([userId])
@@ -190,11 +200,12 @@ model JobApplication {
 }
 
 model ApplicationStatusHistory {
-  id             Int               @id @default(autoincrement())
-  applicationId  Int
-  status         ApplicationStatus
-  createdAt      DateTime          @default(now())
-  jobApplication JobApplication    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  id            Int      @id @default(autoincrement())
+  applicationId Int
+  status        ApplicationStatus
+  createdAt     DateTime @default(now())
+
+  jobApplication JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@index([applicationId])
 }
@@ -204,8 +215,9 @@ model Follow {
   followerId  Int
   followingId Int
   createdAt   DateTime @default(now())
-  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
-  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  follower  User @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
   @@index([followerId])
@@ -217,8 +229,9 @@ model ProfileView {
   profileUserId Int
   viewerUserId  Int?
   createdAt     DateTime @default(now())
-  profileUser   User     @relation("ProfileUserViews", fields: [profileUserId], references: [id], onDelete: Cascade)
-  viewer        User?    @relation("ViewerUserViews", fields: [viewerUserId], references: [id])
+
+  profileUser User  @relation("ProfileUserViews", fields: [profileUserId], references: [id], onDelete: Cascade)
+  viewer      User? @relation("ViewerUserViews", fields: [viewerUserId], references: [id])
 
   @@unique([profileUserId, viewerUserId])
   @@index([profileUserId])
@@ -236,7 +249,8 @@ model Education {
   userId        Int
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -251,7 +265,8 @@ model Experience {
   userId      Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -266,7 +281,8 @@ model Project {
   userId           Int
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -280,9 +296,10 @@ model Chats {
   isSeen        Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  receiver      User      @relation("ReceiverChats", fields: [receiverId], references: [id], onDelete: Cascade)
-  sender        User      @relation("SenderChats", fields: [senderId], references: [id], onDelete: Cascade)
-  messages      Message[]
+
+  receiver User @relation("ReceiverChats", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender   User @relation("SenderChats", fields: [senderId], references: [id], onDelete: Cascade)
+  messages Message[]
 
   @@unique([senderId, receiverId])
   @@index([senderId])
@@ -297,15 +314,16 @@ model Message {
   text          String?
   image         String?
   imagePublicId String?
-  file          String?
+  file         String?
   fileName      String?
   fileType      String?
   isSeen        Boolean  @default(false)
   isDeleted     Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  chat          Chats    @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  sender        User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  chat   Chats @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([chatId])
   @@index([senderId])
@@ -324,9 +342,10 @@ model Subscription {
   amount                 Int?
   cancelAtPeriodEnd      Boolean   @default(false)
   canceledAt             DateTime?
-  createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
-  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt              DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum Role {
